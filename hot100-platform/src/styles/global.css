@@ -1,0 +1,80 @@
+/* ============================================================
+   全局基础样式
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+:root {
+  /* === 核心色彩（与 viewer.html 共享） === */
+  --c-orange:      #d97757;
+  --c-orange-dim:  #b55e3f;
+  --c-blue:        #6a9bcc;
+  --c-green:       #788c5d;
+  --c-amber:       #c8893c;
+  --c-red:         #c85c5c;
+
+  /* === 平台暗色背景 === */
+  --bg-app:        #1a1a18;
+  --bg-sidebar:    #1e1e1b;
+  --bg-card:       #242420;
+  --bg-card-hover: #2c2c28;
+  --bg-topbar:     #111110;
+
+  /* === 文字色 === */
+  --text-primary:  #e8e6dc;
+  --text-muted:    #7a7870;
+  --text-dim:      #4a4844;
+
+  /* === 边框 === */
+  --border:        #2e2e2a;
+  --border-bright: #3e3e38;
+
+  /* === 字体 === */
+  --font-display:  'Lora', serif;
+  --font-body:     'Poppins', 'PingFang SC', sans-serif;
+  --font-mono:     'JetBrains Mono', 'Consolas', monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === 自定义滚动条 === */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #3e3e38;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d97757;
+}
+
+/* === 路由过渡动画 === */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

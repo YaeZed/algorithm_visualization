@@ -1,0 +1,1165 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>两数之和 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        height: 100vh;
+        padding: 15px;
+        gap: 15px;
+      }
+
+      /* Left Sidebar - Controls */
+      .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto;
+        border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 {
+        font-family: "Lora", serif;
+        font-size: 18px;
+        margin-bottom: 4px;
+        color: var(--anthropic-orange);
+      }
+      .subtitle {
+        color: var(--anthropic-mid-gray);
+        font-size: 11px;
+        margin-bottom: 20px;
+      }
+      .control-section {
+        margin-bottom: 20px;
+      }
+      .control-section h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: var(--anthropic-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .control-section h3::before {
+        content: "";
+        width: 4px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 2px;
+      }
+      .control-group {
+        margin-bottom: 12px;
+      }
+      .control-group label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 4px;
+        color: #666;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      input[type="range"] {
+        flex: 1;
+        height: 4px;
+        background: var(--anthropic-light-gray);
+        border-radius: 2px;
+        appearance: none;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        min-width: 25px;
+        text-align: right;
+      }
+      .button {
+        background: var(--anthropic-orange);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        width: 100%;
+        cursor: pointer;
+        font-size: 13px;
+        transition: 0.2s;
+        font-weight: 500;
+      }
+      .button:hover {
+        background: #c86641;
+      }
+      .seed-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--anthropic-light-gray);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+
+      /* Middle - Canvas */
+      .canvas-area {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .canvas-header {
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--anthropic-light-gray);
+        font-size: 13px;
+        font-weight: 500;
+        color: #888;
+      }
+      #canvas-container {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Right Panel - Logic & Code */
+      .right-panel {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      /* Code Box (VS Code Dark+ Style) */
+      .code-box {
+        flex: 1.1;
+        background: #1e1e1e;
+        border-radius: 12px;
+        border: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .box-header {
+        padding: 8px 15px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .box-header.dark {
+        background: #282828;
+        border-bottom: 1px solid #1e1e1e;
+        padding: 10px 15px 0 15px;
+      }
+      .box-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+      }
+      .box-title.dark {
+        color: #ccc;
+        padding-bottom: 10px;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+      }
+      .tabs.dark {
+        gap: 1px;
+        align-items: flex-end;
+      }
+      .tabs.dark .tab {
+        padding: 8px 16px;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        background: #2d2d2d;
+        transition: 0.2s;
+        color: #888;
+        font-weight: 500;
+        font-size: 11px;
+        font-family: "Poppins", sans-serif;
+      }
+      .tabs.dark .tab:hover {
+        background: #3c3c3c;
+        color: #ddd;
+      }
+      .tabs.dark .tab.active {
+        background: #1e1e1e;
+        color: #4ec9b0;
+        border-top: 2px solid #007acc;
+      }
+
+      .code-content {
+        flex: 1;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        background: #1e1e1e;
+        border-radius: 0 0 12px 12px;
+      }
+      #code-viewer {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 15px;
+        line-height: 1.6;
+        display: block;
+        padding: 15px;
+        background: transparent;
+        color: #d4d4d4;
+      }
+
+      /* Highlight.js CSS Overrides for precise Dark+ accuracy */
+      .hljs {
+        background: transparent !important;
+        padding: 0 !important;
+        color: #d4d4d4 !important;
+      }
+      .hljs-keyword,
+      .hljs-literal,
+      .hljs-selector-tag {
+        color: #569cd6 !important;
+      }
+      .hljs-type,
+      .hljs-title.class_,
+      .hljs-class .hljs-title,
+      .hljs-built_in {
+        color: #4ec9b0 !important;
+      }
+      .hljs-variable,
+      .hljs-variable.language_,
+      .hljs-property,
+      .hljs-attr,
+      .hljs-params {
+        color: #9cdcfe !important;
+      }
+      .hljs-number {
+        color: #b5cea8 !important;
+      }
+      .hljs-punctuation,
+      .hljs-operator {
+        color: #d4d4d4 !important;
+      }
+      .hljs-string,
+      .hljs-char {
+        color: #ce9178 !important;
+      }
+      .hljs-comment {
+        color: #6a9955 !important;
+      }
+      .hljs-title.function_,
+      .hljs-function .hljs-title,
+      .hljs-title.function_.invoke__ {
+        color: #dcdcaa !important;
+      }
+
+      /* Logic Log Box */
+      .logic-box {
+        flex: 0.9;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--anthropic-light-gray);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+
+      /* Optional Visual Data Structure Area (e.g. Heap Array / Pointers) */
+      .data-viz {
+        padding: 12px;
+        background: #fffcf9;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .data-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--anthropic-orange);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .data-array {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-height: 30px;
+      }
+      .data-node {
+        width: 22px;
+        height: 22px;
+        background: var(--anthropic-orange);
+        color: white;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: bold;
+      }
+
+      /* Auto-scrolling Log */
+      .log-area {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 11.5px;
+        background: #fff;
+      }
+      .log-item {
+        padding: 5px 10px;
+        border-radius: 4px;
+        background: #fcfcfc;
+        border-left: 2px solid #ddd;
+        border-bottom: 1px solid #f5f5f5;
+        line-height: 1.4;
+        color: #444;
+      }
+      .log-item.highlight {
+        border-left-color: var(--anthropic-orange);
+        background: #fff9f5;
+        font-weight: 500;
+      }
+      .log-item .time {
+        font-size: 9px;
+        color: #bbb;
+        margin-bottom: 2px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #e0e0e0;
+        border-radius: 3px;
+      }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card {
+        margin-top: 18px;
+        border-top: 1px solid var(--anthropic-light-gray);
+        padding-top: 14px;
+      }
+      .memo-card h3 {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--anthropic-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .memo-card h3::before {
+        content: "";
+        width: 3px;
+        height: 12px;
+        background: var(--anthropic-green);
+        border-radius: 2px;
+      }
+      .memo-badges {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .memo-badge {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .memo-badge.time {
+        background: #fff3ee;
+        color: var(--anthropic-orange);
+        border: 1px solid #f0c8b0;
+      }
+      .memo-badge.space {
+        background: #eef3ff;
+        color: var(--anthropic-blue);
+        border: 1px solid #b8d0f0;
+      }
+      .memo-tips {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .memo-tip {
+        padding: 6px 9px;
+        font-size: 11px;
+        line-height: 1.5;
+        color: #555;
+        background: #fffcf9;
+        border-left: 3px solid var(--anthropic-orange);
+        border-radius: 0 5px 5px 0;
+      }
+      .memo-tip.g {
+        border-left-color: var(--anthropic-green);
+      }
+      .memo-tip.w {
+        border-left-color: #e8a838;
+        background: #fffdf2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>两数之和 (Two Sum)</h1>
+        <div class="subtitle">哈希表一次遍历最优解</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input
+            type="number"
+            id="seed-input"
+            class="seed-input"
+            value="12345"
+            onchange="updateSeed()"
+          />
+          <button class="button" onclick="randomSeedAndUpdate()">
+            生成新随机场景
+          </button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="speed"
+                min="0.1"
+                max="2.5"
+                step="0.1"
+                value="1.0"
+                oninput="updateParam('speed', this.value)"
+              />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>数组长度 (n)</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="n"
+                min="5"
+                max="12"
+                step="1"
+                value="8"
+                oninput="updateParam('n', this.value)"
+              />
+              <span class="value-display" id="n-value">8</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button
+            id="pause-btn"
+            class="button"
+            style="background: var(--anthropic-dark)"
+            onclick="togglePause()"
+          >
+            ⏸ 暂停
+          </button>
+          <button
+            class="button"
+            style="background: var(--anthropic-blue)"
+            onclick="resetAnimation()"
+          >
+            🔄 重新运行
+          </button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(n)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">
+              💡 核心原理：边遍历边存入哈希表，用空间换取时间。
+            </div>
+            <div class="memo-tip">
+              💡 查找逻辑：对于当前元素 x，在哈希表中检索是否存在 complement =
+              (target - x)。
+            </div>
+            <div class="memo-tip g">
+              🔍
+              为什么不先全部存入哈希表？边查边存可以避免元素与自身的错误匹配，且在找到答案时能立即终止（Early
+              Return）。
+            </div>
+            <div class="memo-tip w">
+              ⚠️ 暴力解法采用两层 for 循环，时间复杂度为
+              O(n²)，在数据规模大时会导致超时。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+          算法执行动画展示区
+          <span
+            id="target-display"
+            style="
+              float: right;
+              color: var(--anthropic-orange);
+              font-weight: bold;
+            "
+          ></span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre
+            class="code-content"
+          ><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">原始数组 (nums)</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTI-LANGUAGE SNIPPETS WITH DETAILED CHINESE COMMENTS
+      // ==========================================================
+      const SNIPPETS = {
+        python: `# Python 最优解：使用字典（哈希表）
+def twoSum(nums: list[int], target: int) -> list[int]:
+    # 初始化一个字典用于存储已经遍历过的元素及其索引
+    # 键 (key)：数组中的数值
+    # 值 (value)：该数值在数组中的索引
+    num_map = {} 
+    
+    # 遍历数组，i 为索引，num 为当前数值
+    for i, num in enumerate(nums):
+        # 计算当前元素所需的“配对值”
+        complement = target - num
+        
+        # O(1) 时间复杂度：检查配对值是否已经在哈希表中
+        if complement in num_map:
+            # 如果存在，说明我们找到了两个数，直接返回它们的索引
+            return [num_map[complement], i]
+            
+        # 如果不存在，将当前数值及其索引存入哈希表
+        # 供后续遍历的元素进行匹配查询
+        num_map[num] = i
+        
+    return [] # 题目保证有解，理论上不会走到这里`,
+
+        ts: `// TypeScript 最优解：使用 Map 数据结构
+function twoSum(nums: number[], target: number): number[] {
+    // 初始化一个 Map 用于存储遍历过的数字及其索引
+    // key: 数值, value: 索引
+    const map = new Map<number, number>();
+
+    // 从头到尾遍历数组
+    for (let i = 0; i < nums.length; i++) {
+        // 获取当前数值
+        const num = nums[i];
+        // 计算目标配对值
+        const complement = target - num;
+
+        // O(1) 查找：如果配对值已经存在于 Map 中
+        if (map.has(complement)) {
+            // 返回匹配到的索引和当前索引
+            // 使用 ! 非空断言是因为我们已经用 has 确认过其存在
+            return [map.get(complement)!, i];
+        }
+
+        // 如果没有找到，将当前数字及其索引存入 Map，继续向后遍历
+        map.set(num, i);
+    }
+
+    return []; // 兜底返回
+}`,
+
+        java: `// Java 最优解：使用 HashMap
+class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        // 创建一个哈希表来记录遍历过的数据
+        // 键 (Integer) 为数组元素的值，值 (Integer) 为元素的索引
+        Map<Integer, Integer> map = new HashMap<>();
+
+        for (int i = 0; i < nums.length; i++) {
+            // 计算当前元素需要匹配的差值
+            int complement = target - nums[i];
+            
+            // 检查哈希表中是否已经存有这个差值
+            if (map.containsKey(complement)) {
+                // 如果命中，提取差值的索引，并与当前索引组合返回
+                return new int[] { map.get(complement), i };
+            }
+            
+            // 如果未命中，将当前元素存入哈希表作为未来元素的潜在匹配对象
+            map.put(nums[i], i);
+        }
+
+        // 若没有找到（本题假设必有解），抛出异常或返回空
+        throw new IllegalArgumentException("No two sum solution");
+    }
+}`,
+
+        cpp: `// C++ 最优解：使用 unordered_map
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        // unordered_map 底层是哈希表，提供 O(1) 的平均查找时间
+        // key 为数值，value 为索引
+        std::unordered_map<int, int> numMap;
+        
+        for (int i = 0; i < nums.size(); ++i) {
+            // 计算需要的配对值
+            int complement = target - nums[i];
+            
+            // 在哈希表中查找该配对值
+            // map.find() 返回迭代器，如果不等于 map.end() 说明找到了
+            if (numMap.find(complement) != numMap.end()) {
+                // 找到答案，构造 vector 并返回
+                return {numMap[complement], i};
+            }
+            
+            // 当前元素未能匹配成功，将其插入哈希表
+            numMap[nums[i]] = i;
+        }
+        
+        return {}; // 兜底空返回
+    }
+};`,
+
+        c: `// C 最优解：利用 uthash 库实现哈希表 (LeetCode C 语言环境内置)
+#include <stdlib.h>
+#include "uthash.h"
+
+// 定义哈希表结构体
+struct hashTable {
+    int key;          // 键：数组中的元素值
+    int val;          // 值：元素对应的索引
+    UT_hash_handle hh; // uthash 内部句柄，使结构体具有哈希属性
+};
+
+int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
+    struct hashTable* hashtable = NULL; // 初始化空哈希表
+    
+    for (int i = 0; i < numsSize; i++) {
+        // 寻找配对值
+        int complement = target - nums[i];
+        
+        struct hashTable* tmp;
+        // 使用 HASH_FIND_INT 宏在 hashtable 中查找 complement
+        HASH_FIND_INT(hashtable, &complement, tmp);
+        
+        if (tmp != NULL) {
+            // 如果找到了，分配返回数组的内存
+            int* res = malloc(sizeof(int) * 2);
+            res[0] = tmp->val;
+            res[1] = i;
+            *returnSize = 2; // 明确返回数组的长度
+            return res;
+        }
+        
+        // 如果没找到，将当前元素加入哈希表
+        tmp = malloc(sizeof(struct hashTable));
+        tmp->key = nums[i];
+        tmp->val = i;
+        // 使用宏插入元素
+        HASH_ADD_INT(hashtable, key, tmp);
+    }
+    
+    *returnSize = 0;
+    return NULL;
+}`,
+      };
+
+      // 语言环境相关的变量名映射
+      const LANG_VARS = {
+        python: { index: "i", value: "num" },
+        ts: { index: "i", value: "nums[i]" },
+        java: { index: "i", value: "nums[i]" },
+        cpp: { index: "i", value: "nums[i]" },
+        c: { index: "i", value: "nums[i]" },
+      };
+
+      // ==========================================================
+      // SYSTEM PARAMS & STATE
+      // ==========================================================
+      let params = {
+        seed: 42,
+        speed: 1.0,
+        n: 8,
+        target: 0,
+      };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = "python";
+
+      // Algorithm State
+      let numsArray = [];
+      let hashMapState = []; // [{key, value}, ...]
+      let currentIndex = 0;
+      let stepPhase = 0; // 0: Calc Complement, 1: Check Hash, 2: Insert Hash / Found
+      let currentComplement = null;
+      let foundIndices = null;
+
+      // P5 Drawing State (for smooth lerping)
+      let dispPtrX = 0; // The floating pointer X
+
+      // ==========================================================
+      // P5.js LOGIC
+      // ==========================================================
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(
+          container.offsetWidth || 500,
+          container.offsetHeight || 600,
+        );
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () =>
+          resizeCanvas(container.offsetWidth, container.offsetHeight),
+        );
+
+        // 初始化语法高亮与逻辑
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+
+        // 1. 生成随机数组
+        numsArray = [];
+        for (let i = 0; i < params.n; i++) {
+          numsArray.push(floor(random(1, 20)));
+        }
+
+        // 2. 保证必然有解：随机挑选两个不同的位置并计算 Target
+        let idx1 = floor(random(0, floor(params.n / 2)));
+        let idx2 = floor(random(floor(params.n / 2), params.n));
+        if (idx1 === idx2) idx2 = (idx2 + 1) % params.n;
+        params.target = numsArray[idx1] + numsArray[idx2];
+
+        document.getElementById("target-display").innerText =
+          `🎯 Target = ${params.target}`;
+        updateDataUI(numsArray);
+
+        // 3. 算法状态重置
+        hashMapState = [];
+        currentIndex = 0;
+        stepPhase = 0;
+        currentComplement = null;
+        foundIndices = null;
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        dispPtrX = width / 2; // Init pointer in middle
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(
+          `✅ 系统就绪。生成新数组，目标和 Target = <b>${params.target}</b>`,
+          true,
+        );
+      }
+
+      function draw() {
+        background(255);
+
+        // 帧速率驱动的逻辑步进
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // === 渲染区 ===
+
+        const boxSize = 40;
+        const spacing = 15;
+        const startX =
+          width / 2 - (params.n * (boxSize + spacing) - spacing) / 2;
+        const arrayY = 120;
+
+        // 1. 渲染数组
+        fill(100);
+        noStroke();
+        textSize(14);
+        textAlign(CENTER, CENTER);
+        text("数组 (nums)", width / 2, arrayY - 60);
+
+        for (let i = 0; i < params.n; i++) {
+          let cx = startX + i * (boxSize + spacing);
+
+          // 基础样式
+          let isCurrent = i === currentIndex && !isDone;
+          let isResult =
+            foundIndices && (i === foundIndices[0] || i === foundIndices[1]);
+
+          if (isResult) {
+            fill(120, 140, 93); // Green result
+          } else if (isCurrent) {
+            fill(217, 119, 87); // Orange current
+          } else {
+            fill(240); // Default gray
+          }
+
+          stroke(200);
+          strokeWeight(1);
+          rect(cx, arrayY, boxSize, boxSize, 6);
+
+          // 绘制数字
+          fill(isResult || isCurrent ? 255 : 50);
+          noStroke();
+          textSize(18);
+          text(numsArray[i], cx + boxSize / 2, arrayY + boxSize / 2);
+
+          // 绘制索引标号
+          fill(150);
+          textSize(11);
+          text(`[${i}]`, cx + boxSize / 2, arrayY + boxSize + 15);
+
+          // 追踪当前指针位置平滑插值
+          if (i === currentIndex) {
+            dispPtrX = lerp(dispPtrX, cx + boxSize / 2, 0.1 * params.speed);
+          }
+        }
+
+        // 2. 渲染浮动指针标签
+        if (!isDone) {
+          fill(217, 119, 87);
+          textSize(14);
+          let ptrName = LANG_VARS[currentLang].index;
+          text(`${ptrName} ↓`, dispPtrX, arrayY - 25);
+        }
+
+        // 3. 渲染当前逻辑计算区
+        if (!isDone && currentComplement !== null) {
+          fill(80);
+          textSize(15);
+          let valName = LANG_VARS[currentLang].value;
+          let equationText = `目标 ${params.target} - 当前 ${valName}(${numsArray[currentIndex]}) = 期待值 (Complement): `;
+          text(equationText, width / 2 - 20, arrayY + 90);
+
+          fill(217, 119, 87);
+          textSize(20);
+          text(
+            currentComplement,
+            width / 2 + textWidth(equationText) / 2 + 10,
+            arrayY + 90,
+          );
+        }
+
+        // 4. 渲染 Hash Map
+        const mapY = arrayY + 160;
+        fill(100);
+        textSize(14);
+        text("哈希表 (Hash Map)", width / 2, mapY);
+        textSize(11);
+        text("存储格式 -> Key (元素数值) : Value (索引)", width / 2, mapY + 20);
+
+        // 渲染已有的键值对
+        const mapBoxW = 120;
+        const mapBoxH = 35;
+        const mapCols = 3;
+
+        let mapStartX = width / 2 - (mapCols * (mapBoxW + 10) - 10) / 2;
+
+        for (let i = 0; i < hashMapState.length; i++) {
+          let row = floor(i / mapCols);
+          let col = i % mapCols;
+          let mx = mapStartX + col * (mapBoxW + 10);
+          let my = mapY + 45 + row * (mapBoxH + 10);
+
+          // 是否是当前命中的配对值
+          let isHit =
+            foundIndices !== null &&
+            hashMapState[i].key === currentComplement &&
+            stepPhase === 2;
+
+          fill(isHit ? 120 : 250, isHit ? 140 : 250, isHit ? 93 : 250);
+          stroke(200);
+          rect(mx, my, mapBoxW, mapBoxH, 4);
+
+          fill(isHit ? 255 : 50);
+          noStroke();
+          textSize(13);
+          text(
+            `Key: ${hashMapState[i].key} | Val: ${hashMapState[i].value}`,
+            mx + mapBoxW / 2,
+            my + mapBoxH / 2,
+          );
+        }
+      }
+
+      function performStep() {
+        if (currentIndex >= params.n) {
+          isDone = true;
+          return;
+        }
+
+        let currentNum = numsArray[currentIndex];
+        let pName = LANG_VARS[currentLang].index;
+
+        if (stepPhase === 0) {
+          // 阶段 0：读取当前值并计算 complement
+          currentComplement = params.target - currentNum;
+          logMsg(
+            `📍 遍历到 ${pName}=${currentIndex}，值为 ${currentNum}。所需配对值 Complement = ${params.target} - ${currentNum} = <b>${currentComplement}</b>`,
+            false,
+          );
+          stepPhase = 1;
+        } else if (stepPhase === 1) {
+          // 阶段 1：在哈希表中查找 complement
+          let found = hashMapState.find(
+            (entry) => entry.key === currentComplement,
+          );
+          if (found) {
+            // 找到了！
+            logMsg(
+              `🔍 在哈希表中查找 Key = ${currentComplement}... <b>找到了！</b> 其索引为 ${found.value}。`,
+              true,
+            );
+            foundIndices = [found.value, currentIndex];
+            stepPhase = 2; // Move to found state
+          } else {
+            // 没找到
+            logMsg(
+              `🔍 在哈希表中查找 Key = ${currentComplement}... <b>未找到。</b>`,
+              false,
+            );
+            stepPhase = 2;
+          }
+        } else if (stepPhase === 2) {
+          // 阶段 2：结束或插入哈希表
+          if (foundIndices) {
+            // 完成
+            logMsg(
+              `🎉 成功找到两数之和！返回索引 [${foundIndices[0]}, ${foundIndices[1]}]`,
+              true,
+            );
+            isDone = true;
+          } else {
+            // 插入哈希表并前进一步
+            logMsg(
+              `💾 将当前元素存入哈希表备用。Key=${currentNum}, Value=${currentIndex}。`,
+              false,
+            );
+            hashMapState.push({ key: currentNum, value: currentIndex });
+
+            currentIndex++;
+            currentComplement = null;
+            stepPhase = 0; // 重置下一轮
+          }
+        }
+      }
+
+      // ==========================================================
+      // FIXED UTILITY FUNCTIONS
+      // ==========================================================
+
+      function updateDataUI(arr) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        arr.forEach((v) => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          node.innerText = v;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python",
+          ts: "language-typescript",
+          java: "language-java",
+          cpp: "language-cpp",
+          c: "language-c",
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (
+          typeof initializeSystem === "function" &&
+          isDone === false &&
+          currentIndex === 0
+        ) {
+          // 只在初始状态下无缝切换，如果正在执行则不强行重置，只改变显示变量
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed =
+          parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

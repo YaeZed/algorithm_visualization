@@ -1,0 +1,1075 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>接雨水 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        height: 100vh;
+        padding: 15px;
+        gap: 15px;
+      }
+
+      .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto;
+        border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 {
+        font-family: "Lora", serif;
+        font-size: 18px;
+        margin-bottom: 4px;
+        color: var(--anthropic-orange);
+        font-weight: 600;
+      }
+      .subtitle {
+        color: var(--anthropic-mid-gray);
+        font-size: 12px;
+        margin-bottom: 20px;
+      }
+      .control-section {
+        margin-bottom: 20px;
+      }
+      .control-section h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: var(--anthropic-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+      }
+      .control-section h3::before {
+        content: "";
+        width: 4px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 2px;
+      }
+      .control-group {
+        margin-bottom: 12px;
+      }
+      .control-group label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 4px;
+        color: #666;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      input[type="range"] {
+        flex: 1;
+        height: 4px;
+        background: var(--anthropic-light-gray);
+        border-radius: 2px;
+        appearance: none;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        min-width: 25px;
+        text-align: right;
+      }
+      .button {
+        background: var(--anthropic-orange);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        width: 100%;
+        cursor: pointer;
+        font-size: 13px;
+        transition: 0.2s;
+        font-weight: 500;
+      }
+      .button:hover {
+        background: #c86641;
+      }
+      .seed-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--anthropic-light-gray);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+
+      .canvas-area {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .canvas-header {
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--anthropic-light-gray);
+        font-size: 13px;
+        font-weight: 600;
+        color: #666;
+        display: flex;
+        justify-content: space-between;
+      }
+      #canvas-container {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
+
+      .right-panel {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .code-box {
+        flex: 1.1;
+        background: #1e1e1e;
+        border-radius: 12px;
+        border: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .box-header.dark {
+        background: #282828;
+        border-bottom: 1px solid #1e1e1e;
+        padding: 10px 15px 0 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+      .box-title.dark {
+        color: #ccc;
+        padding-bottom: 10px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .tabs.dark {
+        display: flex;
+        gap: 1px;
+      }
+      .tabs.dark .tab {
+        padding: 8px 16px;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        background: #2d2d2d;
+        transition: 0.2s;
+        color: #888;
+        font-weight: 500;
+        font-size: 11px;
+      }
+      .tabs.dark .tab:hover {
+        background: #3c3c3c;
+        color: #ddd;
+      }
+      .tabs.dark .tab.active {
+        background: #1e1e1e;
+        color: #4ec9b0;
+        border-top: 2px solid #007acc;
+      }
+
+      .code-content {
+        flex: 1;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        background: #1e1e1e;
+        border-radius: 0 0 12px 12px;
+      }
+      #code-viewer {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 13.5px;
+        line-height: 1.5;
+        display: block;
+        padding: 15px;
+        background: transparent;
+        color: #d4d4d4;
+      }
+
+      .hljs {
+        background: transparent !important;
+        padding: 0 !important;
+        color: #d4d4d4 !important;
+      }
+      .hljs-keyword,
+      .hljs-literal {
+        color: #569cd6 !important;
+      }
+      .hljs-type,
+      .hljs-title.class_,
+      .hljs-built_in {
+        color: #4ec9b0 !important;
+      }
+      .hljs-variable,
+      .hljs-property,
+      .hljs-params {
+        color: #9cdcfe !important;
+      }
+      .hljs-number {
+        color: #b5cea8 !important;
+      }
+      .hljs-string {
+        color: #ce9178 !important;
+      }
+      .hljs-comment {
+        color: #6a9955 !important;
+      }
+      .hljs-title.function_ {
+        color: #dcdcaa !important;
+      }
+
+      .logic-box {
+        flex: 0.9;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--anthropic-light-gray);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+      .box-header {
+        padding: 8px 15px;
+        background: #fff;
+        border-bottom: 1px solid #eee;
+      }
+      .box-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+      }
+
+      .data-viz {
+        padding: 12px;
+        background: #fffcf9;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .data-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--anthropic-blue);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .data-array {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-height: 30px;
+        align-items: center;
+      }
+      .data-node {
+        width: 22px;
+        height: 22px;
+        background: #e8e6dc;
+        color: #444;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: bold;
+        position: relative;
+        transition: 0.2s;
+      }
+      .data-node.active-left {
+        background: var(--anthropic-orange);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(217, 119, 87, 0.4);
+      }
+      .data-node.active-right {
+        background: var(--anthropic-blue);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(106, 155, 204, 0.4);
+      }
+
+      .log-area {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 11.5px;
+        background: #fff;
+      }
+      .log-item {
+        padding: 6px 10px;
+        border-radius: 4px;
+        background: #fcfcfc;
+        border-left: 2px solid #ddd;
+        border-bottom: 1px solid #f5f5f5;
+        line-height: 1.4;
+        color: #444;
+      }
+      .log-item.highlight {
+        border-left-color: var(--anthropic-orange);
+        background: #fff9f5;
+        font-weight: 500;
+        color: var(--anthropic-dark);
+      }
+      .log-item.highlight-blue {
+        border-left-color: var(--anthropic-blue);
+        background: #f0f7ff;
+        font-weight: 500;
+        color: var(--anthropic-dark);
+      }
+      .log-item .time {
+        font-size: 9px;
+        color: #bbb;
+        margin-bottom: 2px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #e0e0e0;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>接雨水</h1>
+        <div class="subtitle">LeetCode 42 - 双指针解法可视化</div>
+
+        <div class="control-section">
+          <h3>地形配置</h3>
+          <input
+            type="number"
+            id="seed-input"
+            class="seed-input"
+            value="888"
+            onchange="updateSeed()"
+          />
+          <button class="button" onclick="randomSeedAndUpdate()">
+            生成随机地形柱列
+          </button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="speed"
+                min="0.1"
+                max="3.0"
+                step="0.1"
+                value="1.0"
+                oninput="updateParam('speed', this.value)"
+              />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>地形柱子数量 (N)</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="n"
+                min="8"
+                max="30"
+                step="1"
+                value="16"
+                oninput="updateParam('n', this.value)"
+              />
+              <span class="value-display" id="n-value">16</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button
+            id="pause-btn"
+            class="button"
+            style="background: var(--anthropic-dark)"
+            onclick="togglePause()"
+          >
+            ⏸ 暂停
+          </button>
+          <button
+            class="button"
+            style="background: var(--anthropic-blue)"
+            onclick="resetAnimation()"
+          >
+            🔄 重新运行
+          </button>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+          <span>双指针向内收缩演示</span>
+          <span style="font-weight: bold"
+            >当前总储水量:
+            <span
+              id="ans-display"
+              style="color: var(--anthropic-blue); font-size: 15px"
+              >0</span
+            ></span
+          >
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解法 (双指针 O(N) 空间 O(1))</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre
+            class="code-content"
+          ><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">height 数组状态</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        ts: `// TypeScript
+function trap(height: number[]): number {
+    let left = 0;
+    let right = height.length - 1;
+    let leftMax = 0, rightMax = 0;
+    let ans = 0;
+
+    // 左右指针向中间靠拢
+    while (left < right) {
+        // 哪边柱子矮，就处理哪边，因为木桶效应，短板决定装水量
+        if (height[left] < height[right]) {
+            // 如果当前柱子高于已知左侧最高，更新最高值，无法装水
+            if (height[left] >= leftMax) {
+                leftMax = height[left];
+            } else {
+                // 否则，当前列能装的水 = 左侧最高值 - 当前柱子高度
+                ans += leftMax - height[left];
+            }
+            left++; // 左指针向右移动
+        } else {
+            // 同理处理右侧较矮的情况
+            if (height[right] >= rightMax) {
+                rightMax = height[right];
+            } else {
+                ans += rightMax - height[right];
+            }
+            right--; // 右指针向左移动
+        }
+    }
+    return ans;
+}`,
+        python: `# Python
+class Solution:
+    def trap(self, height: List[int]) -> int:
+        left, right = 0, len(height) - 1
+        left_max, right_max = 0, 0
+        ans = 0
+        
+        # 左右指针向中间靠拢
+        while left < right:
+            # 哪边柱子矮，就处理哪边
+            if height[left] < height[right]:
+                # 当前柱子高于已知左侧最高，更新最高值，无法装水
+                if height[left] >= left_max:
+                    left_max = height[left]
+                else:
+                    # 当前列能装的水 = 左侧最高值 - 当前高度
+                    ans += left_max - height[left]
+                left += 1
+            else:
+                # 同理处理右侧较矮的情况
+                if height[right] >= right_max:
+                    right_max = height[right]
+                else:
+                    ans += right_max - height[right]
+                right -= 1
+        return ans`,
+        java: `// Java
+class Solution {
+    public int trap(int[] height) {
+        int left = 0, right = height.length - 1;
+        int leftMax = 0, rightMax = 0;
+        int ans = 0;
+        
+        // 左右指针向中间靠拢
+        while (left < right) {
+            // 哪边柱子矮，就处理哪边
+            if (height[left] < height[right]) {
+                if (height[left] >= leftMax) {
+                    leftMax = height[left];
+                } else {
+                    ans += leftMax - height[left];
+                }
+                left++;
+            } else {
+                if (height[right] >= rightMax) {
+                    rightMax = height[right];
+                } else {
+                    ans += rightMax - height[right];
+                }
+                right--;
+            }
+        }
+        return ans;
+    }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+    int trap(vector<int>& height) {
+        int left = 0, right = height.size() - 1;
+        int leftMax = 0, rightMax = 0;
+        int ans = 0;
+        
+        while (left < right) {
+            // 哪边柱子矮，就处理哪边
+            if (height[left] < height[right]) {
+                if (height[left] >= leftMax) {
+                    leftMax = height[left];
+                } else {
+                    ans += leftMax - height[left];
+                }
+                left++;
+            } else {
+                if (height[right] >= rightMax) {
+                    rightMax = height[right];
+                } else {
+                    ans += rightMax - height[right];
+                }
+                right--;
+            }
+        }
+        return ans;
+    }
+};`,
+        c: `// C
+int trap(int* height, int heightSize) {
+    int left = 0, right = heightSize - 1;
+    int leftMax = 0, rightMax = 0;
+    int ans = 0;
+    
+    while (left < right) {
+        // 哪边柱子矮，就处理哪边
+        if (height[left] < height[right]) {
+            if (height[left] >= leftMax) {
+                leftMax = height[left];
+            } else {
+                ans += leftMax - height[left];
+            }
+            left++;
+        } else {
+            if (height[right] >= rightMax) {
+                rightMax = height[right];
+            } else {
+                ans += rightMax - height[right];
+            }
+            right--;
+        }
+    }
+    return ans;
+}`,
+      };
+
+      const LANG_VARS = {
+        ts: { l: "left", r: "right", lm: "leftMax", rm: "rightMax" },
+        python: { l: "left", r: "right", lm: "left_max", rm: "right_max" },
+        java: { l: "left", r: "right", lm: "leftMax", rm: "rightMax" },
+        cpp: { l: "left", r: "right", lm: "leftMax", rm: "rightMax" },
+        c: { l: "left", r: "right", lm: "leftMax", rm: "rightMax" },
+      };
+
+      let params = { seed: 888, speed: 1.0, n: 16 };
+      let isDone = false,
+        isPaused = false,
+        p5Timer = 0;
+      let currentLang = "ts";
+
+      // Logic variables
+      let heightArr = [];
+      let waterArr = [];
+      let leftIdx = 0,
+        rightIdx = 0;
+      let leftMaxVal = 0,
+        rightMaxVal = 0;
+      let ansTotal = 0;
+
+      // Phase control: 'COMPARE' -> 'PROCESS' -> 'MOVE'
+      let currentPhase = "COMPARE";
+      let activeSide = "none";
+
+      // Animation state
+      let dispLeftX = 0,
+        dispRightX = 0;
+      let dispLeftMaxH = 0,
+        dispRightMaxH = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(
+          container.offsetWidth || 500,
+          container.offsetHeight || 600,
+        );
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () =>
+          resizeCanvas(container.offsetWidth, container.offsetHeight),
+        );
+        switchLang("ts");
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+
+        // Generate nice terrain
+        heightArr = [];
+        waterArr = [];
+        for (let i = 0; i < params.n; i++) {
+          // Avoid too flat terrain by applying some sin wave + random
+          let val = floor(abs(sin(i * 0.5) * 4 + random(0, 5)));
+          if (i === 0 || i === params.n - 1) val = floor(random(0, 3)); // edges lower
+          heightArr.push(val);
+          waterArr.push(0);
+        }
+
+        // Logic Init
+        leftIdx = 0;
+        rightIdx = params.n - 1;
+        leftMaxVal = 0;
+        rightMaxVal = 0;
+        ansTotal = 0;
+        currentPhase = "COMPARE";
+        activeSide = "none";
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        document.getElementById("log-container").innerHTML = "";
+        document.getElementById("ans-display").innerText = "0";
+        logMsg("✅ 演示就绪。左右指针初始化于两端。", true);
+
+        // Initial render coords
+        dispLeftX = leftIdx;
+        dispRightX = rightIdx;
+        dispLeftMaxH = 0;
+        dispRightMaxH = 0;
+
+        updateDataUI();
+      }
+
+      function draw() {
+        background(253, 252, 249);
+
+        let w = width / (params.n + 2);
+        let maxH = 10; // Expected max height
+        let hUnit = (height - 150) / maxH;
+        let baseY = height - 50;
+        let startX = w;
+
+        // Draw grid lines
+        stroke(230);
+        strokeWeight(1);
+        for (let i = 1; i <= 8; i++) {
+          line(
+            startX - 20,
+            baseY - i * hUnit,
+            startX + params.n * w + 20,
+            baseY - i * hUnit,
+          );
+        }
+
+        // Draw bars & water
+        for (let i = 0; i < params.n; i++) {
+          let x = startX + i * w;
+          let h = heightArr[i] * hUnit;
+          let waterH = waterArr[i] * hUnit;
+
+          // Ground/Bar
+          noStroke();
+          fill(heightArr[i] === 0 ? 245 : 80);
+          rect(x, baseY - h, w - 4, h, 2, 2, 0, 0);
+
+          // Height label
+          fill(150);
+          textSize(10);
+          textAlign(CENTER, BOTTOM);
+          text(heightArr[i], x + w / 2 - 2, baseY + 15);
+
+          // Water
+          if (waterH > 0) {
+            fill("rgba(106, 155, 204, 0.7)"); // anthropic-blue with alpha
+            rect(x, baseY - h - waterH, w - 4, waterH, 2, 2, 0, 0);
+            // Add water + symbol
+            fill("#005b9f");
+            textSize(11);
+            text(`+${waterArr[i]}`, x + w / 2 - 2, baseY - h - waterH / 2 + 5);
+          }
+        }
+
+        // Lerp pointers and max values
+        dispLeftX = lerp(dispLeftX, leftIdx, 0.15 * params.speed);
+        dispRightX = lerp(dispRightX, rightIdx, 0.15 * params.speed);
+        dispLeftMaxH = lerp(dispLeftMaxH, leftMaxVal, 0.15 * params.speed);
+        dispRightMaxH = lerp(dispRightMaxH, rightMaxVal, 0.15 * params.speed);
+
+        let lPx = startX + dispLeftX * w;
+        let rPx = startX + dispRightX * w;
+
+        // Draw Max Level Lines
+        if (dispLeftMaxH > 0.1) {
+          stroke("#d97757");
+          strokeWeight(2);
+          drawingContext.setLineDash([5, 5]);
+          line(
+            startX,
+            baseY - dispLeftMaxH * hUnit,
+            lPx + w / 2,
+            baseY - dispLeftMaxH * hUnit,
+          );
+          drawingContext.setLineDash([]);
+          noStroke();
+          fill("#d97757");
+          textAlign(RIGHT, CENTER);
+          textSize(11);
+          text(
+            `${LANG_VARS[currentLang].lm}: ${leftMaxVal}`,
+            startX - 10,
+            baseY - dispLeftMaxH * hUnit,
+          );
+        }
+
+        if (dispRightMaxH > 0.1) {
+          stroke("#6a9bcc");
+          strokeWeight(2);
+          drawingContext.setLineDash([5, 5]);
+          line(
+            rPx + w / 2,
+            baseY - dispRightMaxH * hUnit,
+            startX + params.n * w,
+            baseY - dispRightMaxH * hUnit,
+          );
+          drawingContext.setLineDash([]);
+          noStroke();
+          fill("#6a9bcc");
+          textAlign(LEFT, CENTER);
+          textSize(11);
+          text(
+            `${LANG_VARS[currentLang].rm}: ${rightMaxVal}`,
+            startX + params.n * w + 10,
+            baseY - dispRightMaxH * hUnit,
+          );
+        }
+
+        // Draw Left Pointer
+        if (leftIdx <= rightIdx) {
+          fill("#d97757");
+          noStroke();
+          rect(lPx + w / 2 - 15, baseY + 20, 30, 18, 4);
+          fill(255);
+          textSize(10);
+          textAlign(CENTER, CENTER);
+          text(`${LANG_VARS[currentLang].l}↑`, lPx + w / 2, baseY + 29);
+        }
+
+        // Draw Right Pointer
+        if (leftIdx <= rightIdx) {
+          fill("#6a9bcc");
+          noStroke();
+          rect(rPx + w / 2 - 15, baseY + 45, 30, 18, 4);
+          fill(255);
+          textSize(10);
+          textAlign(CENTER, CENTER);
+          text(`${LANG_VARS[currentLang].r}↑`, rPx + w / 2, baseY + 54);
+        }
+
+        // Logic trigger
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        if (leftIdx > rightIdx) {
+          isDone = true;
+          logMsg(
+            `🏁 <b>遍历结束！</b> 左右指针相遇。总共蓄水: <span style="color:var(--anthropic-blue);">${ansTotal}</span> 单元。`,
+            true,
+          );
+          updateDataUI();
+          return;
+        }
+
+        if (currentPhase === "COMPARE") {
+          if (heightArr[leftIdx] < heightArr[rightIdx]) {
+            activeSide = "left";
+            logMsg(
+              `⚖️ 比较: height[${leftIdx}](${heightArr[leftIdx]}) < height[${rightIdx}](${heightArr[rightIdx]})。处理<b>左侧</b>。`,
+            );
+          } else {
+            activeSide = "right";
+            logMsg(
+              `⚖️ 比较: height[${leftIdx}](${heightArr[leftIdx]}) >= height[${rightIdx}](${heightArr[rightIdx]})。处理<b>右侧</b>。`,
+            );
+          }
+          currentPhase = "PROCESS";
+        } else if (currentPhase === "PROCESS") {
+          if (activeSide === "left") {
+            if (heightArr[leftIdx] >= leftMaxVal) {
+              leftMaxVal = heightArr[leftIdx];
+              logMsg(
+                `&nbsp;&nbsp;⚠️ 高度 ${heightArr[leftIdx]} 大于等于左侧历史最高。更新 ${LANG_VARS[currentLang].lm} = ${leftMaxVal}。此处无法积水。`,
+                true,
+              );
+            } else {
+              let w = leftMaxVal - heightArr[leftIdx];
+              ansTotal += w;
+              waterArr[leftIdx] = w;
+              document.getElementById("ans-display").innerText = ansTotal;
+              logMsg(
+                `&nbsp;&nbsp;💧 左侧短板为 ${leftMaxVal}，当前高度 ${heightArr[leftIdx]}。形成低洼，蓄水 ${w} 单元。`,
+                false,
+              );
+              // Make log blue if it's right side, just visual distinction
+              let logItems = document.querySelectorAll(".log-item");
+              logItems[logItems.length - 1].classList.add("highlight-blue");
+            }
+          } else {
+            if (heightArr[rightIdx] >= rightMaxVal) {
+              rightMaxVal = heightArr[rightIdx];
+              logMsg(
+                `&nbsp;&nbsp;⚠️ 高度 ${heightArr[rightIdx]} 大于等于右侧历史最高。更新 ${LANG_VARS[currentLang].rm} = ${rightMaxVal}。此处无法积水。`,
+                true,
+              );
+            } else {
+              let w = rightMaxVal - heightArr[rightIdx];
+              ansTotal += w;
+              waterArr[rightIdx] = w;
+              document.getElementById("ans-display").innerText = ansTotal;
+              logMsg(
+                `&nbsp;&nbsp;💧 右侧短板为 ${rightMaxVal}，当前高度 ${heightArr[rightIdx]}。形成低洼，蓄水 ${w} 单元。`,
+                false,
+              );
+              let logItems = document.querySelectorAll(".log-item");
+              logItems[logItems.length - 1].classList.add("highlight-blue");
+            }
+          }
+          currentPhase = "MOVE";
+        } else if (currentPhase === "MOVE") {
+          if (activeSide === "left") {
+            logMsg(`&nbsp;&nbsp;➡️ 移动左指针：${LANG_VARS[currentLang].l}++`);
+            leftIdx++;
+          } else {
+            logMsg(`&nbsp;&nbsp;⬅️ 移动右指针：${LANG_VARS[currentLang].r}--`);
+            rightIdx--;
+          }
+          currentPhase = "COMPARE";
+        }
+        updateDataUI();
+      }
+
+      function updateDataUI() {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        heightArr.forEach((v, i) => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          if (!isDone) {
+            if (i === leftIdx) node.classList.add("active-left");
+            if (i === rightIdx) node.classList.add("active-right");
+          }
+          node.innerText = v;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { ts: 0, python: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          ts: "language-typescript",
+          python: "language-python",
+          java: "language-java",
+          cpp: "language-cpp",
+          c: "language-c",
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function") {
+          initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed =
+          parseInt(document.getElementById("seed-input").value) || 888;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>
