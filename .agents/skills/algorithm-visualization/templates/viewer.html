@@ -1,0 +1,394 @@
+<!-- 
+========================================================================
+ALGORITHM VISUALIZER TEMPLATE
+========================================================================
+This file is the REQUIRED starting point for all algorithm visualizations.
+It establishes a 3-column layout:
+  1. Left: Controls (seed, algorithm-specific variables, playback speed)
+  2. Middle: p5.js Animation Canvas
+  3. Right: Multi-language Code Viewer (VS Code style) & Execution Log
+  
+DO NOT modify the core CSS or the layout scaffolding.
+DO NOT remove the Highlight.js imports or dark theme CSS.
+ONLY replace the sections marked with "REPLACE_".
+======================================================================== 
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><!-- REPLACE_TITLE -->算法全流程可视化<!-- END_TITLE --></title>
+    
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Code Highlight Engine -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css" id="hljs-theme">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757;
+            --anthropic-blue: #6a9bcc;
+            --anthropic-green: #788c5d;
+        }
+
+        /* Foundation */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', 'PingFang SC', sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+        .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+        
+        /* Left Sidebar - Controls */
+        .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+        .sidebar h1 { font-family: 'Lora', serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+        .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+        .control-section { margin-bottom: 20px; }
+        .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+        .control-section h3::before { content: ''; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+        .control-group { margin-bottom: 12px; }
+        .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+        .slider-container { display: flex; align-items: center; gap: 10px; }
+        input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+        .value-display { font-family: 'JetBrains Mono', monospace; font-size: 11px; min-width: 25px; text-align: right; }
+        .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+        .button:hover { background: #c86641; }
+        .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+        /* Middle - Canvas */
+        .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+        #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+        /* Right Panel - Logic & Code */
+        .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+        
+        /* Code Box (VS Code Dark+ Style) */
+        .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+        .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+        .box-title { font-size: 12px; font-weight: 600; color: #555; }
+        .box-title.dark { color: #ccc; padding-bottom: 10px; }
+        .tabs { display: flex; gap: 4px; }
+        .tabs.dark { gap: 1px; align-items: flex-end; }
+        .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: 'Poppins', sans-serif; }
+        .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+        .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+        
+        .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+        #code-viewer { font-family: Consolas, 'JetBrains Mono', monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+        
+        /* Highlight.js CSS Overrides for precise Dark+ accuracy */
+        .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+        .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; } 
+        .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; } 
+        .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+        .hljs-number { color: #b5cea8 !important; } 
+        .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; } 
+        .hljs-string, .hljs-char { color: #ce9178 !important; }
+        .hljs-comment { color: #6a9955 !important; }
+        .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+        /* Logic Log Box */
+        .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        
+        /* Optional Visual Data Structure Area (e.g. Heap Array / Pointers) */
+        .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+        .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+        .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+        .data-node { width: 22px; height: 22px; background: var(--anthropic-orange); color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: bold; }
+        
+        /* Auto-scrolling Log */
+        .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+        .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+        .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+        .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- LEFT: Sidebar -->
+        <div class="sidebar">
+            <h1><!-- REPLACE_ALGORITHM_NAME -->算法名称<!-- END_ALGORITHM_NAME --></h1>
+            <div class="subtitle"><!-- REPLACE_SUBTITLE -->最优解演示工具<!-- END_SUBTITLE --></div>
+
+            <div class="control-section">
+                <h3>场景配置</h3>
+                <input type="number" id="seed-input" class="seed-input" value="12345" onchange="updateSeed()">
+                <button class="button" onclick="randomSeedAndUpdate()">生成新随机场景</button>
+            </div>
+
+            <div class="control-section">
+                <h3>动画控制</h3>
+                <div class="control-group">
+                    <label>运行速度</label>
+                    <div class="slider-container">
+                        <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)">
+                        <span class="value-display" id="speed-value">1.0</span>
+                    </div>
+                </div>
+                <!-- 
+                ==========================================================
+                REPLACE_PARAMS_UI: Add algorithm-specific sliders here
+                (e.g. array length, list count, threshold, etc) 
+                ========================================================== 
+                -->
+                <div class="control-group">
+                    <label>数据规模 (n)</label>
+                    <div class="slider-container">
+                        <input type="range" id="n" min="5" max="50" step="5" value="15" oninput="updateParam('n', this.value)">
+                        <span class="value-display" id="n-value">15</span>
+                    </div>
+                </div>
+                <!-- END_PARAMS_UI -->
+            </div>
+
+            <div class="control-section" style="display: flex; gap: 10px;">
+                <button id="pause-btn" class="button" style="background:var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+                <button class="button" style="background:var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+            </div>
+        </div>
+
+        <!-- MIDDLE: Canvas -->
+        <div class="canvas-area">
+            <div class="canvas-header">算法执行动画展示区</div>
+            <div id="canvas-container"></div>
+        </div>
+
+        <!-- RIGHT: Code & Logistics -->
+        <div class="right-panel">
+            
+            <!-- Code Viewer -->
+            <div class="code-box">
+                <div class="box-header dark">
+                    <div class="box-title dark">核心解法 (最优代码)</div>
+                    <div id="lang-tabs" class="tabs dark">
+                        <div class="tab" onclick="switchLang('python')">Python</div>
+                        <div class="tab" onclick="switchLang('ts')">TS</div>
+                        <div class="tab" onclick="switchLang('java')">Java</div>
+                        <div class="tab" onclick="switchLang('cpp')">C++</div>
+                        <div class="tab" onclick="switchLang('c')">C</div>
+                    </div>
+                </div>
+                <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+            </div>
+
+            <!-- Execution Logs -->
+            <div class="logic-box">
+                <div class="box-header" style="border-bottom: 1px solid #eee;">
+                    <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+                </div>
+                <!-- 
+                ==========================================================
+                REPLACE_DATA_VIZ: Use this if you want to explicitly visualize an array
+                or pointers outside of the canvas. If unnecessary, you can delete this.
+                ========================================================== 
+                -->
+                <div class="data-viz">
+                    <div class="data-title">当前数据状态 (Array/State)</div>
+                    <div id="data-nodes" class="data-array">
+                        <!-- 动态生成的节点 -->
+                    </div>
+                </div>
+                <!-- END_DATA_VIZ -->
+                <div id="log-container" class="log-area"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================================
+        // REPLACE_CODE_SNIPPETS
+        // Provide optimal solutions in 5 languages. 
+        // Use extremely detailed Chinese comments.
+        // ==========================================================
+        const SNIPPETS = {
+            python: `# Python\ndef solve():\n    pass`,
+            ts: `// TypeScript\nfunction solve(): void {\n}`,
+            java: `// Java\nclass Solution {\n    public void solve() {}\n}`,
+            cpp: `// C++\nvoid solve() {\n}`,
+            c: `// C\nvoid solve() {\n}`
+        };
+
+        // ==========================================================
+        // REPLACE_PARAMS
+        // System and algorithmic state variables
+        // ==========================================================
+        let params = {
+            seed: 12345,
+            speed: 1.0,
+            n: 15
+        };
+
+        let isDone = false;
+        let isPaused = false;
+        let p5Timer = 0;
+
+        // ==========================================================
+        // REPLACE_P5JS_LOGIC
+        // Write your custom particle/data structures here.
+        // ==========================================================
+
+        function setup() {
+            let container = document.getElementById('canvas-container');
+            let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+            canvas.parent('canvas-container');
+            window.addEventListener('resize', () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+            
+            // Initialization
+            switchLang('python');
+            initializeSystem();
+        }
+
+        function initializeSystem() {
+            randomSeed(params.seed);
+            
+            // Logic initialization
+            isDone = false;
+            isPaused = false;
+            p5Timer = 0;
+            
+            let btn = document.getElementById('pause-btn');
+            if (btn) {
+                btn.innerHTML = '⏸ 暂停';
+                btn.style.background = 'var(--anthropic-dark)';
+            }
+            
+            updateDataUI([]);
+            document.getElementById('log-container').innerHTML = '';
+            logMsg("✅ 演示环境准备就绪，系统已重置。", true);
+        }
+
+        function draw() {
+            background(255);
+            
+            // Frame-based execution trigger
+            if (!isDone && !isPaused) {
+                p5Timer += 0.015 * params.speed;
+                if (p5Timer > 1) {
+                    p5Timer = 0;
+                    performStep();
+                }
+            }
+
+            // Draw objects...
+        }
+
+        function performStep() {
+            // Execution block for standardizing visualization logic.
+            // Move pointers, modify arrays, and log actions here.
+            /* Example:
+            if (pointer < array.length) {
+                logMsg(`📍 处理元素 ${array[pointer]}`, false);
+                pointer++;
+                updateDataUI(array);
+            } else {
+                isDone = true;
+                logMsg("🏁 算法执行完成！", true);
+            }
+            */
+            isDone = true; 
+        }
+
+        // ==========================================================
+        // FIXED UTILITY FUNCTIONS
+        // Usually do not need modification.
+        // ==========================================================
+
+        function updateDataUI(arr) {
+            let container = document.getElementById('data-nodes');
+            if (!container) return;
+            container.innerHTML = '';
+            arr.forEach(v => {
+                let node = document.createElement('div');
+                node.className = 'data-node';
+                node.innerText = v;
+                container.appendChild(node);
+            });
+        }
+
+        function logMsg(msg, highlight = false) {
+            let container = document.getElementById('log-container');
+            if (!container) return;
+            let item = document.createElement('div');
+            item.className = 'log-item' + (highlight ? ' highlight' : '');
+            let time = new Date().toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            item.innerHTML = `<div class="time">${time}</div>${msg}`;
+            container.appendChild(item);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function switchLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const tabs = document.querySelectorAll('.tab');
+            const langMap = { 'python': 0, 'ts': 1, 'java': 2, 'cpp': 3, 'c': 4 };
+            tabs[langMap[lang]].classList.add('active');
+            
+            const codeEl = document.getElementById('code-viewer');
+            const hljsMap = { 'python': 'language-python', 'ts': 'language-typescript', 'java': 'language-java', 'cpp': 'language-cpp', 'c': 'language-c' };
+            codeEl.className = 'hljs ' + hljsMap[lang];
+            codeEl.textContent = SNIPPETS[lang];
+            
+            codeEl.removeAttribute('data-highlighted'); 
+            if (window.hljs) hljs.highlightElement(codeEl);
+            
+            // Restart animation to match the new language's logic and variable names
+            if (typeof initializeSystem === 'function') {
+                initializeSystem();
+            }
+        }
+
+        function updateParam(id, val) {
+            if (id in params) params[id] = parseFloat(val);
+            let display = document.getElementById(id + '-value');
+            if (display) display.textContent = val;
+            if (id !== 'speed') initializeSystem();
+        }
+
+        function updateSeed() {
+            params.seed = parseInt(document.getElementById('seed-input').value) || 12345;
+            initializeSystem();
+        }
+
+        function randomSeedAndUpdate() {
+            params.seed = floor(random(1, 99999));
+            document.getElementById('seed-input').value = params.seed;
+            initializeSystem();
+            logMsg("🔄 随机化生成新场景。", true);
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            let btn = document.getElementById('pause-btn');
+            if (!btn) return;
+            if (isPaused) {
+                btn.innerHTML = '▶ 继续';
+                btn.style.background = 'var(--anthropic-green)';
+            } else {
+                btn.innerHTML = '⏸ 暂停';
+                btn.style.background = 'var(--anthropic-dark)';
+            }
+        }
+
+        function resetAnimation() { initializeSystem(); }
+    </script>
+</body>
+</html>
