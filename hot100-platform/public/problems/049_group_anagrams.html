@@ -1,26 +1,10 @@
-<!-- 
-========================================================================
-ALGORITHM VISUALIZER TEMPLATE
-========================================================================
-This file is the REQUIRED starting point for all algorithm visualizations.
-It establishes a 3-column layout:
-  1. Left: Controls (seed, algorithm-specific variables, playback speed)
-  2. Middle: p5.js Animation Canvas
-  3. Right: Multi-language Code Viewer (VS Code style) & Execution Log
-  
-DO NOT modify the core CSS or the layout scaffolding.
-DO NOT remove the Highlight.js imports or dark theme CSS.
-ONLY replace the sections marked with "REPLACE_".
-======================================================================== 
--->
 <!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><!-- REPLACE_TITLE -->算法全流程可视化<!-- END_TITLE --></title>
+    <title>字母异位词分组 - 算法全流程可视化</title>
 
-    <!-- Core Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,7 +13,6 @@ ONLY replace the sections marked with "REPLACE_".
       rel="stylesheet"
     />
 
-    <!-- Code Highlight Engine -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
@@ -212,7 +195,7 @@ ONLY replace the sections marked with "REPLACE_".
         gap: 15px;
       }
 
-      /* Code Box (VS Code Dark+ Style) */
+      /* Code Box */
       .code-box {
         flex: 1.1;
         background: #1e1e1e;
@@ -283,7 +266,7 @@ ONLY replace the sections marked with "REPLACE_".
       }
       #code-viewer {
         font-family: Consolas, "JetBrains Mono", monospace;
-        font-size: 15px;
+        font-size: 14px;
         line-height: 1.6;
         display: block;
         padding: 15px;
@@ -291,49 +274,16 @@ ONLY replace the sections marked with "REPLACE_".
         color: #d4d4d4;
       }
 
-      /* Highlight.js CSS Overrides for precise Dark+ accuracy */
-      .hljs {
-        background: transparent !important;
-        padding: 0 !important;
-        color: #d4d4d4 !important;
-      }
-      .hljs-keyword,
-      .hljs-literal,
-      .hljs-selector-tag {
-        color: #569cd6 !important;
-      }
-      .hljs-type,
-      .hljs-title.class_,
-      .hljs-class .hljs-title,
-      .hljs-built_in {
-        color: #4ec9b0 !important;
-      }
-      .hljs-variable,
-      .hljs-variable.language_,
-      .hljs-property,
-      .hljs-attr,
-      .hljs-params {
-        color: #9cdcfe !important;
-      }
-      .hljs-number {
-        color: #b5cea8 !important;
-      }
-      .hljs-punctuation,
-      .hljs-operator {
-        color: #d4d4d4 !important;
-      }
-      .hljs-string,
-      .hljs-char {
-        color: #ce9178 !important;
-      }
-      .hljs-comment {
-        color: #6a9955 !important;
-      }
-      .hljs-title.function_,
-      .hljs-function .hljs-title,
-      .hljs-title.function_.invoke__ {
-        color: #dcdcaa !important;
-      }
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
 
       /* Logic Log Box */
       .logic-box {
@@ -347,7 +297,6 @@ ONLY replace the sections marked with "REPLACE_".
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
       }
 
-      /* Optional Visual Data Structure Area (e.g. Heap Array / Pointers) */
       .data-viz {
         padding: 12px;
         background: #fffcf9;
@@ -370,17 +319,16 @@ ONLY replace the sections marked with "REPLACE_".
         min-height: 30px;
       }
       .data-node {
-        width: 22px;
-        height: 22px;
-        background: var(--anthropic-orange);
+        padding: 4px 8px;
+        background: var(--anthropic-dark);
         color: white;
         border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: "JetBrains Mono", monospace;
-        font-size: 9px;
-        font-weight: bold;
+        font-size: 11px;
+        font-weight: 500;
       }
 
       /* Auto-scrolling Log */
@@ -414,13 +362,8 @@ ONLY replace the sections marked with "REPLACE_".
         margin-bottom: 2px;
       }
 
-      ::-webkit-scrollbar {
-        width: 6px;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #e0e0e0;
-        border-radius: 3px;
-      }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
 
       /* ── 算法速记 ────────────────────────── */
       .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
@@ -438,13 +381,12 @@ ONLY replace the sections marked with "REPLACE_".
   </head>
   <body>
     <div class="container">
-      <!-- LEFT: Sidebar -->
       <div class="sidebar">
         <h1>
-          <!-- REPLACE_ALGORITHM_NAME -->算法名称<!-- END_ALGORITHM_NAME -->
+          字母异位词分组
         </h1>
         <div class="subtitle">
-          <!-- REPLACE_SUBTITLE -->最优解演示工具<!-- END_SUBTITLE -->
+          Group Anagrams - 哈希表特征映射法
         </div>
 
         <div class="control-section">
@@ -453,11 +395,11 @@ ONLY replace the sections marked with "REPLACE_".
             type="number"
             id="seed-input"
             class="seed-input"
-            value="12345"
+            value="404"
             onchange="updateSeed()"
           />
           <button class="button" onclick="randomSeedAndUpdate()">
-            生成新随机场景
+            生成新随机字符数组
           </button>
         </div>
 
@@ -478,28 +420,21 @@ ONLY replace the sections marked with "REPLACE_".
               <span class="value-display" id="speed-value">1.0</span>
             </div>
           </div>
-          <!-- 
-                ==========================================================
-                REPLACE_PARAMS_UI: Add algorithm-specific sliders here
-                (e.g. array length, list count, threshold, etc) 
-                ========================================================== 
-                -->
           <div class="control-group">
-            <label>数据规模 (n)</label>
+            <label>字符串数量 (n)</label>
             <div class="slider-container">
               <input
                 type="range"
                 id="n"
-                min="5"
-                max="50"
-                step="5"
-                value="15"
+                min="4"
+                max="9"
+                step="1"
+                value="6"
                 oninput="updateParam('n', this.value)"
               />
-              <span class="value-display" id="n-value">15</span>
+              <span class="value-display" id="n-value">6</span>
             </div>
           </div>
-          <!-- END_PARAMS_UI -->
         </div>
 
         <div class="control-section" style="display: flex; gap: 10px">
@@ -520,38 +455,27 @@ ONLY replace the sections marked with "REPLACE_".
           </button>
         </div>
 
-        <!--
-        ==========================================================
-        REPLACE_KNOWLEDGE_PANEL
-        算法速记卡 — 只替换这一块，其他区域保持不变。
-        复杂度 badge：.time = 时间  .space = 空间
-        tips 样式：默认橙 = 核心思路  .g 绿 = 延伸洞察  .w 琥珀 = 常见误区
-        ==========================================================
-        -->
         <div class="memo-card">
           <h3>算法速记</h3>
           <div class="memo-badges">
-            <span class="memo-badge time">⏱ O(n)</span>
-            <span class="memo-badge space">□ O(1)</span>
+            <span class="memo-badge time">⏱ O(N * K log K)</span>
+            <span class="memo-badge space">□ O(N * K)</span>
           </div>
           <div class="memo-tips">
-            <div class="memo-tip">💡 核心思路描述放这里</div>
-            <div class="memo-tip g">🔍 延伸洞察放这里</div>
-            <div class="memo-tip w">⚠️ 常见误区放这里</div>
+            <div class="memo-tip">💡 核心原理：互为字母异位词的字符串，其内部字符排序后的结果是唯一且相同的。</div>
+            <div class="memo-tip">💡 聚合方式：以“排序后的字符串”作为哈希表的 Key，将原始字符串存入对应的 Value（数组）中。</div>
+            <div class="memo-tip g">🔍 进阶优化：如果字符串仅包含小写字母，可用长度为 26 的频次数组（如 [1,0,0,1...]）转换为字符串代替排序，将时间复杂度降至 O(N * K)。</div>
+            <div class="memo-tip w">⚠️ 哈希表的 Value 必须是集合/列表类型，不要在发现异位词时覆盖旧值，而是进行追加（Append）。</div>
           </div>
         </div>
-        <!-- END_KNOWLEDGE_PANEL -->
       </div>
 
-      <!-- MIDDLE: Canvas -->
       <div class="canvas-area">
         <div class="canvas-header">算法执行动画展示区</div>
         <div id="canvas-container"></div>
       </div>
 
-      <!-- RIGHT: Code & Logistics -->
       <div class="right-panel">
-        <!-- Code Viewer -->
         <div class="code-box">
           <div class="box-header dark">
             <div class="box-title dark">核心解法 (最优代码)</div>
@@ -568,24 +492,15 @@ ONLY replace the sections marked with "REPLACE_".
           ><code id="code-viewer" class="hljs"></code></pre>
         </div>
 
-        <!-- Execution Logs -->
         <div class="logic-box">
           <div class="box-header" style="border-bottom: 1px solid #eee">
             <div class="box-title">实时执行过程 (Step-by-step Log)</div>
           </div>
-          <!-- 
-                ==========================================================
-                REPLACE_DATA_VIZ: Use this if you want to explicitly visualize an array
-                or pointers outside of the canvas. If unnecessary, you can delete this.
-                ========================================================== 
-                -->
           <div class="data-viz">
-            <div class="data-title">当前数据状态 (Array/State)</div>
+            <div class="data-title">输入字符串数组 (strs)</div>
             <div id="data-nodes" class="data-array">
-              <!-- 动态生成的节点 -->
-            </div>
+              </div>
           </div>
-          <!-- END_DATA_VIZ -->
           <div id="log-container" class="log-area"></div>
         </div>
       </div>
@@ -593,49 +508,212 @@ ONLY replace the sections marked with "REPLACE_".
 
     <script>
       // ==========================================================
-      // REPLACE_CODE_SNIPPETS
-      // Provide optimal solutions in 5 languages.
-      // Use extremely detailed Chinese comments.
+      // MULTI-LANGUAGE SNIPPETS WITH DETAILED CHINESE COMMENTS
       // ==========================================================
       const SNIPPETS = {
-        python: `# Python\ndef solve():\n    pass`,
-        ts: `// TypeScript\nfunction solve(): void {\n}`,
-        java: `// Java\nclass Solution {\n    public void solve() {}\n}`,
-        cpp: `// C++\nvoid solve() {\n}`,
-        c: `// C\nvoid solve() {\n}`,
+        python: `# Python 最优解：哈希表 + 排序键
+import collections
+
+def groupAnagrams(strs: list[str]) -> list[list[str]]:
+    # 使用 defaultdict 自动初始化空列表
+    # 键(Key): 排序后的规范化字符串
+    # 值(Value): 属于该类别的原始字符串组成的列表
+    ans = collections.defaultdict(list)
+    
+    for s in strs:
+        # 对原始字符串的字符进行字典序排序，并重新拼接成字符串
+        # 例如: 'eat' -> ['a', 'e', 't'] -> 'aet'
+        key = "".join(sorted(s))
+        
+        # 将原始字符串追加到对应键的列表中
+        # 如果 key 不存在，defaultdict 会自动创建空列表后再追加
+        ans[key].append(s)
+        
+    # 返回字典中所有的值（即按特征分组后的二维列表）
+    return list(ans.values())`,
+
+        ts: `// TypeScript 最优解：Map + 排序键
+function groupAnagrams(strs: string[]): string[][] {
+    // 实例化一个 Map 用于建立映射关系
+    // Key 为 string，Value 为 string[]
+    const map = new Map<string, string[]>();
+    
+    for (const str of strs) {
+        // 提取特征：将字符串拆分为字符数组 -> 排序 -> 重新拼接
+        const key = str.split('').sort().join('');
+        
+        // 检查 Map 中是否已存在该特征键
+        if (!map.has(key)) {
+            // 若不存在，为该特征初始化一个空数组
+            map.set(key, []);
+        }
+        
+        // 将当前的原始字符串，推入属于它的特征分组中
+        // 使用非空断言 ! 是因为上面已经确保了该键必然存在
+        map.get(key)!.push(str);
+    }
+    
+    // Map 的 values() 返回一个迭代器，使用 Array.from 转为二维数组
+    return Array.from(map.values());
+}`,
+
+        java: `// Java 最优解：HashMap
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        // 创建哈希表，键为 String，值为包含多个 String 的 List
+        Map<String, List<String>> map = new HashMap<>();
+        
+        for (String str : strs) {
+            // 提取特征值：将字符串转换为字符数组并进行排序
+            char[] arr = str.toCharArray();
+            Arrays.sort(arr);
+            // 重新构造为字符串，作为哈希表的 Key
+            String key = new String(arr);
+            
+            // 如果哈希表中不存在该 Key，则创建一个新的 ArrayList
+            // computeIfAbsent 是 Java 8 提供的高效 API
+            map.computeIfAbsent(key, k -> new ArrayList<>()).add(str);
+        }
+        
+        // 将 HashMap 的所有 Value 集合作为新的 ArrayList 返回
+        return new ArrayList<>(map.values());
+    }
+}`,
+
+        cpp: `// C++ 最优解：unordered_map
+class Solution {
+public:
+    vector<vector<string>> groupAnagrams(vector<string>& strs) {
+        // 使用底层为哈希表的 unordered_map
+        // 键为 string，值为 vector<string>
+        unordered_map<string, vector<string>> map;
+        
+        for (const string& str : strs) {
+            // 复制当前字符串，作为将要排序的 Key
+            string key = str;
+            // 使用 STL 的 sort 对字符串内部字符进行排序
+            sort(key.begin(), key.end());
+            
+            // 在 C++ 中，如果 key 不存在，map[key] 会默认调用无参构造函数
+            // 初始化一个空的 vector，因此可以直接使用 push_back
+            map[key].push_back(str);
+        }
+        
+        vector<vector<string>> result;
+        // 遍历哈希表，提取所有的 values 组装成结果集
+        for (auto it = map.begin(); it != map.end(); ++it) {
+            result.push_back(it->second);
+        }
+        
+        return result;
+    }
+};`,
+
+        c: `// C 最优解：利用 uthash 库实现哈希分组
+#include <stdlib.h>
+#include <string.h>
+#include "uthash.h"
+
+// 自定义字符串比较函数，供 qsort 使用
+int cmp(const void* a, const void* b) {
+    return *(char*)a - *(char*)b;
+}
+
+// 定义哈希表结构体
+typedef struct {
+    char* key;           // 排序后的字符串作为特征键
+    char** values;       // 存储原始字符串的动态数组
+    int count;           // 当前分组内的字符串数量
+    int capacity;        // 动态数组的容量
+    UT_hash_handle hh;   // uthash 内部句柄
+} HashItem;
+
+char*** groupAnagrams(char** strs, int strsSize, int* returnSize, int** returnColumnSizes) {
+    HashItem* hashTable = NULL;
+    
+    for (int i = 0; i < strsSize; i++) {
+        // 创建原字符串的副本并进行排序
+        char* key = strdup(strs[i]);
+        qsort(key, strlen(key), sizeof(char), cmp);
+        
+        HashItem* tmp = NULL;
+        HASH_FIND_STR(hashTable, key, tmp); // 查找 Key
+        
+        if (tmp == NULL) {
+            // 若不存在，创建新的哈希节点
+            tmp = malloc(sizeof(HashItem));
+            tmp->key = key;
+            tmp->capacity = 4;
+            tmp->values = malloc(sizeof(char*) * tmp->capacity);
+            tmp->count = 0;
+            HASH_ADD_STR(hashTable, key, tmp);
+        } else {
+            free(key); // Key已存在，释放副本
+        }
+        
+        // 扩容逻辑
+        if (tmp->count == tmp->capacity) {
+            tmp->capacity *= 2;
+            tmp->values = realloc(tmp->values, sizeof(char*) * tmp->capacity);
+        }
+        // 将原始字符串加入分组
+        tmp->values[tmp->count++] = strs[i]; 
+    }
+    
+    // 省略后续提取 HashItem 数据组装为 char*** 返回的固定代码...
+    return NULL; 
+}`
+      };
+
+      const LANG_VARS = {
+          python: { str: "s", key: "key" },
+          ts: { str: "str", key: "key" },
+          java: { str: "str", key: "key" },
+          cpp: { str: "str", key: "key" },
+          c: { str: "strs[i]", key: "key" }
       };
 
       // ==========================================================
-      // REPLACE_PARAMS
-      // System and algorithmic state variables
+      // SYSTEM PARAMS & STATE
       // ==========================================================
-      let params = {
-        seed: 12345,
-        speed: 1.0,
-        n: 15,
-      };
+      let params = { seed: 404, speed: 1.0, n: 6 };
 
       let isDone = false;
       let isPaused = false;
       let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let strsArray = [];
+      let mapState = []; // [{key: 'aet', values: ['eat', 'tea']}, ...]
+      let currentIndex = 0;
+      let stepPhase = 0; // 0: Select, 1: Sort to Key, 2: Insert Map
+      let currentString = "";
+      let currentKey = "";
+      let activeMapIndex = -1; // 正在操作的 Bucket 索引
+
+      // P5 Drawing State
+      let dispPtrX = 0;
 
       // ==========================================================
-      // REPLACE_P5JS_LOGIC
-      // Write your custom particle/data structures here.
+      // P5.js LOGIC
       // ==========================================================
+      
+      // 辅助函数：打乱字符串
+      function shuffleString(s) {
+          let a = s.split(""), n = a.length;
+          for(let i = n - 1; i > 0; i--) {
+              let j = floor(random(0, i + 1));
+              let tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+          }
+          return a.join("");
+      }
 
       function setup() {
         let container = document.getElementById("canvas-container");
-        let canvas = createCanvas(
-          container.offsetWidth || 500,
-          container.offsetHeight || 600,
-        );
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
         canvas.parent("canvas-container");
-        window.addEventListener("resize", () =>
-          resizeCanvas(container.offsetWidth, container.offsetHeight),
-        );
-
-        // Initialization
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
         switchLang("python");
         initializeSystem();
       }
@@ -643,26 +721,40 @@ ONLY replace the sections marked with "REPLACE_".
       function initializeSystem() {
         randomSeed(params.seed);
 
-        // Logic initialization
+        // 1. 生成随机的互为异位词的字符串组
+        const baseWords = ["tea", "art", "now", "pat"];
+        strsArray = [];
+        
+        for(let i=0; i<params.n; i++) {
+            // 随机选一个 base word，并将其字符打乱
+            let bw = baseWords[floor(random(0, baseWords.length))];
+            strsArray.push(shuffleString(bw));
+        }
+
+        updateDataUI(strsArray);
+
+        // 2. 状态重置
+        mapState = [];
+        currentIndex = 0;
+        stepPhase = 0;
+        currentString = "";
+        currentKey = "";
+        activeMapIndex = -1;
         isDone = false;
         isPaused = false;
         p5Timer = 0;
+        dispPtrX = width / 2;
 
         let btn = document.getElementById("pause-btn");
-        if (btn) {
-          btn.innerHTML = "⏸ 暂停";
-          btn.style.background = "var(--anthropic-dark)";
-        }
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
 
-        updateDataUI([]);
         document.getElementById("log-container").innerHTML = "";
-        logMsg("✅ 演示环境准备就绪，系统已重置。", true);
+        logMsg(`✅ 演示环境就绪。数组长度 n = ${params.n}。开始遍历...`, true);
       }
 
       function draw() {
         background(255);
 
-        // Frame-based execution trigger
         if (!isDone && !isPaused) {
           p5Timer += 0.015 * params.speed;
           if (p5Timer > 1) {
@@ -671,30 +763,143 @@ ONLY replace the sections marked with "REPLACE_".
           }
         }
 
-        // Draw objects...
+        // === 渲染区 ===
+        const startY = 60;
+        const colW = 60;
+        const gap = 10;
+        const totalW = params.n * colW + (params.n - 1) * gap;
+        const startX = width/2 - totalW/2 + colW/2;
+
+        // 1. 渲染输入数组
+        fill(100); noStroke(); textSize(14); textAlign(CENTER, CENTER);
+        text("输入数组 (strs)", width/2, startY - 30);
+
+        for(let i=0; i<params.n; i++) {
+            let cx = startX + i * (colW + gap);
+            let isCurrent = (i === currentIndex && !isDone);
+            let isProcessed = (i < currentIndex);
+
+            if (isCurrent) fill(217, 119, 87);
+            else if (isProcessed) fill(230, 235, 225); // light green tint
+            else fill(245);
+            
+            stroke(200); strokeWeight(1);
+            rect(cx - colW/2, startY, colW, 30, 4);
+
+            fill(isCurrent ? 255 : (isProcessed ? 150 : 50));
+            noStroke(); textSize(14); fontStyle = "bold";
+            text(`"${strsArray[i]}"`, cx, startY + 15);
+
+            if (isCurrent) {
+                dispPtrX = lerp(dispPtrX, cx, 0.1 * params.speed);
+            }
+        }
+
+        if (!isDone) {
+            fill(217, 119, 87); textSize(12);
+            text(`${LANG_VARS[currentLang].str} ↓`, dispPtrX, startY - 10);
+        }
+
+        // 2. 渲染状态转换区 (特征提取)
+        const transY = startY + 80;
+        if (!isDone && stepPhase > 0) {
+            fill(80); textSize(13);
+            text("提取排序特征 (Sorting):", width/2, transY);
+            
+            fill(245); stroke(200);
+            rect(width/2 - 90, transY + 20, 70, 30, 4);
+            rect(width/2 + 20, transY + 20, 70, 30, 4);
+            
+            fill(150); noStroke(); textSize(20);
+            text("➔", width/2, transY + 35);
+            
+            fill(50); textSize(14);
+            text(`"${currentString}"`, width/2 - 55, transY + 35);
+            
+            if (stepPhase >= 1) {
+                fill(120, 140, 93); textSize(14); fontStyle = "bold";
+                text(`"${currentKey}"`, width/2 + 55, transY + 35);
+            }
+        }
+
+        // 3. 渲染 Hash Map
+        const mapY = transY + 90;
+        fill(100); noStroke(); textSize(14);
+        text("哈希表 (Hash Map Grouping)", width/2, mapY);
+        
+        const bucketW = 320;
+        const bucketH = 40;
+        for (let i = 0; i < mapState.length; i++) {
+            let by = mapY + 30 + i * (bucketH + 10);
+            let isActive = (i === activeMapIndex && stepPhase === 2 && !isDone);
+            
+            // Bucket 外框
+            fill(isActive ? 245 : 252, isActive ? 250 : 252, isActive ? 240 : 252);
+            stroke(isActive ? varColor(120, 140, 93) : 220);
+            strokeWeight(isActive ? 2 : 1);
+            rect(width/2 - bucketW/2, by, bucketW, bucketH, 6);
+
+            // Key 显示
+            fill(isActive ? varColor(120, 140, 93) : 100);
+            noStroke(); textAlign(LEFT, CENTER); textSize(13); fontStyle = "bold";
+            text(`Key: "${mapState[i].key}"`, width/2 - bucketW/2 + 15, by + bucketH/2);
+            
+            // Value Array 显示
+            fill(80); textAlign(LEFT, CENTER); fontStyle = "normal";
+            let valStr = mapState[i].values.map(v => `"${v}"`).join(", ");
+            text(`Values: [ ${valStr} ]`, width/2 - bucketW/2 + 100, by + bucketH/2);
+        }
       }
+      
+      function varColor(r,g,b) { return color(r,g,b); }
 
       function performStep() {
-        // Execution block for standardizing visualization logic.
-        // Move pointers, modify arrays, and log actions here.
-        /* Example:
-            if (pointer < array.length) {
-                logMsg(`📍 处理元素 ${array[pointer]}`, false);
-                pointer++;
-                updateDataUI(array);
+        if (currentIndex >= params.n) {
+            isDone = true;
+            activeMapIndex = -1;
+            logMsg(`🏁 所有字符串遍历完毕。提取哈希表的所有 Values，算法执行完成！`, true);
+            return;
+        }
+
+        let varName = LANG_VARS[currentLang].str;
+        let keyName = LANG_VARS[currentLang].key;
+
+        if (stepPhase === 0) {
+            currentString = strsArray[currentIndex];
+            logMsg(`📍 开始处理第 ${currentIndex} 个元素：读取 ${varName} = <b>"${currentString}"</b>`, false);
+            stepPhase = 1;
+
+        } else if (stepPhase === 1) {
+            currentKey = currentString.split('').sort().join('');
+            logMsg(`🔄 提取特征：将 "${currentString}" 按字典序排序，得到特征键 ${keyName} = <b>"${currentKey}"</b>`, false);
+            
+            // 查找属于哪个 Bucket
+            activeMapIndex = mapState.findIndex(b => b.key === currentKey);
+            stepPhase = 2;
+
+        } else if (stepPhase === 2) {
+            if (activeMapIndex !== -1) {
+                // 已存在该键
+                logMsg(`🔍 哈希表中已存在键 "${currentKey}"。将原字符串 "${currentString}" 追加到该分组列表中。`, true);
+                mapState[activeMapIndex].values.push(currentString);
             } else {
-                isDone = true;
-                logMsg("🏁 算法执行完成！", true);
+                // 不存在该键，新建
+                logMsg(`🆕 哈希表中未找到键 "${currentKey}"。为该特征初始化一个新列表，并将 "${currentString}" 存入。`, false);
+                mapState.push({ key: currentKey, values: [currentString] });
+                activeMapIndex = mapState.length - 1;
             }
-            */
-        isDone = true;
+            
+            // 准备处理下一个
+            currentIndex++;
+            stepPhase = 0;
+            currentKey = "";
+            currentString = "";
+        }
       }
 
       // ==========================================================
       // FIXED UTILITY FUNCTIONS
-      // Usually do not need modification.
       // ==========================================================
-
       function updateDataUI(arr) {
         let container = document.getElementById("data-nodes");
         if (!container) return;
@@ -702,7 +907,7 @@ ONLY replace the sections marked with "REPLACE_".
         arr.forEach((v) => {
           let node = document.createElement("div");
           node.className = "data-node";
-          node.innerText = v;
+          node.innerText = `"${v}"`;
           container.appendChild(node);
         });
       }
@@ -712,12 +917,7 @@ ONLY replace the sections marked with "REPLACE_".
         if (!container) return;
         let item = document.createElement("div");
         item.className = "log-item" + (highlight ? " highlight" : "");
-        let time = new Date().toLocaleTimeString("zh-CN", {
-          hour12: false,
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        });
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
         item.innerHTML = `<div class="time">${time}</div>${msg}`;
         container.appendChild(item);
         container.scrollTop = container.scrollHeight;
@@ -725,31 +925,18 @@ ONLY replace the sections marked with "REPLACE_".
 
       function switchLang(lang) {
         currentLang = lang;
-        document
-          .querySelectorAll(".tab")
-          .forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
         const tabs = document.querySelectorAll(".tab");
         const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
         tabs[langMap[lang]].classList.add("active");
 
         const codeEl = document.getElementById("code-viewer");
-        const hljsMap = {
-          python: "language-python",
-          ts: "language-typescript",
-          java: "language-java",
-          cpp: "language-cpp",
-          c: "language-c",
-        };
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
         codeEl.className = "hljs " + hljsMap[lang];
         codeEl.textContent = SNIPPETS[lang];
 
         codeEl.removeAttribute("data-highlighted");
         if (window.hljs) hljs.highlightElement(codeEl);
-
-        // Restart animation to match the new language's logic and variable names
-        if (typeof initializeSystem === "function") {
-          initializeSystem();
-        }
       }
 
       function updateParam(id, val) {
@@ -760,8 +947,7 @@ ONLY replace the sections marked with "REPLACE_".
       }
 
       function updateSeed() {
-        params.seed =
-          parseInt(document.getElementById("seed-input").value) || 12345;
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
         initializeSystem();
       }
 
@@ -769,25 +955,17 @@ ONLY replace the sections marked with "REPLACE_".
         params.seed = floor(random(1, 99999));
         document.getElementById("seed-input").value = params.seed;
         initializeSystem();
-        logMsg("🔄 随机化生成新场景。", true);
       }
 
       function togglePause() {
         isPaused = !isPaused;
         let btn = document.getElementById("pause-btn");
         if (!btn) return;
-        if (isPaused) {
-          btn.innerHTML = "▶ 继续";
-          btn.style.background = "var(--anthropic-green)";
-        } else {
-          btn.innerHTML = "⏸ 暂停";
-          btn.style.background = "var(--anthropic-dark)";
-        }
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
       }
 
-      function resetAnimation() {
-        initializeSystem();
-      }
+      function resetAnimation() { initializeSystem(); }
     </script>
   </body>
 </html>

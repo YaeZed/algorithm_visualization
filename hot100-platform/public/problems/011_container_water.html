@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>盛最多水的容器 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box */
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { width: 24px; height: 24px; background: var(--anthropic-dark); color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: bold; }
+
+      /* Auto-scrolling Log */
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.move { border-left-color: var(--anthropic-blue); background: #f4f8fc; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>盛最多水的容器</h1>
+        <div class="subtitle">
+          Container With Most Water - 首尾双指针
+        </div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="42" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成随机高度数组</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>数组长度 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="5" max="15" step="1" value="9" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">9</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 面积公式：Area = min(height[left], height[right]) × (right - left)。</div>
+            <div class="memo-tip">💡 贪心策略：双指针分布在数组两端以获得最大的初始宽度。随后，始终向内移动高度较小的那个指针。</div>
+            <div class="memo-tip g">🔍 数学推导：指针向内移动，宽度 (right - left) 必定减小。此时如果移动较高的指针，由于短板效应，高度不仅无法增加，甚至可能减小，导致面积必定减小。因此，只有移动较短的指针，才有机会找到更高的板子来弥补宽度的损失。</div>
+            <div class="memo-tip w">⚠️ 常见误区：不要在左右指针高度相等时停止移动，可以随意移动其中任意一个（通常同时收缩或者任选其一均可），继续寻找局部更优解，直到两指针相遇。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区 <span id="max-area-display" style="float: right; color: var(--anthropic-orange); font-weight: bold;">Max Area: 0</span></div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">数组高度数据 (height)</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTI-LANGUAGE SNIPPETS WITH DETAILED CHINESE COMMENTS
+      // ==========================================================
+      const SNIPPETS = {
+        python: `# Python 最优解：双指针向内收敛贪心算法
+def maxArea(height: list[int]) -> int:
+    # 左右双指针分别初始化在数组的两端，以获取最大宽度
+    left = 0
+    right = len(height) - 1
+    max_area = 0
+    
+    # 当左右指针未相遇时，持续计算
+    while left < right:
+        # 计算当前容器的宽度
+        current_width = right - left
+        
+        # 容器的高度由较短的那块板决定
+        current_height = min(height[left], height[right])
+        
+        # 计算当前面积，并更新历史最大面积
+        current_area = current_width * current_height
+        max_area = max(max_area, current_area)
+        
+        # 贪心选择：移动较短的板子才有可能获得更大的面积
+        # 因为如果移动长板，高度受限，宽度减小，面积必然减小
+        if height[left] < height[right]:
+            left += 1
+        else:
+            right -= 1
+            
+    return max_area`,
+
+        ts: `// TypeScript 最优解：双指针
+function maxArea(height: number[]): number {
+    let left = 0; // 左指针起点
+    let right = height.length - 1; // 右指针终点
+    let maxArea = 0; // 记录最大面积
+    
+    while (left < right) {
+        // 计算由当前左右指针构成的矩形面积
+        // 面积 = 宽度(right - left) * 高度(短板高度)
+        const currentArea = (right - left) * Math.min(height[left], height[right]);
+        
+        // 更新最大面积的记录
+        maxArea = Math.max(maxArea, currentArea);
+        
+        // 判断移动方向：始终舍弃较短的板
+        // 这是严谨的数学规律：在宽度必然减小的前提下，只有寻找更长的板才有意义
+        if (height[left] < height[right]) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+    
+    return maxArea;
+}`,
+
+        java: `// Java 最优解：双指针
+class Solution {
+    public int maxArea(int[] height) {
+        int left = 0;
+        int right = height.length - 1;
+        int maxArea = 0;
+        
+        while (left < right) {
+            // 木桶原理：实际能装的水高度受限于左右两边较短的线段
+            int currentHeight = Math.min(height[left], height[right]);
+            int currentWidth = right - left;
+            int area = currentWidth * currentHeight;
+            
+            // 比较并保存最大面积
+            maxArea = Math.max(maxArea, area);
+            
+            // 将较低一侧的指针向内移动
+            if (height[left] <= height[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+        
+        return maxArea;
+    }
+}`,
+
+        cpp: `// C++ 最优解：双指针
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        int left = 0;
+        int right = height.size() - 1;
+        int max_area = 0;
+        
+        while (left < right) {
+            // 计算当前宽度与有效高度
+            int current_width = right - left;
+            int current_height = min(height[left], height[right]);
+            
+            // 计算面积并更新 max_area
+            max_area = max(max_area, current_width * current_height);
+            
+            // 贪心法则：移动较短边缘的指针
+            if (height[left] < height[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+        
+        return max_area;
+    }
+};`,
+
+        c: `// C 最优解：双指针
+#include <math.h>
+
+int maxArea(int* height, int heightSize) {
+    int left = 0;
+    int right = heightSize - 1;
+    int max_area = 0;
+    
+    while (left < right) {
+        // C 语言手动计算最小高度
+        int min_height = height[left] < height[right] ? height[left] : height[right];
+        
+        // 计算当前体积（面积）
+        int current_area = (right - left) * min_height;
+        
+        // 更新最大记录
+        if (current_area > max_area) {
+            max_area = current_area;
+        }
+        
+        // 指针收敛
+        if (height[left] < height[right]) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+    
+    return max_area;
+}`
+      };
+
+      const LANG_VARS = {
+          python: { left: "left", right: "right" },
+          ts: { left: "left", right: "right" },
+          java: { left: "left", right: "right" },
+          cpp: { left: "left", right: "right" },
+          c: { left: "left", right: "right" }
+      };
+
+      // ==========================================================
+      // SYSTEM PARAMS & STATE
+      // ==========================================================
+      let params = { seed: 42, speed: 1.0, n: 9 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let heightArray = [];
+      let leftIdx = 0;
+      let rightIdx = 0;
+      
+      let maxArea = 0;
+      let maxLeftIdx = 0;  // 记录取得最大面积时的边界
+      let maxRightIdx = 0;
+      
+      let currentArea = 0;
+      let currentWidth = 0;
+      let currentMinHeight = 0;
+
+      let stepPhase = 0; 
+      // 0: 计算当前面积并更新 maxArea
+      // 1: 比较 height[left] 和 height[right] 并移动指针
+
+      // P5 Drawing State (Smooth Lerping)
+      let dispLeftX = 0;
+      let dispRightX = 0;
+      let maxAreaAlpha = 0; // 用于渲染最高得分的残影
+
+      // ==========================================================
+      // P5.js LOGIC
+      // ==========================================================
+      
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        heightArray = [];
+        // 为了让演示更有趣，强制在中间区域生成几个高峰
+        for (let i = 0; i < params.n; i++) {
+            let distToCenter = abs(i - params.n/2);
+            let probability = map(distToCenter, 0, params.n/2, 1, 0.2);
+            if (random() < probability) {
+                heightArray.push(floor(random(4, 12)));
+            } else {
+                heightArray.push(floor(random(1, 6)));
+            }
+        }
+        
+        updateDataUI(heightArray);
+
+        // State Reset
+        leftIdx = 0;
+        rightIdx = params.n - 1;
+        maxArea = 0;
+        maxLeftIdx = 0;
+        maxRightIdx = params.n - 1;
+        currentArea = 0;
+        stepPhase = 0;
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        // P5 Render reset
+        dispLeftX = 0;
+        dispRightX = 0;
+        maxAreaAlpha = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("max-area-display").innerText = `Max Area: 0`;
+        document.getElementById("log-container").innerHTML = "";
+        
+        logMsg(`✅ 系统就绪。数组长度 <b>${params.n}</b>。双指针分布于两端以获取最大初始宽度。`, true);
+      }
+
+      function draw() {
+        background(255);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // === Layout Math ===
+        const barWidth = 24;
+        const gap = 20;
+        const totalW = params.n * barWidth + (params.n - 1) * gap;
+        const startX = width / 2 - totalW / 2 + barWidth/2;
+        const baseY = height - 100;
+        const heightScale = 25; // 每单位高度对应的像素
+
+        // Init lerp on first frame
+        if (dispLeftX === 0) dispLeftX = startX;
+        if (dispRightX === 0) dispRightX = startX + (params.n - 1) * (barWidth + gap);
+
+        // Calculate Target coordinates for pointers
+        let targetLeftX = startX + leftIdx * (barWidth + gap);
+        let targetRightX = startX + rightIdx * (barWidth + gap);
+
+        dispLeftX = lerp(dispLeftX, targetLeftX, 0.15 * params.speed);
+        dispRightX = lerp(dispRightX, targetRightX, 0.15 * params.speed);
+
+        // 1. Render Max Area Ghost (Background)
+        if (maxArea > 0) {
+            let mLeftX = startX + maxLeftIdx * (barWidth + gap);
+            let mRightX = startX + maxRightIdx * (barWidth + gap);
+            let mMinH = min(heightArray[maxLeftIdx], heightArray[maxRightIdx]) * heightScale;
+            
+            fill(217, 119, 87, 20); // Orange transparent
+            noStroke();
+            rect(mLeftX, baseY - mMinH, mRightX - mLeftX, mMinH);
+            
+            // Draw max bounding lines
+            stroke(217, 119, 87, 100);
+            strokeWeight(1);
+            drawingContext.setLineDash([5, 5]);
+            line(mLeftX, baseY, mLeftX, baseY - mMinH);
+            line(mRightX, baseY, mRightX, baseY - mMinH);
+            line(mLeftX, baseY - mMinH, mRightX, baseY - mMinH);
+            drawingContext.setLineDash([]);
+        }
+
+        // 2. Render Current Area
+        if (!isDone && leftIdx < rightIdx) {
+            let effectiveH = min(heightArray[leftIdx], heightArray[rightIdx]) * heightScale;
+            fill(106, 155, 204, 50); // Blue transparent
+            noStroke();
+            rect(dispLeftX, baseY - effectiveH, dispRightX - dispLeftX, effectiveH);
+            
+            // Draw current bounding lines
+            stroke(106, 155, 204, 180);
+            strokeWeight(2);
+            line(dispLeftX, baseY, dispLeftX, baseY - effectiveH);
+            line(dispRightX, baseY, dispRightX, baseY - effectiveH);
+            line(dispLeftX, baseY - effectiveH, dispRightX, baseY - effectiveH);
+            
+            // Area text
+            fill(106, 155, 204);
+            noStroke();
+            textSize(14);
+            textAlign(CENTER, BOTTOM);
+            text(`Area: ${currentWidth * currentMinHeight}`, (dispLeftX + dispRightX) / 2, baseY - effectiveH - 5);
+        }
+
+        // 3. Render Histograms (Bars)
+        for (let i = 0; i < params.n; i++) {
+            let cx = startX + i * (barWidth + gap);
+            let val = heightArray[i];
+            let barH = val * heightScale;
+            
+            let isLeft = (i === leftIdx);
+            let isRight = (i === rightIdx);
+            
+            if (isLeft || isRight) {
+                fill(100); // Darker gray for active pointers
+            } else {
+                fill(220); // Light gray for others
+            }
+            
+            noStroke();
+            // Draw bar from bottom up
+            rect(cx - barWidth/2, baseY - barH, barWidth, barH, 4, 4, 0, 0);
+
+            // Draw Value
+            fill(50);
+            textSize(12);
+            textAlign(CENTER, BOTTOM);
+            text(val, cx, baseY - barH - 5);
+            
+            // Draw Index
+            fill(150);
+            textSize(10);
+            textAlign(CENTER, TOP);
+            text(`[${i}]`, cx, baseY + 10);
+        }
+
+        // 4. Render X Axis line
+        stroke(200);
+        strokeWeight(2);
+        line(startX - barWidth, baseY, startX + (params.n - 1) * (barWidth + gap) + barWidth, baseY);
+
+        // 5. Render Pointers
+        if (!isDone) {
+            fill(217, 119, 87);
+            noStroke();
+            textSize(14);
+            textAlign(CENTER, TOP);
+            text(`↑ ${LANG_VARS[currentLang].left}`, dispLeftX, baseY + 25);
+            text(`↑ ${LANG_VARS[currentLang].right}`, dispRightX, baseY + 25);
+        } else {
+            // End state highlight
+            let mLeftX = startX + maxLeftIdx * (barWidth + gap);
+            let mRightX = startX + maxRightIdx * (barWidth + gap);
+            fill(120, 140, 93);
+            textSize(15);
+            textAlign(CENTER, TOP);
+            text(`🏆 最优左边界`, mLeftX, baseY + 25);
+            text(`🏆 最优右边界`, mRightX, baseY + 25);
+        }
+      }
+
+      function performStep() {
+        if (leftIdx >= rightIdx) {
+            isDone = true;
+            document.getElementById("max-area-display").style.color = "var(--anthropic-green)";
+            logMsg(`🏁 指针相遇。所有可能的最大容器已评估完毕。最终最大面积：<b>${maxArea}</b>。`, true);
+            return;
+        }
+
+        let hl = heightArray[leftIdx];
+        let hr = heightArray[rightIdx];
+
+        if (stepPhase === 0) {
+            // 计算当前面积
+            currentWidth = rightIdx - leftIdx;
+            currentMinHeight = Math.min(hl, hr);
+            currentArea = currentWidth * currentMinHeight;
+            
+            if (currentArea > maxArea) {
+                maxArea = currentArea;
+                maxLeftIdx = leftIdx;
+                maxRightIdx = rightIdx;
+                document.getElementById("max-area-display").innerText = `Max Area: ${maxArea}`;
+                logMsg(`💧 宽=${currentWidth}, 高=min(${hl},${hr})=${currentMinHeight}。计算面积 = <b>${currentArea}</b>。🏆 刷新历史最高记录！`, true);
+            } else {
+                logMsg(`💧 宽=${currentWidth}, 高=min(${hl},${hr})=${currentMinHeight}。计算面积 = <b>${currentArea}</b>。未超过最大记录 ${maxArea}。`, false);
+            }
+            
+            stepPhase = 1;
+        } 
+        else if (stepPhase === 1) {
+            // 比较并移动
+            if (hl < hr) {
+                logMsg(`⚖️ 比较高度：左侧 ${hl} < 右侧 ${hr}。移动短板（左侧），寻找可能更高的板子。`, false);
+                leftIdx++;
+            } else {
+                logMsg(`⚖️ 比较高度：左侧 ${hl} ≥ 右侧 ${hr}。移动短板（右侧），寻找可能更高的板子。`, false);
+                rightIdx--;
+            }
+            stepPhase = 0;
+        }
+      }
+
+      // ==========================================================
+      // FIXED UTILITY FUNCTIONS
+      // ==========================================================
+      function updateDataUI(arr) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        arr.forEach((v) => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          node.innerText = v;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

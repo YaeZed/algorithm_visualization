@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>接雨水 (Trapping Rain Water) 算法全流程可视化</title>
+    <title>三数之和 (3Sum) 算法全流程可视化</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -179,12 +179,6 @@
         font-size: 13px;
         font-weight: 500;
         color: #888;
-        display: flex;
-        justify-content: space-between;
-      }
-      #total-water-disp {
-        color: var(--anthropic-blue);
-        font-weight: bold;
       }
       #canvas-container {
         flex: 1;
@@ -321,24 +315,27 @@
       .data-array {
         display: flex;
         flex-wrap: wrap;
-        gap: 2px;
+        gap: 5px;
         min-height: 30px;
       }
       .data-node {
-        width: 20px;
-        height: 20px;
+        width: 28px;
+        height: 28px;
         background: #f0f0f0;
         color: #333;
-        border-radius: 2px;
+        border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: "JetBrains Mono", monospace;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: bold;
+        transition: 0.2s;
       }
-      .data-node.active-l { background: var(--anthropic-orange); color: white; }
-      .data-node.active-r { background: var(--anthropic-green); color: white; }
+      .data-node.fixed { background: var(--anthropic-blue); color: white; }
+      .data-node.left { background: var(--anthropic-orange); color: white; }
+      .data-node.right { background: var(--anthropic-green); color: white; }
+      .data-node.result { border: 2px solid var(--anthropic-green); }
 
       .log-area {
         flex: 1;
@@ -360,13 +357,14 @@
         color: #444;
       }
       .log-item.highlight {
-        border-left-color: var(--anthropic-blue);
-        background: #f0f7fc;
-        font-weight: 500;
-      }
-      .log-item.update {
         border-left-color: var(--anthropic-orange);
         background: #fff9f5;
+        font-weight: 500;
+      }
+      .log-item.success {
+        border-left-color: var(--anthropic-green);
+        background: #f2fbf4;
+        font-weight: 500;
       }
       .log-item .time {
         font-size: 9px;
@@ -394,13 +392,13 @@
   <body>
     <div class="container">
       <div class="sidebar">
-        <h1>接雨水</h1>
-        <div class="subtitle">Trapping Rain Water · 双指针最优解演示</div>
+        <h1>三数之和 (3Sum)</h1>
+        <div class="subtitle">排序 + 双指针最优解演示</div>
 
         <div class="control-section">
           <h3>场景配置</h3>
-          <input type="number" id="seed-input" class="seed-input" value="8848" onchange="updateSeed()" />
-          <button class="button" onclick="randomSeedAndUpdate()">生成新柱子序列</button>
+          <input type="number" id="seed-input" class="seed-input" value="1024" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机数组</button>
         </div>
 
         <div class="control-section">
@@ -415,8 +413,8 @@
           <div class="control-group">
             <label>数组长度 (n)</label>
             <div class="slider-container">
-              <input type="range" id="n" min="8" max="25" step="1" value="15" oninput="updateParam('n', this.value)" />
-              <span class="value-display" id="n-value">15</span>
+              <input type="range" id="n" min="6" max="20" step="1" value="12" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">12</span>
             </div>
           </div>
         </div>
@@ -429,30 +427,27 @@
         <div class="memo-card">
           <h3>算法速记</h3>
           <div class="memo-badges">
-            <span class="memo-badge time">⏱ O(n)</span>
-            <span class="memo-badge space">□ O(1)</span>
+            <span class="memo-badge time">⏱ O(n²)</span>
+            <span class="memo-badge space">□ O(1) / O(logn)</span>
           </div>
           <div class="memo-tips">
-            <div class="memo-tip">💡 左右双指针向中收敛，每步处理**高度较小**的一侧。</div>
-            <div class="memo-tip">💡 当前侧能积水 = 当前侧的**历史最大高度** - 当前高度。</div>
-            <div class="memo-tip g">🔍 核心原理：较矮的一侧决定了当前柱子能装多少水，这是典型的短板效应。</div>
-            <div class="memo-tip w">⚠️ 注意维护 `left_max` 和 `right_max`。当柱子高度 >= 最大高度时，更新最大值，此时**不积水**。</div>
+            <div class="memo-tip">💡 第一步必须<b>排序</b>，这是后续双指针按大小判断方向和去重的基础。</div>
+            <div class="memo-tip">💡 遍历固定首个元素 `i`，使用 `left` 和 `right` 双指针在剩余区间向内收敛。</div>
+            <div class="memo-tip g">🔍 如果 `sum < 0`，左指针右移增大和；如果 `sum > 0`，右指针左移减小和。</div>
+            <div class="memo-tip w">⚠️ 常见错误：忽略去重。必须在三处去重：外层固定元素去重，内层左指针、右指针均需跳过连续相等的值。</div>
           </div>
         </div>
       </div>
 
       <div class="canvas-area">
-        <div class="canvas-header">
-            <span>双指针接雨水过程演示</span>
-            <span id="total-water-disp">当前总水量：0</span>
-        </div>
+        <div class="canvas-header">算法执行动画展示区：寻找 nums[i] + nums[left] + nums[right] == 0</div>
         <div id="canvas-container"></div>
       </div>
 
       <div class="right-panel">
         <div class="code-box">
           <div class="box-header dark">
-            <div class="box-title dark">核心解法 (双指针 O(1) 空间)</div>
+            <div class="box-title dark">核心解法 (最优代码)</div>
             <div id="lang-tabs" class="tabs dark">
               <div class="tab" onclick="switchLang('python')">Python</div>
               <div class="tab" onclick="switchLang('ts')">TS</div>
@@ -469,7 +464,7 @@
             <div class="box-title">实时执行过程 (Step-by-step Log)</div>
           </div>
           <div class="data-viz">
-            <div class="data-title">柱子高度数组 (height)</div>
+            <div class="data-title">当前数组状态 (已排序)</div>
             <div id="data-nodes" class="data-array"></div>
           </div>
           <div id="log-container" class="log-area"></div>
@@ -483,93 +478,120 @@
       // ==========================================================
       const SNIPPETS = {
         python: `# Python
-def trap(height):
-    if not height: return 0
+def threeSum(nums):
+    # 第一步：排序数组，为双指针和去重做准备
+    nums.sort()
+    ans = []
+    n = len(nums)
     
-    # 初始化左右双指针
-    left, right = 0, len(height) - 1
-    # 记录左右两侧的历史最高柱子
-    left_max, right_max = 0, 0
-    ans = 0
-    
-    # 双指针向中间收敛
-    while left < right:
-        # 比较左右当前柱子，处理较矮的一侧
-        if height[left] < height[right]:
-            # 处理左侧：如果当前柱子大于等于左侧历史最高，则更新最高
-            if height[left] >= left_max:
-                left_max = height[left]
-            else:
-                # 否则，基于短板效应，当前列可以积水
-                ans += left_max - height[left]
-            left += 1
-        else:
-            # 处理右侧：逻辑与左侧对称
-            if height[right] >= right_max:
-                right_max = height[right]
-            else:
-                ans += right_max - height[right]
-            right -= 1
+    # 遍历固定第一个数，下标为 i
+    for i in range(n - 2):
+        # 优化：如果当前最小的数已经大于0，三数之和必定 > 0，直接结束
+        if nums[i] > 0:
+            break
             
+        # 外层去重：如果当前固定的数和上一个数相同，跳过，避免重复结果
+        if i > 0 and nums[i] == nums[i - 1]:
+            continue
+            
+        # 设置双指针，向中间收敛
+        left, right = i + 1, n - 1
+        while left < right:
+            s = nums[i] + nums[left] + nums[right]
+            
+            if s < 0:
+                # 和小于0，说明太小了，需要增大，左指针右移
+                left += 1
+            elif s > 0:
+                # 和大于0，说明太大了，需要减小，右指针左移
+                right -= 1
+            else:
+                # 找到符合条件的三元组，记录答案
+                ans.append([nums[i], nums[left], nums[right]])
+                
+                # 内层去重：跳过连续相同的左侧数字
+                while left < right and nums[left] == nums[left + 1]:
+                    left += 1
+                # 内层去重：跳过连续相同的右侧数字
+                while left < right and nums[right] == nums[right - 1]:
+                    right -= 1
+                    
+                # 收缩区间继续寻找下一个可能的三元组
+                left += 1
+                right -= 1
+                
     return ans`,
         ts: `// TypeScript
-function trap(height: number[]): number {
-    if (height.length === 0) return 0;
-
-    let left = 0;
-    let right = height.length - 1;
-    let left_max = 0;
-    let right_max = 0;
-    let ans = 0;
-
-    while (left < right) {
-        // 较矮的一侧决定了木桶的下限，因此处理较矮的一侧
-        if (height[left] < height[right]) {
-            if (height[left] >= left_max) {
-                // 更新左侧历史最高值，不产生积水
-                left_max = height[left];
+function threeSum(nums: number[]): number[][] {
+    // 基础准备：原地排序
+    nums.sort((a, b) => a - b);
+    const ans: number[][] = [];
+    const n = nums.length;
+    
+    for (let i = 0; i < n - 2; i++) {
+        // 如果当前固定的最小值大于0，不可能有符合条件的和
+        if (nums[i] > 0) break;
+        
+        // 关键去重：保证首个元素不重复使用
+        if (i > 0 && nums[i] === nums[i - 1]) continue;
+        
+        let left = i + 1;
+        let right = n - 1;
+        
+        while (left < right) {
+            const sum = nums[i] + nums[left] + nums[right];
+            
+            if (sum < 0) {
+                left++; // 整体偏小，增大左边界
+            } else if (sum > 0) {
+                right--; // 整体偏大，缩小右边界
             } else {
-                // 有水位差，产生积水
-                ans += left_max - height[left];
+                ans.push([nums[i], nums[left], nums[right]]);
+                
+                // 去重：剔除所有相邻的重复值
+                while (left < right && nums[left] === nums[left + 1]) left++;
+                while (left < right && nums[right] === nums[right - 1]) right--;
+                
+                left++;
+                right--;
             }
-            left++;
-        } else {
-            if (height[right] >= right_max) {
-                // 更新右侧历史最高值
-                right_max = height[right];
-            } else {
-                // 产生积水
-                ans += right_max - height[right];
-            }
-            right--;
         }
     }
     return ans;
 }`,
         java: `// Java
 class Solution {
-    public int trap(int[] height) {
-        int left = 0, right = height.length - 1;
-        int ans = 0;
-        int left_max = 0, right_max = 0;
+    public List<List<Integer>> threeSum(int[] nums) {
+        List<List<Integer>> ans = new ArrayList<>();
+        // 排序是双指针解法的前提
+        Arrays.sort(nums);
+        int n = nums.length;
         
-        while (left < right) {
-            // 木桶效应：由于 height[left] < height[right]
-            // 左侧的上限 left_max 必定是当前列积水的决定因素
-            if (height[left] < height[right]) {
-                if (height[left] >= left_max) {
-                    left_max = height[left];
+        for (int i = 0; i < n - 2; i++) {
+            if (nums[i] > 0) break; // 剪枝
+            
+            // 跳过外层重复元素
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+            
+            int left = i + 1, right = n - 1;
+            while (left < right) {
+                int sum = nums[i] + nums[left] + nums[right];
+                
+                if (sum < 0) {
+                    left++;
+                } else if (sum > 0) {
+                    right--;
                 } else {
-                    ans += (left_max - height[left]);
+                    // 记录正确的三元组
+                    ans.add(Arrays.asList(nums[i], nums[left], nums[right]));
+                    
+                    // 内层移动指针同时去重
+                    while (left < right && nums[left] == nums[left + 1]) left++;
+                    while (left < right && nums[right] == nums[right - 1]) right--;
+                    
+                    left++;
+                    right--;
                 }
-                left++;
-            } else {
-                if (height[right] >= right_max) {
-                    right_max = height[right];
-                } else {
-                    ans += (right_max - height[right]);
-                }
-                right--;
             }
         }
         return ans;
@@ -578,150 +600,169 @@ class Solution {
         cpp: `// C++
 class Solution {
 public:
-    int trap(vector<int>& height) {
-        int left = 0, right = height.size() - 1;
-        int ans = 0;
-        int left_max = 0, right_max = 0;
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int>> ans;
+        sort(nums.begin(), nums.end()); // 预排序
+        int n = nums.size();
         
-        while (left < right) {
-            if (height[left] < height[right]) {
-                // 当前列低于左侧最高柱，可以接水
-                if (height[left] >= left_max) {
-                    left_max = height[left];
+        for (int i = 0; i < n - 2; ++i) {
+            if (nums[i] > 0) break; 
+            
+            // i指针去重
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+            
+            int left = i + 1;
+            int right = n - 1;
+            
+            while (left < right) {
+                int sum = nums[i] + nums[left] + nums[right];
+                
+                if (sum < 0) {
+                    left++;
+                } else if (sum > 0) {
+                    right--;
                 } else {
-                    ans += left_max - height[left];
+                    // C++ 中可以直接推入花括号初始化列表
+                    ans.push_back({nums[i], nums[left], nums[right]});
+                    
+                    // 跳过重复项
+                    while (left < right && nums[left] == nums[left + 1]) left++;
+                    while (left < right && nums[right] == nums[right - 1]) right--;
+                    
+                    left++;
+                    right--;
                 }
-                ++left;
-            } else {
-                // 当前列低于右侧最高柱，可以接水
-                if (height[right] >= right_max) {
-                    right_max = height[right];
-                } else {
-                    ans += right_max - height[right];
-                }
-                --right;
             }
         }
         return ans;
     }
 };`,
         c: `// C
-int trap(int* height, int heightSize) {
-    if (heightSize == 0) return 0;
+/**
+ * Return an array of arrays of size *returnSize.
+ * The sizes of the arrays are returned as *returnColumnSizes array.
+ * Note: Both returned array and *columnSizes array must be malloced.
+ */
+int comp(const void* a, const void* b) {
+    return *(int*)a - *(int*)b;
+}
+
+int** threeSum(int* nums, int numsSize, int* returnSize, int** returnColumnSizes) {
+    *returnSize = 0;
+    if (numsSize < 3) return NULL;
     
-    int left = 0;
-    int right = heightSize - 1;
-    int left_max = 0;
-    int right_max = 0;
-    int ans = 0;
+    // C语言使用 qsort 进行快排
+    qsort(nums, numsSize, sizeof(int), comp);
     
-    while (left < right) {
-        if (height[left] < height[right]) {
-            if (height[left] >= left_max) {
-                left_max = height[left];
-            } else {
-                ans += left_max - height[left];
+    // 预分配最大可能空间，实际开发需动态扩容
+    int** ans = (int**)malloc(sizeof(int*) * (numsSize * numsSize));
+    *returnColumnSizes = (int*)malloc(sizeof(int) * (numsSize * numsSize));
+    
+    for (int i = 0; i < numsSize - 2; i++) {
+        if (nums[i] > 0) break;
+        if (i > 0 && nums[i] == nums[i - 1]) continue;
+        
+        int left = i + 1, right = numsSize - 1;
+        while (left < right) {
+            int sum = nums[i] + nums[left] + nums[right];
+            if (sum < 0) left++;
+            else if (sum > 0) right--;
+            else {
+                ans[*returnSize] = (int*)malloc(sizeof(int) * 3);
+                ans[*returnSize][0] = nums[i];
+                ans[*returnSize][1] = nums[left];
+                ans[*returnSize][2] = nums[right];
+                (*returnColumnSizes)[*returnSize] = 3;
+                (*returnSize)++;
+                
+                while (left < right && nums[left] == nums[left + 1]) left++;
+                while (left < right && nums[right] == nums[right - 1]) right--;
+                left++; right--;
             }
-            left++;
-        } else {
-            if (height[right] >= right_max) {
-                right_max = height[right];
-            } else {
-                ans += right_max - height[right];
-            }
-            right--;
         }
     }
-    
     return ans;
 }`
       };
 
       const LANG_VARS = {
-        python: { l: "left", r: "right", l_m: "left_max", r_m: "right_max" },
-        ts: { l: "left", r: "right", l_m: "left_max", r_m: "right_max" },
-        java: { l: "left", r: "right", l_m: "left_max", r_m: "right_max" },
-        cpp: { l: "left", r: "right", l_m: "left_max", r_m: "right_max" },
-        c: { l: "left", r: "right", l_m: "left_max", r_m: "right_max" },
+        python: { i: "i", l: "left", r: "right" },
+        ts: { i: "i", l: "left", r: "right" },
+        java: { i: "i", l: "left", r: "right" },
+        cpp: { i: "i", l: "left", r: "right" },
+        c: { i: "i", l: "left", r: "right" },
       };
 
       // ==========================================================
       // 系统状态参数
       // ==========================================================
-      let params = { seed: 8848, speed: 1.0, n: 15 };
+      let params = { seed: 1024, speed: 1.0, n: 12 };
       let currentLang = 'python';
 
       let isDone = false;
       let isPaused = false;
       let p5Timer = 0;
 
-      // 数据状态
-      let heightArr = [];
-      let waterArr = []; // 记录每列积水量用于渲染
-      let leftIdx = 0;
-      let rightIdx = 0;
-      let leftMax = 0;
-      let rightMax = 0;
-      let totalAns = 0;
-
-      // 动画状态
+      // 算法状态数据
+      let arr = [];
+      let ansList = [];
+      let iIdx = -1;
+      let leftIdx = -1;
+      let rightIdx = -1;
+      
+      // 平滑动画坐标
+      let dispI_X = -100;
       let dispL_X = -100;
       let dispR_X = -100;
 
-      // 状态机
+      // 状态机常量
       const STATE = {
         INIT: 0,
-        COMPARE: 1,
-        PROCESS_LEFT: 2,
-        PROCESS_RIGHT: 3,
-        DONE: 4
+        CHECK_I: 1,
+        SET_LR: 2,
+        EVAL_SUM: 3,
+        MOVE_L: 4,
+        MOVE_R: 5,
+        MATCHED: 6,
+        SKIP_L: 7,
+        SKIP_R: 8,
+        NEXT_I: 9,
+        DONE: 10
       };
       let currentState = STATE.INIT;
+      let currentSum = 0;
 
       // ==========================================================
-      // p5.js 初始化与循环
+      // p5.js 生命周期
       // ==========================================================
       function setup() {
         let container = document.getElementById("canvas-container");
-        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 500);
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
         canvas.parent("canvas-container");
         window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
         switchLang("python");
         initializeSystem();
       }
 
-      function generateMountainTerrain(n) {
-        let arr = [];
-        // 生成起伏的地形，确保不会全平
-        for (let i = 0; i < n; i++) {
-          if (i === 0 || i === n - 1) {
-            arr.push(floor(random(0, 3))); // 边缘低一点
-          } else {
-            arr.push(floor(random(0, 9)));
-          }
-        }
-        return arr;
-      }
-
       function initializeSystem() {
         randomSeed(params.seed);
-        
-        heightArr = generateMountainTerrain(params.n);
-        waterArr = new Array(params.n).fill(0);
-        
-        leftIdx = 0;
-        rightIdx = params.n - 1;
-        leftMax = 0;
-        rightMax = 0;
-        totalAns = 0;
 
+        arr = [];
+        // 生成随机数组 (包含正负数和0)
+        for(let k=0; k<params.n; k++) {
+          arr.push(floor(random(-10, 11)));
+        }
+
+        // 重置状态
         isDone = false;
         isPaused = false;
         p5Timer = 0;
         currentState = STATE.INIT;
+        iIdx = -1; leftIdx = -1; rightIdx = -1;
+        ansList = [];
 
-        dispL_X = -100;
-        dispR_X = -100;
+        // 初始化动画坐标
+        dispI_X = -100; dispL_X = -100; dispR_X = -100;
 
         let btn = document.getElementById("pause-btn");
         if (btn) {
@@ -730,10 +771,8 @@ int trap(int* height, int heightSize) {
         }
 
         document.getElementById("log-container").innerHTML = "";
-        document.getElementById("total-water-disp").innerText = `当前总水量：0`;
-        updateDataUI();
-        
-        logMsg("✅ 地形初始化完毕，准备执行双指针计算。", false);
+        updateDataUI([]);
+        logMsg("✅ 演示环境就绪。原始数组生成完毕。", false);
       }
 
       function draw() {
@@ -741,7 +780,7 @@ int trap(int* height, int heightSize) {
 
         // 控制逻辑执行频率
         if (!isDone && !isPaused) {
-          p5Timer += 0.015 * params.speed;
+          p5Timer += 0.012 * params.speed;
           if (p5Timer > 1) {
             p5Timer = 0;
             performStep();
@@ -752,212 +791,252 @@ int trap(int* height, int heightSize) {
       }
 
       // ==========================================================
-      // 核心算法逻辑 (逐步执行)
+      // 算法逻辑执行 (Step by step)
       // ==========================================================
       function performStep() {
-        let vars = LANG_VARS[currentLang];
-
         switch(currentState) {
           case STATE.INIT:
-            logMsg(`📍 初始化：${vars.l}=${leftIdx}, ${vars.r}=${rightIdx}。开始向内收敛。`, false);
-            currentState = STATE.COMPARE;
+            arr.sort((a, b) => a - b);
+            updateDataUI(arr);
+            logMsg("1️⃣ <b>排序数组</b>：原地排序完成，从小到大排列。", true);
+            iIdx = 0;
+            currentState = STATE.CHECK_I;
             break;
 
-          case STATE.COMPARE:
-            if (leftIdx >= rightIdx) {
+          case STATE.CHECK_I:
+            if (iIdx >= arr.length - 2) {
               currentState = STATE.DONE;
               break;
             }
-            if (heightArr[leftIdx] < heightArr[rightIdx]) {
-              logMsg(`🔍 比较：height[${leftIdx}](${heightArr[leftIdx]}) < height[${rightIdx}](${heightArr[rightIdx]})。左侧较矮，决定水位下限，处理左侧。`, false);
-              currentState = STATE.PROCESS_LEFT;
-            } else {
-              logMsg(`🔍 比较：height[${leftIdx}](${heightArr[leftIdx]}) >= height[${rightIdx}](${heightArr[rightIdx]})。右侧较矮（或相等），处理右侧。`, false);
-              currentState = STATE.PROCESS_RIGHT;
+            if (arr[iIdx] > 0) {
+              logMsg(`📍 ${LANG_VARS[currentLang].i}=${iIdx} (值为${arr[iIdx]}) 大于0，后续相加必然>0，提前终止循环。`, false);
+              currentState = STATE.DONE;
+              break;
             }
+            if (iIdx > 0 && arr[iIdx] === arr[iIdx - 1]) {
+              logMsg(`📍 ${LANG_VARS[currentLang].i}=${iIdx} (值为${arr[iIdx]}) 与前驱重复，跳过去重。`, false);
+              iIdx++;
+              break; // Stay in CHECK_I
+            }
+            
+            logMsg(`📍 固定基准 ${LANG_VARS[currentLang].i}=${iIdx}，当前值为 <b>${arr[iIdx]}</b>。`, true);
+            currentState = STATE.SET_LR;
             break;
 
-          case STATE.PROCESS_LEFT:
-            if (heightArr[leftIdx] >= leftMax) {
-              leftMax = heightArr[leftIdx];
-              logMsg(`🧱 更新左侧历史最高：当前高度突破，${vars.l_m} 更新为 <b>${leftMax}</b>。无积水。`, false, true);
-            } else {
-              let w = leftMax - heightArr[leftIdx];
-              waterArr[leftIdx] = w;
-              totalAns += w;
-              logMsg(`💧 产生积水：左侧水位限制为 ${leftMax}，当前高度 ${heightArr[leftIdx]}，积水量 += <b>${w}</b>。`, true);
-              document.getElementById("total-water-disp").innerText = `当前总水量：${totalAns}`;
+          case STATE.SET_LR:
+            leftIdx = iIdx + 1;
+            rightIdx = arr.length - 1;
+            logMsg(`  ➡️ 初始化双指针：${LANG_VARS[currentLang].l}=${leftIdx}, ${LANG_VARS[currentLang].r}=${rightIdx}。`, false);
+            currentState = STATE.EVAL_SUM;
+            break;
+
+          case STATE.EVAL_SUM:
+            if (leftIdx >= rightIdx) {
+              logMsg(`  🛑 ${LANG_VARS[currentLang].l} 和 ${LANG_VARS[currentLang].r} 相遇，内层查找结束。`, false);
+              currentState = STATE.NEXT_I;
+              break;
             }
+            currentSum = arr[iIdx] + arr[leftIdx] + arr[rightIdx];
+            logMsg(`  🔍 计算 sum = ${arr[iIdx]} + ${arr[leftIdx]} + ${arr[rightIdx]} = <b>${currentSum}</b>`);
+            
+            if (currentSum < 0) currentState = STATE.MOVE_L;
+            else if (currentSum > 0) currentState = STATE.MOVE_R;
+            else currentState = STATE.MATCHED;
+            break;
+
+          case STATE.MOVE_L:
+            logMsg(`  ⬇️ sum < 0，需要增大和值。${LANG_VARS[currentLang].l} 指针右移。`, false);
             leftIdx++;
-            updateDataUI();
-            currentState = STATE.COMPARE;
+            updateDataUI(arr);
+            currentState = STATE.EVAL_SUM;
             break;
 
-          case STATE.PROCESS_RIGHT:
-            if (heightArr[rightIdx] >= rightMax) {
-              rightMax = heightArr[rightIdx];
-              logMsg(`🧱 更新右侧历史最高：当前高度突破，${vars.r_m} 更新为 <b>${rightMax}</b>。无积水。`, false, true);
-            } else {
-              let w = rightMax - heightArr[rightIdx];
-              waterArr[rightIdx] = w;
-              totalAns += w;
-              logMsg(`💧 产生积水：右侧水位限制为 ${rightMax}，当前高度 ${heightArr[rightIdx]}，积水量 += <b>${w}</b>。`, true);
-              document.getElementById("total-water-disp").innerText = `当前总水量：${totalAns}`;
-            }
+          case STATE.MOVE_R:
+            logMsg(`  ⬆️ sum > 0，需要减小和值。${LANG_VARS[currentLang].r} 指针左移。`, false);
             rightIdx--;
-            updateDataUI();
-            currentState = STATE.COMPARE;
+            updateDataUI(arr);
+            currentState = STATE.EVAL_SUM;
+            break;
+
+          case STATE.MATCHED:
+            logMsg(`  🎉 <b>找到目标组合！</b> [${arr[iIdx]}, ${arr[leftIdx]}, ${arr[rightIdx]}]`, true, true);
+            ansList.push([arr[iIdx], arr[leftIdx], arr[rightIdx]]);
+            updateDataUI(arr);
+            currentState = STATE.SKIP_L;
+            break;
+
+          case STATE.SKIP_L:
+            if (leftIdx < rightIdx && arr[leftIdx] === arr[leftIdx + 1]) {
+              leftIdx++;
+              logMsg(`  🔄 ${LANG_VARS[currentLang].l} 指针右移跳过重复值 (${arr[leftIdx]})。`);
+            } else {
+              leftIdx++; // advance anyway
+              currentState = STATE.SKIP_R;
+            }
+            break;
+
+          case STATE.SKIP_R:
+            if (leftIdx < rightIdx && arr[rightIdx] === arr[rightIdx - 1]) {
+              rightIdx--;
+              logMsg(`  🔄 ${LANG_VARS[currentLang].r} 指针左移跳过重复值 (${arr[rightIdx]})。`);
+            } else {
+              rightIdx--; // advance anyway
+              logMsg(`  ➡️ 双指针向内收缩：${LANG_VARS[currentLang].l}=${leftIdx}, ${LANG_VARS[currentLang].r}=${rightIdx}。`);
+              currentState = STATE.EVAL_SUM;
+            }
+            break;
+
+          case STATE.NEXT_I:
+            iIdx++;
+            leftIdx = -1;
+            rightIdx = -1;
+            currentState = STATE.CHECK_I;
             break;
 
           case STATE.DONE:
             isDone = true;
-            leftIdx = -1; 
-            rightIdx = -1;
-            logMsg(`🏁 <b>双指针相遇，算法结束。</b> 总计收集雨水: <b>${totalAns}</b> 单元。`, true);
-            updateDataUI();
+            leftIdx = -1; rightIdx = -1; iIdx = -1;
+            logMsg(`🏁 <b>算法执行完成！</b> 共找到 ${ansList.length} 组不重复解。`, true, true);
             break;
         }
       }
 
       // ==========================================================
-      // 画布渲染逻辑
+      // 绘图与动画
       // ==========================================================
       function drawVisuals() {
-        let n = heightArr.length;
-        if (n === 0) return;
+        if (arr.length === 0) return;
 
-        let maxH = 10; // 最大高度比例尺
-        let bottomY = height - 60;
-        let unitW = (width - 60) / n;
-        let unitH = (height - 180) / maxH;
-        let startX = 30;
+        let startY = height / 3;
+        let boxW = min(40, (width - 40) / arr.length);
+        let totalW = boxW * arr.length;
+        let startX = (width - totalW) / 2;
 
-        // 绘制坐标轴底线
-        stroke(200);
-        strokeWeight(2);
-        line(startX, bottomY, startX + n * unitW, bottomY);
-
-        // 渲染柱子和水
-        for (let i = 0; i < n; i++) {
-          let cx = startX + i * unitW;
-          let h = heightArr[i] * unitH;
-          let wY = bottomY - h;
+        // 绘制数组节点
+        for (let i = 0; i < arr.length; i++) {
+          let cx = startX + i * boxW + boxW/2;
+          let cy = startY;
           
-          // 画柱子
+          let fillCol = color(245);
+          let textCol = color(50);
+          let strokeCol = color(200);
+
+          if (i === iIdx) {
+            fillCol = color(106, 155, 204); // Blue
+            textCol = color(255);
+            strokeCol = color(80, 120, 160);
+          } else if (i === leftIdx) {
+            fillCol = color(217, 119, 87); // Orange
+            textCol = color(255);
+            strokeCol = color(180, 90, 60);
+          } else if (i === rightIdx) {
+            fillCol = color(120, 140, 93); // Green
+            textCol = color(255);
+            strokeCol = color(90, 110, 70);
+          }
+
+          stroke(strokeCol);
+          strokeWeight(2);
+          fill(fillCol);
+          rectMode(CENTER);
+          rect(cx, cy, boxW * 0.8, boxW * 0.8, 6);
+
           noStroke();
-          fill(60);
-          rect(cx + 2, wY, unitW - 4, h, 2, 2, 0, 0);
+          fill(textCol);
+          textAlign(CENTER, CENTER);
+          textSize(boxW * 0.35);
+          text(arr[i], cx, cy);
 
-          // 画数字标识
-          if (heightArr[i] > 0) {
-            fill(255);
-            textSize(11);
-            textAlign(CENTER, BOTTOM);
-            text(heightArr[i], cx + unitW/2, bottomY - 5);
-          } else {
-            fill(120);
-            textSize(11);
-            textAlign(CENTER, BOTTOM);
-            text(0, cx + unitW/2, bottomY - 5);
-          }
-
-          // 画积水
-          let water = waterArr[i];
-          if (water > 0) {
-            let wH = water * unitH;
-            fill(106, 155, 204, 200); // 半透明蓝
-            rect(cx + 2, wY - wH, unitW - 4, wH, 0, 0, 0, 0);
-            
-            // 水位数字
-            fill(40, 80, 150);
-            textSize(11);
-            textAlign(CENTER, BOTTOM);
-            text(water, cx + unitW/2, wY - wH - 2);
-          }
+          // 下标
+          fill(150);
+          textSize(boxW * 0.25);
+          text(i, cx, cy + boxW * 0.6);
         }
 
-        // 绘制历史最高水位参考线
-        let vars = LANG_VARS[currentLang];
+        // 绘制平滑移动的指针标签
+        let curVarNames = LANG_VARS[currentLang];
         
-        if (leftMax > 0 && leftIdx > 0 && leftIdx < n) {
-          stroke(217, 119, 87); // 橙色虚线
-          strokeWeight(1.5);
-          drawingContext.setLineDash([5, 5]);
-          let lineY = bottomY - leftMax * unitH;
-          line(startX, lineY, startX + leftIdx * unitW, lineY);
-          drawingContext.setLineDash([]);
-          
-          noStroke();
-          fill(217, 119, 87);
-          textAlign(LEFT, BOTTOM);
-          textSize(11);
-          text(`${vars.l_m}=${leftMax}`, startX, lineY - 3);
+        if (iIdx >= 0) {
+          let targetX = startX + iIdx * boxW + boxW/2;
+          dispI_X = dispI_X === -100 ? targetX : lerp(dispI_X, targetX, 0.15 * params.speed);
+          fill(106, 155, 204);
+          textSize(13);
+          text(`${curVarNames.i} ↓`, dispI_X, startY - boxW * 0.8);
         }
 
-        if (rightMax > 0 && rightIdx >= 0 && rightIdx < n - 1) {
-          stroke(120, 140, 93); // 绿色虚线
-          strokeWeight(1.5);
-          drawingContext.setLineDash([5, 5]);
-          let lineY = bottomY - rightMax * unitH;
-          line(startX + (rightIdx + 1) * unitW, lineY, startX + n * unitW, lineY);
-          drawingContext.setLineDash([]);
-          
-          noStroke();
-          fill(120, 140, 93);
-          textAlign(RIGHT, BOTTOM);
-          textSize(11);
-          text(`${vars.r_m}=${rightMax}`, startX + n * unitW, lineY - 3);
-        }
-
-        // 渲染平滑移动的指针标签
-        if (leftIdx >= 0 && leftIdx < n) {
-          let targetX = startX + leftIdx * unitW + unitW/2;
+        if (leftIdx >= 0) {
+          let targetX = startX + leftIdx * boxW + boxW/2;
           dispL_X = dispL_X === -100 ? targetX : lerp(dispL_X, targetX, 0.15 * params.speed);
-          
           fill(217, 119, 87);
-          noStroke();
-          textAlign(CENTER, TOP);
           textSize(13);
-          text(`↑\n${vars.l}`, dispL_X, bottomY + 5);
+          text(`${curVarNames.l} ↑`, dispL_X, startY + boxW * 1.1);
         }
 
-        if (rightIdx >= 0 && rightIdx < n) {
-          let targetX = startX + rightIdx * unitW + unitW/2;
+        if (rightIdx >= 0) {
+          let targetX = startX + rightIdx * boxW + boxW/2;
           dispR_X = dispR_X === -100 ? targetX : lerp(dispR_X, targetX, 0.15 * params.speed);
-          
           fill(120, 140, 93);
-          noStroke();
-          textAlign(CENTER, TOP);
           textSize(13);
-          text(`↑\n${vars.r}`, dispR_X, bottomY + 5);
+          text(`${curVarNames.r} ↑`, dispR_X, startY + boxW * 1.1);
+        }
+
+        // 绘制结果区
+        let resY = startY + 120;
+        textAlign(LEFT, CENTER);
+        fill(100);
+        textSize(13);
+        text("收集到的结果集 (Results):", 20, resY);
+
+        let rx = 20;
+        let ry = resY + 25;
+        for (let idx=0; idx<ansList.length; idx++) {
+          let t = ansList[idx];
+          fill(240, 248, 240);
+          stroke(120, 140, 93);
+          strokeWeight(1);
+          rectMode(CORNER);
+          rect(rx, ry, 110, 30, 4);
+          
+          noStroke();
+          fill(50);
+          textAlign(CENTER, CENTER);
+          text(`[${t[0]}, ${t[1]}, ${t[2]}]`, rx + 55, ry + 15);
+
+          rx += 120;
+          if (rx > width - 120) {
+            rx = 20;
+            ry += 40;
+          }
         }
       }
 
       // ==========================================================
       // UI / 辅助函数
       // ==========================================================
-      function updateDataUI() {
+      function updateDataUI(a) {
         let container = document.getElementById("data-nodes");
         if (!container) return;
         container.innerHTML = "";
+        if (a.length === 0) return;
         
-        heightArr.forEach((v, idx) => {
+        a.forEach((v, idx) => {
           let node = document.createElement("div");
           node.className = "data-node";
-          if (idx === leftIdx) node.classList.add("active-l");
-          else if (idx === rightIdx) node.classList.add("active-r");
+          if (idx === iIdx) node.classList.add("fixed");
+          else if (idx === leftIdx) node.classList.add("left");
+          else if (idx === rightIdx) node.classList.add("right");
           node.innerText = v;
           container.appendChild(node);
         });
       }
 
-      function logMsg(msg, highlight = false, isUpdate = false) {
+      function logMsg(msg, highlight = false, isSuccess = false) {
         let container = document.getElementById("log-container");
         if (!container) return;
         let item = document.createElement("div");
         item.className = "log-item";
         if (highlight) item.classList.add("highlight");
-        if (isUpdate) item.classList.add("update");
+        if (isSuccess) item.classList.add("success");
         let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
         item.innerHTML = `<div class="time">${time}</div>${msg}`;
         container.appendChild(item);
@@ -990,7 +1069,7 @@ int trap(int* height, int heightSize) {
       }
 
       function updateSeed() {
-        params.seed = parseInt(document.getElementById("seed-input").value) || 8848;
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
         initializeSystem();
       }
 

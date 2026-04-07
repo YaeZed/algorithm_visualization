@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>和为 K 的子数组 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      
+      .hash-map-container { display: flex; flex-wrap: wrap; gap: 6px; }
+      .hash-entry {
+          background: #f5f5f5; border: 1px solid #ddd; padding: 4px 8px; border-radius: 6px;
+          font-family: "JetBrains Mono", monospace; font-size: 12px; display: flex; gap: 8px;
+          align-items: center; transition: 0.2s;
+      }
+      .hash-entry.highlight { background: var(--anthropic-green); color: white; border-color: var(--anthropic-green); font-weight: bold; }
+      .hash-key { color: #555; }
+      .hash-entry.highlight .hash-key { color: #fff; }
+      .hash-val { color: var(--anthropic-orange); font-weight: bold; }
+      .hash-entry.highlight .hash-val { color: #fff; }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-green); background: #f5faed; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #fdfef9; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>和为 K 的子数组</h1>
+        <div class="subtitle">前缀和 + 哈希表 (Prefix Sum + Hash Map)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="8848" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机生成包含负数的数组</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>目标和 (K)</label>
+            <div class="slider-container">
+              <input type="range" id="k" min="-5" max="15" step="1" value="4" oninput="updateParam('k', this.value)" />
+              <span class="value-display" id="k-value">4</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>数组长度 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="5" max="20" step="1" value="12" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">12</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N)</span>
+            <span class="memo-badge space">□ O(N)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心等式：子数组和 `sum(i, j) = pre[j] - pre[i-1] == k`。这等价于寻找历史前缀和 `pre[i-1] == pre[j] - k`。</div>
+            <div class="memo-tip">💡 优化策略：引入哈希表记录已计算过的前缀和出现的频次，将 O(N²) 的寻找优化为 O(1) 的常数级查表。</div>
+            <div class="memo-tip g">🔍 为什么不用滑动窗口？因为数组包含负数，前缀和不再具有单调递增性，双指针移动会丢失判定条件。</div>
+            <div class="memo-tip w">⚠️ 边界极值：必须在哈希表中初始化 `map[0] = 1`。这代表“不选择任何元素”时的前缀和为 0，用于捕获从索引 0 直接开始且和为 k 的子数组。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">数学状态机与前缀和映射</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">前缀和 + 哈希表 (最优解)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">内存状态: 哈希表记录 Map&lt;PrefixSum, Count&gt;</div>
+          </div>
+          
+          <div class="data-viz">
+            <div id="map-nodes" class="hash-map-container">
+              </div>
+          </div>
+          
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+import collections
+
+def subarraySum(nums: list[int], k: int) -> int:
+    # count 用于记录每个前缀和出现的次数
+    count = collections.defaultdict(int)
+    # 初始化：前缀和为 0 的情况默认出现 1 次
+    # 用于捕获从数组起始位置开始的合法子数组
+    count[0] = 1
+    
+    pre = 0  # 当前前缀和
+    ans = 0  # 满足条件的子数组总数
+    
+    for num in nums:
+        # 累加当前数字，更新前缀和
+        pre += num
+        
+        # 核心逻辑：若 pre - k 曾作为前缀和出现过，
+        # 说明存在某个历史位置 i，使得 sum(i, current) == k
+        if (pre - k) in count:
+            ans += count[pre - k]
+            
+        # 将当前前缀和的出现次数 + 1，记录到哈希表中
+        count[pre] += 1
+        
+    return ans`,
+        ts: `// TypeScript
+function subarraySum(nums: number[], k: number): number {
+    // map 用于记录每个前缀和出现的次数 <前缀和, 次数>
+    const map = new Map<number, number>();
+    // 边界初始化：前缀和为 0 的情况出现 1 次
+    map.set(0, 1);
+    
+    let pre = 0; // 累计前缀和
+    let ans = 0; // 满足条件的子数组数量
+    
+    for (let i = 0; i < nums.length; i++) {
+        pre += nums[i];
+        
+        // 推导: 当前前缀和 pre 减去目标 k，若等于历史前缀和，
+        // 则说明这两者之间的连续子数组之和必定为 k。
+        const target = pre - k;
+        if (map.has(target)) {
+            ans += map.get(target)!;
+        }
+        
+        // 更新当前前缀和的计数
+        map.set(pre, (map.get(pre) || 0) + 1);
+    }
+    
+    return ans;
+}`,
+        java: `// Java
+import java.util.HashMap;
+import java.util.Map;
+
+class Solution {
+    public int subarraySum(int[] nums, int k) {
+        // 哈希表记录 <前缀和, 该前缀和出现的次数>
+        Map<Integer, Integer> map = new HashMap<>();
+        // 必须初始化：表示在没有任何元素时，前缀和为 0
+        map.put(0, 1);
+        
+        int pre = 0; // 当前累积的前缀和
+        int ans = 0;
+        
+        for (int num : nums) {
+            pre += num;
+            
+            // 查找历史上是否出现过值为 pre - k 的前缀和
+            // 若存在，直接累加其频次
+            if (map.containsKey(pre - k)) {
+                ans += map.get(pre - k);
+            }
+            
+            // 将当前前缀和注册到哈希表，供后续元素查表使用
+            map.put(pre, map.getOrDefault(pre, 0) + 1);
+        }
+        
+        return ans;
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+#include <unordered_map>
+using namespace std;
+
+class Solution {
+public:
+    int subarraySum(vector<int>& nums, int k) {
+        // unordered_map 底层是哈希表，查找/插入 O(1)
+        unordered_map<int, int> mp;
+        // 初始化边界条件，处理前缀和本身就等于 k 的情况
+        mp[0] = 1;
+        
+        int pre = 0;
+        int ans = 0;
+        
+        for (int x : nums) {
+            pre += x;
+            
+            // 寻找是否存在历史前缀和 target = pre - k
+            if (mp.find(pre - k) != mp.end()) {
+                ans += mp[pre - k];
+            }
+            
+            // 当前前缀和频次递增
+            mp[pre]++;
+        }
+        
+        return ans;
+    }
+};`,
+        c: `// C
+#include <stdlib.h>
+// 引入 LeetCode 内置的标准宏库 uthash.h 用于实现哈希表
+#include "uthash.h"
+
+// 定义哈希表结构体
+struct HashTable {
+    int key;      // 前缀和
+    int val;      // 出现的次数
+    UT_hash_handle hh;
+};
+
+int subarraySum(int* nums, int numsSize, int k) {
+    struct HashTable *map = NULL;
+    
+    // 初始化 map[0] = 1
+    struct HashTable *initNode = malloc(sizeof(struct HashTable));
+    initNode->key = 0;
+    initNode->val = 1;
+    HASH_ADD_INT(map, key, initNode);
+    
+    int pre = 0;
+    int ans = 0;
+    
+    for (int i = 0; i < numsSize; i++) {
+        pre += nums[i];
+        
+        // 查找目标前缀和 pre - k
+        struct HashTable *tmp;
+        int target = pre - k;
+        HASH_FIND_INT(map, &target, tmp);
+        if (tmp != NULL) {
+            ans += tmp->val; // 累加符合条件的子数组频次
+        }
+        
+        // 更新或插入当前前缀和 pre
+        HASH_FIND_INT(map, &pre, tmp);
+        if (tmp != NULL) {
+            tmp->val += 1;
+        } else {
+            struct HashTable *newNode = malloc(sizeof(struct HashTable));
+            newNode->key = pre;
+            newNode->val = 1;
+            HASH_ADD_INT(map, key, newNode);
+        }
+    }
+    
+    return ans;
+}`
+      };
+
+      let params = { seed: 8848, speed: 1.0, k: 4, n: 12 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let nums = [];
+      let preArr = []; // Purely for drawing historical sums above elements
+      let pre = 0;
+      let ans = 0;
+      let ptr = 0;
+      let mapState = {};
+      
+      // Animation state
+      // 0: pointer moving, calculate pre.
+      // 1: lookup pre - k.
+      // 2: add to map, setup next.
+      let stepState = 0; 
+      let lookupTarget = null;
+      let foundMatch = false;
+
+      // Rendering vars
+      let dispPtrX = 0;
+      let boxSize = 35;
+      let startX = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        textFont("'JetBrains Mono', monospace");
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        nums = [];
+        // 为了充分演示正负抵消和命中 K 的情况，生成包含负数的数据
+        for(let i=0; i<params.n; i++) {
+            nums.push(floor(random(-3, 6))); // -3 to 5
+        }
+
+        pre = 0;
+        ans = 0;
+        ptr = 0;
+        preArr = new Array(params.n).fill(null);
+        mapState = { 0: 1 };
+        stepState = 0;
+        lookupTarget = null;
+        foundMatch = false;
+        
+        dispPtrX = -1; // init flag
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateMapUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg("✅ 演示初始化。由于数组可能含有负数，滑动窗口不具备单调性失效，采用前缀和算法。");
+        logMsg("⚠️ 初始化边界：<b>哈希表压入 <code>{0: 1}</code></b>。代表初始状态(未选中任何元素)前缀和为0。", false);
+      }
+
+      function draw() {
+        background(253, 252, 249); 
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let totalW = nums.length * boxSize;
+        startX = width / 2 - totalW / 2;
+        let baseY = height / 2 + 30;
+
+        let targetX = startX + ptr * boxSize;
+        if (dispPtrX === -1) dispPtrX = targetX;
+        
+        let lerpSpeed = 0.15 * params.speed;
+        dispPtrX = lerp(dispPtrX, targetX, lerpSpeed);
+
+        // UI 1: Global Information Top
+        push();
+        fill(50);
+        textAlign(LEFT, TOP);
+        textSize(16);
+        text(`目标和 K = ${params.k}`, 20, 20);
+        
+        textSize(14);
+        fill(106, 155, 204); // anthropic-blue
+        text(`当前累积前缀和 (pre) = ${pre}`, 20, 45);
+        
+        fill(120, 140, 93); // anthropic-green
+        text(`已找到子数组总数 (ans) = ${ans}`, 20, 70);
+        pop();
+
+        // UI 2: The Array and Historical Prefix Sums
+        push();
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < nums.length; i++) {
+            let x = startX + i * boxSize;
+            
+            // Draw array box
+            stroke(200);
+            strokeWeight(1);
+            fill(255);
+            if (i === ptr) {
+                fill(255, 243, 238); // Highlight active
+                stroke(217, 119, 87);
+            }
+            rect(x, baseY, boxSize, boxSize, 4);
+            
+            // Draw element value
+            noStroke();
+            fill(50);
+            textSize(15);
+            text(nums[i], x + boxSize / 2, baseY + boxSize / 2);
+
+            // Index below
+            fill(150);
+            textSize(9);
+            text(i, x + boxSize / 2, baseY + boxSize + 15);
+            
+            // Historical Prefix Sum above
+            if (preArr[i] !== null) {
+                fill(106, 155, 204);
+                textSize(11);
+                text(preArr[i], x + boxSize / 2, baseY - 15);
+                
+                // Connecting line
+                stroke(200);
+                line(x + boxSize / 2, baseY - 5, x + boxSize / 2, baseY);
+            }
+        }
+        
+        fill(106, 155, 204);
+        textSize(10);
+        textAlign(RIGHT, CENTER);
+        text("历史前缀和:", startX - 10, baseY - 15);
+        pop();
+
+        // UI 3: Pointer & Mathematical Lookup Logic
+        if (ptr < nums.length) {
+            push();
+            fill(217, 119, 87); 
+            noStroke();
+            triangle(
+                dispPtrX + boxSize / 2, baseY + boxSize + 30,
+                dispPtrX + boxSize / 2 - 6, baseY + boxSize + 40,
+                dispPtrX + boxSize / 2 + 6, baseY + boxSize + 40
+            );
+            
+            // Display Math Logic during State 1
+            if (stepState === 1 && lookupTarget !== null) {
+                textAlign(CENTER, BOTTOM);
+                textSize(13);
+                
+                // Base equation
+                fill(50);
+                let logicStr = `寻找: pre(${pre}) - k(${params.k}) = ${lookupTarget}`;
+                text(logicStr, dispPtrX + boxSize / 2, baseY + boxSize + 60);
+                
+                if (foundMatch) {
+                    fill(120, 140, 93); // green
+                    text("✅ 哈希表命中！累加频次", dispPtrX + boxSize / 2, baseY + boxSize + 75);
+                } else {
+                    fill(150);
+                    text("❌ 表中未找到该值", dispPtrX + boxSize / 2, baseY + boxSize + 75);
+                }
+            }
+            pop();
+        }
+      }
+
+      function performStep() {
+        if (isDone || ptr >= nums.length) {
+            if (!isDone) {
+                isDone = true;
+                logMsg(`🏁 数组遍历完毕。符合条件的子数组总数为: <b>${ans}</b>`, true);
+            }
+            return;
+        }
+
+        if (stepState === 0) {
+            let val = nums[ptr];
+            pre += val;
+            preArr[ptr] = pre; // for rendering
+            logMsg(`📍 访问元素 <code>nums[${ptr}] = ${val}</code>。更新累积前缀和 <code>pre</code> 变为 <b>${pre}</b>。`, false);
+            stepState = 1;
+
+        } else if (stepState === 1) {
+            lookupTarget = pre - params.k;
+            if (mapState[lookupTarget] !== undefined) {
+                foundMatch = true;
+                let count = mapState[lookupTarget];
+                ans += count;
+                logMsg(`🚀 计算 <code>pre - k = ${pre} - ${params.k} = ${lookupTarget}</code>。在哈希表中查到前缀和 <b>${lookupTarget}</b> 出现过 <b>${count}</b> 次。答案 <code>ans += ${count}</code>。`, true);
+                updateMapUI(lookupTarget); // Highlight it
+            } else {
+                foundMatch = false;
+                logMsg(`计算 <code>pre - k = ${pre} - ${params.k} = ${lookupTarget}</code>。哈希表中不存在前缀和 <b>${lookupTarget}</b>，说明没有以此处结尾的和为K的子数组。`, false);
+                updateMapUI();
+            }
+            stepState = 2;
+
+        } else if (stepState === 2) {
+            // Update map
+            let oldCount = mapState[pre] || 0;
+            mapState[pre] = oldCount + 1;
+            logMsg(`📝 将当前前缀和 <b>${pre}</b> 登记入哈希表。当前出现频次: ${mapState[pre]}。`, false);
+            
+            updateMapUI(pre); // highlight the updated node briefly
+            
+            // cleanup for next iter
+            lookupTarget = null;
+            foundMatch = false;
+            ptr++;
+            stepState = 0;
+        }
+      }
+
+      function updateMapUI(highlightKey = null) {
+        let container = document.getElementById("map-nodes");
+        if (!container) return;
+        
+        let html = [];
+        for (const [key, val] of Object.entries(mapState)) {
+            let isHighlight = (highlightKey !== null && parseInt(key) === highlightKey) ? 'highlight' : '';
+            html.push(`
+                <div class="hash-entry ${isHighlight}">
+                    <span class="hash-key">Sum:${key}</span>
+                    <span class="hash-val">Count:${val}</span>
+                </div>
+            `);
+        }
+        container.innerHTML = html.join('');
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function" && nums.length > 0) {
+            initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 8848;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1000, 9999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

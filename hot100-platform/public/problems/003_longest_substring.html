@@ -1,26 +1,10 @@
-<!-- 
-========================================================================
-ALGORITHM VISUALIZER TEMPLATE
-========================================================================
-This file is the REQUIRED starting point for all algorithm visualizations.
-It establishes a 3-column layout:
-  1. Left: Controls (seed, algorithm-specific variables, playback speed)
-  2. Middle: p5.js Animation Canvas
-  3. Right: Multi-language Code Viewer (VS Code style) & Execution Log
-  
-DO NOT modify the core CSS or the layout scaffolding.
-DO NOT remove the Highlight.js imports or dark theme CSS.
-ONLY replace the sections marked with "REPLACE_".
-======================================================================== 
--->
 <!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><!-- REPLACE_TITLE -->算法全流程可视化<!-- END_TITLE --></title>
+    <title>无重复字符的最长子串 - 算法全流程可视化</title>
 
-    <!-- Core Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,7 +13,6 @@ ONLY replace the sections marked with "REPLACE_".
       rel="stylesheet"
     />
 
-    <!-- Code Highlight Engine -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
@@ -370,16 +353,16 @@ ONLY replace the sections marked with "REPLACE_".
         min-height: 30px;
       }
       .data-node {
-        width: 22px;
-        height: 22px;
-        background: var(--anthropic-orange);
+        width: 26px;
+        height: 26px;
+        background: var(--anthropic-blue);
         color: white;
-        border-radius: 4px;
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: "JetBrains Mono", monospace;
-        font-size: 9px;
+        font-size: 13px;
         font-weight: bold;
       }
 
@@ -438,14 +421,9 @@ ONLY replace the sections marked with "REPLACE_".
   </head>
   <body>
     <div class="container">
-      <!-- LEFT: Sidebar -->
       <div class="sidebar">
-        <h1>
-          <!-- REPLACE_ALGORITHM_NAME -->算法名称<!-- END_ALGORITHM_NAME -->
-        </h1>
-        <div class="subtitle">
-          <!-- REPLACE_SUBTITLE -->最优解演示工具<!-- END_SUBTITLE -->
-        </div>
+        <h1>无重复字符的最长子串</h1>
+        <div class="subtitle">滑动窗口 (Sliding Window) 最优解法演示</div>
 
         <div class="control-section">
           <h3>场景配置</h3>
@@ -453,11 +431,11 @@ ONLY replace the sections marked with "REPLACE_".
             type="number"
             id="seed-input"
             class="seed-input"
-            value="12345"
+            value="31415"
             onchange="updateSeed()"
           />
           <button class="button" onclick="randomSeedAndUpdate()">
-            生成新随机场景
+            生成新随机字符串
           </button>
         </div>
 
@@ -478,28 +456,22 @@ ONLY replace the sections marked with "REPLACE_".
               <span class="value-display" id="speed-value">1.0</span>
             </div>
           </div>
-          <!-- 
-                ==========================================================
-                REPLACE_PARAMS_UI: Add algorithm-specific sliders here
-                (e.g. array length, list count, threshold, etc) 
-                ========================================================== 
-                -->
+          
           <div class="control-group">
-            <label>数据规模 (n)</label>
+            <label>字符串长度 (n)</label>
             <div class="slider-container">
               <input
                 type="range"
                 id="n"
-                min="5"
-                max="50"
-                step="5"
+                min="8"
+                max="25"
+                step="1"
                 value="15"
                 oninput="updateParam('n', this.value)"
               />
               <span class="value-display" id="n-value">15</span>
             </div>
           </div>
-          <!-- END_PARAMS_UI -->
         </div>
 
         <div class="control-section" style="display: flex; gap: 10px">
@@ -520,41 +492,30 @@ ONLY replace the sections marked with "REPLACE_".
           </button>
         </div>
 
-        <!--
-        ==========================================================
-        REPLACE_KNOWLEDGE_PANEL
-        算法速记卡 — 只替换这一块，其他区域保持不变。
-        复杂度 badge：.time = 时间  .space = 空间
-        tips 样式：默认橙 = 核心思路  .g 绿 = 延伸洞察  .w 琥珀 = 常见误区
-        ==========================================================
-        -->
         <div class="memo-card">
           <h3>算法速记</h3>
           <div class="memo-badges">
-            <span class="memo-badge time">⏱ O(n)</span>
-            <span class="memo-badge space">□ O(1)</span>
+            <span class="memo-badge time">⏱ O(N)</span>
+            <span class="memo-badge space">□ O(|Σ|)</span>
           </div>
           <div class="memo-tips">
-            <div class="memo-tip">💡 核心思路描述放这里</div>
-            <div class="memo-tip g">🔍 延伸洞察放这里</div>
-            <div class="memo-tip w">⚠️ 常见误区放这里</div>
+            <div class="memo-tip">💡 核心思路：通过左(left)右(right)两个指针维护一个“窗口”，窗口内的字符必须互不相同。</div>
+            <div class="memo-tip">💡 O(N) 优化：使用字典记录每个字符最后出现的位置。当遇到重复字符时，左指针可直接跳跃，无需一步步挪动。</div>
+            <div class="memo-tip g">🔍 延伸洞察：这是典型的滑动窗口模板应用。空间复杂度受限于字符集大小(如 ASCII 128)。</div>
+            <div class="memo-tip w">⚠️ 常见误区：左指针跳跃时必须确保 `lastSeen[c] >= left`，避免左指针向左“倒退”。</div>
           </div>
         </div>
-        <!-- END_KNOWLEDGE_PANEL -->
       </div>
 
-      <!-- MIDDLE: Canvas -->
       <div class="canvas-area">
-        <div class="canvas-header">算法执行动画展示区</div>
+        <div class="canvas-header">滑动窗口状态动画演示</div>
         <div id="canvas-container"></div>
       </div>
 
-      <!-- RIGHT: Code & Logistics -->
       <div class="right-panel">
-        <!-- Code Viewer -->
         <div class="code-box">
           <div class="box-header dark">
-            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div class="box-title dark">最优解法 (哈希表 + 滑动窗口跳跃)</div>
             <div id="lang-tabs" class="tabs dark">
               <div class="tab" onclick="switchLang('python')">Python</div>
               <div class="tab" onclick="switchLang('ts')">TS</div>
@@ -568,24 +529,17 @@ ONLY replace the sections marked with "REPLACE_".
           ><code id="code-viewer" class="hljs"></code></pre>
         </div>
 
-        <!-- Execution Logs -->
         <div class="logic-box">
           <div class="box-header" style="border-bottom: 1px solid #eee">
             <div class="box-title">实时执行过程 (Step-by-step Log)</div>
           </div>
-          <!-- 
-                ==========================================================
-                REPLACE_DATA_VIZ: Use this if you want to explicitly visualize an array
-                or pointers outside of the canvas. If unnecessary, you can delete this.
-                ========================================================== 
-                -->
+          
           <div class="data-viz">
-            <div class="data-title">当前数据状态 (Array/State)</div>
+            <div class="data-title">当前窗口内的无重复字符子串</div>
             <div id="data-nodes" class="data-array">
-              <!-- 动态生成的节点 -->
-            </div>
+              </div>
           </div>
-          <!-- END_DATA_VIZ -->
+          
           <div id="log-container" class="log-area"></div>
         </div>
       </div>
@@ -593,24 +547,155 @@ ONLY replace the sections marked with "REPLACE_".
 
     <script>
       // ==========================================================
-      // REPLACE_CODE_SNIPPETS
-      // Provide optimal solutions in 5 languages.
-      // Use extremely detailed Chinese comments.
+      // MULTILINGUAL OPTIMAL CODE SNIPPETS
       // ==========================================================
       const SNIPPETS = {
-        python: `# Python\ndef solve():\n    pass`,
-        ts: `// TypeScript\nfunction solve(): void {\n}`,
-        java: `// Java\nclass Solution {\n    public void solve() {}\n}`,
-        cpp: `// C++\nvoid solve() {\n}`,
-        c: `// C\nvoid solve() {\n}`,
+        python: `# Python
+def lengthOfLongestSubstring(s: str) -> int:
+    # 字典记录每个字符最近一次出现的索引
+    char_index = {}
+    max_len = 0
+    left = 0 # 窗口左边界
+    
+    # right 为窗口右边界，逐个扫描字符
+    for right, char in enumerate(s):
+        # 如果字符已在窗口中出现过，左指针需要更新
+        # 注意：必须确保左指针不回退 (char_index[char] >= left)
+        if char in char_index and char_index[char] >= left:
+            # 越过重复字符，左边界直接跳跃到重复字符的下一位
+            left = char_index[char] + 1
+        
+        # 记录/更新当前字符的最新位置
+        char_index[char] = right
+        
+        # 计算当前窗口长度，并更新全局最大长度记录
+        max_len = max(max_len, right - left + 1)
+        
+    return max_len`,
+        ts: `// TypeScript
+function lengthOfLongestSubstring(s: string): number {
+    // Map 记录每个字符最近一次出现的索引
+    const charIndex = new Map<string, number>();
+    let maxLen = 0;
+    let left = 0; // 窗口左边界
+    
+    // right 为窗口右边界
+    for (let right = 0; right < s.length; right++) {
+        const char = s[right];
+        
+        // 发现重复字符，且该重复字符在当前窗口内
+        if (charIndex.has(char) && charIndex.get(char)! >= left) {
+            // 左边界直接跳跃到重复字符的下一位，剔除旧字符
+            left = charIndex.get(char)! + 1;
+        }
+        
+        // 更新字符最近出现的索引
+        charIndex.set(char, right);
+        
+        // 更新记录的最大子串长度
+        maxLen = Math.max(maxLen, right - left + 1);
+    }
+    return maxLen;
+}`,
+        java: `// Java
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        // 对于 ASCII 字符集，使用数组代替哈希表提升速度
+        int[] lastSeen = new int[128];
+        // 初始设为 -1 表示未出现过
+        java.util.Arrays.fill(lastSeen, -1);
+        
+        int maxLen = 0;
+        int left = 0; // 窗口左边界
+        
+        for (int right = 0; right < s.length(); right++) {
+            char c = s.charAt(right);
+            
+            // 如果遇到出现过的字符，并且它位于当前窗口内
+            if (lastSeen[c] >= left) {
+                // 左边界越过重复的字符，跳至其下一位
+                left = lastSeen[c] + 1;
+            }
+            
+            // 更新该字符最后被看到的位置
+            lastSeen[c] = right;
+            
+            // 当前窗口必定是无重复的，计算并更新最大长度
+            maxLen = Math.max(maxLen, right - left + 1);
+        }
+        return maxLen;
+    }
+}`,
+        cpp: `// C++
+#include <string>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    int lengthOfLongestSubstring(string s) {
+        // 使用 vector 充当哈希表，ASCII 共 128 个字符
+        vector<int> lastSeen(128, -1);
+        int maxLen = 0;
+        int left = 0; // 窗口左边界
+        
+        for (int right = 0; right < s.length(); right++) {
+            char c = s[right];
+            
+            // 发现该字符曾在窗口中出现过
+            if (lastSeen[c] >= left) {
+                // 将左边界跳跃至重复字符位置的右侧
+                left = lastSeen[c] + 1;
+            }
+            
+            // 登记当前字符的最新位置
+            lastSeen[c] = right;
+            
+            // 结算当前窗口长度，挑战历史最大值
+            maxLen = max(maxLen, right - left + 1);
+        }
+        return maxLen;
+    }
+};`,
+        c: `// C
+#include <string.h>
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+int lengthOfLongestSubstring(char * s) {
+    int lastSeen[128];
+    // 初始化记录数组
+    for (int i = 0; i < 128; i++) lastSeen[i] = -1;
+    
+    int maxLen = 0;
+    int left = 0; // 窗口左边界
+    int len = strlen(s);
+    
+    for (int right = 0; right < len; right++) {
+        char c = s[right];
+        
+        // 若在窗口范围内遇到重复字符
+        if (lastSeen[c] >= left) {
+            // 直接跳跃左指针，排出重复元素
+            left = lastSeen[c] + 1;
+        }
+        
+        // 记录最新位置
+        lastSeen[c] = right;
+        
+        // 比较并记录最长不重复子串长度
+        maxLen = MAX(maxLen, right - left + 1);
+    }
+    return maxLen;
+}`
       };
 
       // ==========================================================
-      // REPLACE_PARAMS
-      // System and algorithmic state variables
+      // STATE MANAGEMENT
       // ==========================================================
       let params = {
-        seed: 12345,
+        seed: 31415,
         speed: 1.0,
         n: 15,
       };
@@ -618,32 +703,82 @@ ONLY replace the sections marked with "REPLACE_".
       let isDone = false;
       let isPaused = false;
       let p5Timer = 0;
+      let currentLang = 'python';
+
+      // 算法所需全局变量
+      let strArr = [];
+      let lastSeen = {};
+      let leftPtr = 0;
+      let rightPtr = 0;
+      let maxLen = 0;
+      let bestLeft = 0;
+      let bestRight = -1;
+
+      // 视觉插值所需变量
+      let dispLeft = 0;
+      let dispRight = 0;
+      let dispWindowW = 0;
+      let boxSize = 35;
+      let startX = 0;
+
+      // 内部状态机
+      // 0: 移动 right 指针, 检查新字符
+      // 1: 如果有冲突，跳跃 left 指针
+      // 2: 记录长度并准备下一轮
+      let stepState = 0;
+
+      const LANG_VARS = {
+          python: { L: 'left', R: 'right' },
+          ts: { L: 'left', R: 'right' },
+          java: { L: 'left', R: 'right' },
+          cpp: { L: 'left', R: 'right' },
+          c: { L: 'left', R: 'right' }
+      };
 
       // ==========================================================
-      // REPLACE_P5JS_LOGIC
-      // Write your custom particle/data structures here.
+      // P5.JS INITIALIZATION & DRAW LOOP
       // ==========================================================
 
       function setup() {
         let container = document.getElementById("canvas-container");
         let canvas = createCanvas(
           container.offsetWidth || 500,
-          container.offsetHeight || 600,
+          container.offsetHeight || 600
         );
         canvas.parent("canvas-container");
         window.addEventListener("resize", () =>
-          resizeCanvas(container.offsetWidth, container.offsetHeight),
+          resizeCanvas(container.offsetWidth, container.offsetHeight)
         );
 
-        // Initialization
+        textFont("'JetBrains Mono', monospace");
         switchLang("python");
         initializeSystem();
       }
 
       function initializeSystem() {
         randomSeed(params.seed);
+        
+        // 随机生成字符串，限定字符集(如a-e)以保证高频重复
+        strArr = [];
+        const chars = ['a', 'b', 'c', 'd', 'e', 'f'];
+        for (let i = 0; i < params.n; i++) {
+          strArr.push(random(chars));
+        }
 
-        // Logic initialization
+        // 重置算法状态
+        leftPtr = 0;
+        rightPtr = 0;
+        maxLen = 0;
+        lastSeen = {};
+        bestLeft = 0;
+        bestRight = -1;
+        stepState = 0;
+        
+        // 视觉初始重置
+        dispLeft = 0;
+        dispRight = 0;
+        dispWindowW = 0;
+
         isDone = false;
         isPaused = false;
         p5Timer = 0;
@@ -656,43 +791,190 @@ ONLY replace the sections marked with "REPLACE_".
 
         updateDataUI([]);
         document.getElementById("log-container").innerHTML = "";
-        logMsg("✅ 演示环境准备就绪，系统已重置。", true);
+        logMsg("✅ 演示环境准备就绪，字符串生成完毕。", true);
       }
 
       function draw() {
-        background(255);
+        background(253, 252, 249); // anthropic light bg
 
-        // Frame-based execution trigger
+        // 动画控制
         if (!isDone && !isPaused) {
-          p5Timer += 0.015 * params.speed;
+          p5Timer += 0.02 * params.speed;
           if (p5Timer > 1) {
             p5Timer = 0;
             performStep();
           }
         }
 
-        // Draw objects...
+        // 计算布局参数
+        let totalW = strArr.length * boxSize;
+        startX = width / 2 - totalW / 2;
+        let baseY = height / 2 - 20;
+
+        // --- 平滑插值 (Lerping) ---
+        // 目标位置计算
+        let targetX_L = startX + leftPtr * boxSize;
+        let targetX_R = startX + rightPtr * boxSize;
+        
+        // 防止初始闪烁，第一帧快速对齐
+        if (dispLeft === 0 && dispRight === 0 && leftPtr === 0 && rightPtr === 0) {
+            dispLeft = targetX_L;
+            dispRight = targetX_R;
+        }
+
+        // 插值计算当前显示坐标
+        let lerpSpeed = 0.15 * params.speed;
+        dispLeft = lerp(dispLeft, targetX_L, lerpSpeed);
+        dispRight = lerp(dispRight, targetX_R, lerpSpeed);
+        let targetWindowW = (rightPtr - leftPtr + 1) * boxSize;
+        if (rightPtr < leftPtr) targetWindowW = 0; // 防止负宽
+        dispWindowW = lerp(dispWindowW, targetWindowW, lerpSpeed);
+
+        // --- 绘制 1: 历史最长子串框 (绿色背景) ---
+        if (bestRight >= bestLeft && maxLen > 0) {
+            push();
+            noStroke();
+            fill(120, 140, 93, 25); // anthropic-green, highly transparent
+            let bestX = startX + bestLeft * boxSize;
+            let bestW = (bestRight - bestLeft + 1) * boxSize;
+            rect(bestX - 2, baseY - 2, bestW + 4, boxSize + 4, 6);
+            
+            // 标注
+            fill(120, 140, 93);
+            textSize(12);
+            textAlign(CENTER, BOTTOM);
+            text(`🏆 历史最大窗口 (长度: ${maxLen})`, bestX + bestW / 2, baseY - 8);
+            pop();
+        }
+
+        // --- 绘制 2: 当前滑动窗口 (橙色高亮) ---
+        if (rightPtr < strArr.length && stepState > 0) {
+            push();
+            noStroke();
+            fill(217, 119, 87, 40); // anthropic-orange transparent
+            rect(dispLeft, baseY, dispWindowW, boxSize, 4);
+            pop();
+        }
+
+        // --- 绘制 3: 字符数组主体 ---
+        push();
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < strArr.length; i++) {
+            let x = startX + i * boxSize;
+            
+            // 边框
+            stroke(200);
+            strokeWeight(1);
+            fill(255);
+            rect(x, baseY, boxSize, boxSize, 4);
+            
+            // 字符
+            noStroke();
+            fill(50);
+            textSize(16);
+            text(strArr[i], x + boxSize / 2, baseY + boxSize / 2);
+
+            // 索引
+            fill(150);
+            textSize(9);
+            text(i, x + boxSize / 2, baseY + boxSize + 15);
+        }
+        pop();
+
+        // --- 绘制 4: 指针与浮动标签 ---
+        push();
+        let lName = LANG_VARS[currentLang].L;
+        let rName = LANG_VARS[currentLang].R;
+
+        // L Pointer (Blue)
+        fill(106, 155, 204); // anthropic-blue
+        noStroke();
+        triangle(
+            dispLeft + boxSize / 2, baseY + boxSize + 25,
+            dispLeft + boxSize / 2 - 6, baseY + boxSize + 35,
+            dispLeft + boxSize / 2 + 6, baseY + boxSize + 35
+        );
+        textSize(12);
+        textAlign(CENTER, TOP);
+        text(lName, dispLeft + boxSize / 2, baseY + boxSize + 40);
+
+        // R Pointer (Orange)
+        if (rightPtr < strArr.length) {
+            fill(217, 119, 87); // anthropic-orange
+            triangle(
+                dispRight + boxSize / 2, baseY - 10,
+                dispRight + boxSize / 2 - 6, baseY - 20,
+                dispRight + boxSize / 2 + 6, baseY - 20
+            );
+            textAlign(CENTER, BOTTOM);
+            text(rName, dispRight + boxSize / 2, baseY - 25);
+        }
+        pop();
+        
+        // --- 绘制 5: 当前状态文字汇总 ---
+        push();
+        fill(100);
+        textAlign(LEFT, TOP);
+        textSize(13);
+        let infoY = height - 80;
+        text(`全局最大长度 (maxLen): ${maxLen}`, 30, infoY);
+        let currChar = (rightPtr < strArr.length) ? strArr[rightPtr] : "N/A";
+        text(`当前检查字符: '${currChar}'`, 30, infoY + 25);
+        pop();
       }
 
       function performStep() {
-        // Execution block for standardizing visualization logic.
-        // Move pointers, modify arrays, and log actions here.
-        /* Example:
-            if (pointer < array.length) {
-                logMsg(`📍 处理元素 ${array[pointer]}`, false);
-                pointer++;
-                updateDataUI(array);
-            } else {
+        if (isDone || rightPtr >= strArr.length) {
+            if (!isDone) {
                 isDone = true;
-                logMsg("🏁 算法执行完成！", true);
+                logMsg(`🏁 字符串遍历结束！最终最长不重复子串长度为: <b>${maxLen}</b>`, true);
             }
-            */
-        isDone = true;
+            return;
+        }
+
+        let c = strArr[rightPtr];
+
+        if (stepState === 0) {
+            // State 0: 访问新字符
+            logMsg(`📍 右指针扫到字符 <b>'${c}'</b> (索引: ${rightPtr})。`, false);
+            stepState = 1;
+
+        } else if (stepState === 1) {
+            // State 1: 检查是否发生重复
+            if (lastSeen[c] !== undefined && lastSeen[c] >= leftPtr) {
+                // 发生碰撞！Left指针必须跳跃
+                let oldLeft = leftPtr;
+                leftPtr = lastSeen[c] + 1;
+                logMsg(`⚠️ 发现字符 <b>'${c}'</b> 已在窗口内！左指针从 ${oldLeft} 跳跃越过旧的 '${c}'，抵达 <b>${leftPtr}</b>。`, true);
+            } else {
+                logMsg(`✅ 字符 <b>'${c}'</b> 目前不在窗口内，窗口继续合法扩张。`, false);
+            }
+            stepState = 2;
+
+        } else if (stepState === 2) {
+            // State 2: 登记位置、更新最大值、移动 Right
+            lastSeen[c] = rightPtr;
+            let currentWindowLen = rightPtr - leftPtr + 1;
+            
+            // 更新当前窗口内容UI
+            updateDataUI(strArr.slice(leftPtr, rightPtr + 1));
+
+            if (currentWindowLen > maxLen) {
+                maxLen = currentWindowLen;
+                bestLeft = leftPtr;
+                bestRight = rightPtr;
+                logMsg(`🚀 创下新记录！当前窗口长度 <b>${maxLen}</b> 成为最大值。`, true);
+            } else {
+                logMsg(`📝 登记 <b>'${c}'</b> 最后出现位置为 ${rightPtr}。当前窗口长度 ${currentWindowLen}。`, false);
+            }
+
+            rightPtr++; // 右指针前进，准备下一轮
+            stepState = 0;
+        }
       }
 
       // ==========================================================
       // FIXED UTILITY FUNCTIONS
-      // Usually do not need modification.
       // ==========================================================
 
       function updateDataUI(arr) {
@@ -720,6 +1002,7 @@ ONLY replace the sections marked with "REPLACE_".
         });
         item.innerHTML = `<div class="time">${time}</div>${msg}`;
         container.appendChild(item);
+        // Auto scroll to bottom
         container.scrollTop = container.scrollHeight;
       }
 
@@ -746,7 +1029,7 @@ ONLY replace the sections marked with "REPLACE_".
         codeEl.removeAttribute("data-highlighted");
         if (window.hljs) hljs.highlightElement(codeEl);
 
-        // Restart animation to match the new language's logic and variable names
+        // Code language switch implies variable name changes -> restart to reflect
         if (typeof initializeSystem === "function") {
           initializeSystem();
         }
@@ -756,20 +1039,23 @@ ONLY replace the sections marked with "REPLACE_".
         if (id in params) params[id] = parseFloat(val);
         let display = document.getElementById(id + "-value");
         if (display) display.textContent = val;
-        if (id !== "speed") initializeSystem();
+        
+        // 如果不是速度滑块，改变了参数意味着需要重置环境
+        if (id !== "speed") {
+            initializeSystem();
+        }
       }
 
       function updateSeed() {
-        params.seed =
-          parseInt(document.getElementById("seed-input").value) || 12345;
+        params.seed = parseInt(document.getElementById("seed-input").value) || 31415;
         initializeSystem();
       }
 
       function randomSeedAndUpdate() {
-        params.seed = floor(random(1, 99999));
+        params.seed = floor(random(10000, 99999));
         document.getElementById("seed-input").value = params.seed;
         initializeSystem();
-        logMsg("🔄 随机化生成新场景。", true);
+        logMsg("🔄 生成新随机字符串场景。", true);
       }
 
       function togglePause() {

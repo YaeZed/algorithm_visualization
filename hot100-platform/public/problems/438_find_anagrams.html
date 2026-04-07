@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>找到字符串中所有字母异位词 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      
+      .freq-comparison {
+          display: flex; gap: 20px; align-items: flex-start;
+          font-family: "JetBrains Mono", monospace; font-size: 12px;
+      }
+      .freq-box {
+          background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 8px; flex: 1;
+      }
+      .freq-header { font-weight: bold; margin-bottom: 4px; border-bottom: 1px solid #eee; padding-bottom: 4px; color: #555;}
+      .freq-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+      .freq-item { 
+          background: #f5f5f5; border: 1px solid #e0e0e0; padding: 2px 6px; border-radius: 4px; 
+          color: #333; display: flex; gap: 4px;
+      }
+      .freq-item.active { background: var(--anthropic-green); color: white; border-color: var(--anthropic-green); }
+      .freq-item.diff { background: var(--anthropic-orange); color: white; border-color: var(--anthropic-orange); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-green); background: #f5faed; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #fdfef9; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>找到所有字母异位词</h1>
+        <div class="subtitle">定长滑动窗口 (Fixed-size Window)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="1024" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机生成新用例</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>主串长度 (s)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="10" max="25" step="1" value="16" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">16</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>模式串长度 (p)</label>
+            <div class="slider-container">
+              <input type="range" id="pLen" min="2" max="5" step="1" value="3" oninput="updateParam('pLen', this.value)" />
+              <span class="value-display" id="pLen-value">3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N + M)</span>
+            <span class="memo-badge space">□ O(Σ)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心机制：维护一个大小严格等于 `p` 长度的滑动窗口。窗口一旦超长，左侧元素出队。</div>
+            <div class="memo-tip">💡 本质等价：异位词 = 两个字符串在每个字母上的“出现频次”完全一致。</div>
+            <div class="memo-tip g">🔍 性能洞察：因为字符集只有26个小写字母，比较两个频次数组的时间复杂度是 O(26) = O(1)，可直接放心判定相等。</div>
+            <div class="memo-tip w">⚠️ 实现误区：不要在窗口内使用排序后比较字符串，这会使复杂度退化为 O(N * MlogM)。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">定长滑动窗口扫描演示</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">频次数组 + 滑动窗口解法</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时频次对比 (Frequency Comparison)</div>
+          </div>
+          
+          <div class="data-viz" id="freq-viz">
+             </div>
+          
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def findAnagrams(s: str, p: str):
+    res = []
+    if len(s) < len(p): return res
+    
+    p_cnt = [0] * 26
+    s_cnt = [0] * 26
+    
+    # 记录模式串 p 中各字符的频次
+    for char in p:
+        p_cnt[ord(char) - 97] += 1
+        
+    left = 0
+    for right in range(len(s)):
+        # 1. 移入右侧新字符，增加频次
+        s_cnt[ord(s[right]) - 97] += 1
+        
+        # 2. 维持窗口大小定长为 len(p)
+        if right - left + 1 > len(p):
+            # 将最左侧被挤出窗口的字符频次减去
+            s_cnt[ord(s[left]) - 97] -= 1
+            left += 1  # 左边界收缩
+            
+        # 3. 比较频次是否一致，一致即为异位词
+        if p_cnt == s_cnt:
+            res.append(left)
+            
+    return res`,
+        ts: `// TypeScript
+function findAnagrams(s: string, p: string): number[] {
+    const res: number[] = [];
+    if (s.length < p.length) return res;
+    
+    const pCnt = new Array(26).fill(0);
+    const sCnt = new Array(26).fill(0);
+    
+    // 统计目标字符串 p 的字符频次
+    for (let i = 0; i < p.length; i++) {
+        pCnt[p.charCodeAt(i) - 97]++;
+    }
+    
+    let left = 0;
+    for (let right = 0; right < s.length; right++) {
+        // 右侧新字符进入窗口
+        sCnt[s.charCodeAt(right) - 97]++;
+        
+        // 维持定长窗口：若超长，左侧旧字符出窗口
+        if (right - left + 1 > p.length) {
+            sCnt[s.charCodeAt(left) - 97]--;
+            left++;
+        }
+        
+        // 比较频次数组 (TS中比较数组需要转字符串或循环校验)
+        if (pCnt.join(',') === sCnt.join(',')) {
+            res.push(left);
+        }
+    }
+    
+    return res;
+}`,
+        java: `// Java
+class Solution {
+    public java.util.List<Integer> findAnagrams(String s, String p) {
+        java.util.List<Integer> res = new java.util.ArrayList<>();
+        if (s.length() < p.length()) return res;
+        
+        int[] pCnt = new int[26];
+        int[] sCnt = new int[26];
+        
+        // 初始化 p 的频次表
+        for (char c : p.toCharArray()) {
+            pCnt[c - 'a']++;
+        }
+        
+        int left = 0;
+        for (int right = 0; right < s.length(); right++) {
+            // 加入右侧进窗口的字符
+            sCnt[s.charAt(right) - 'a']++;
+            
+            // 挤出左侧出窗口的字符，确保窗口定长
+            if (right - left + 1 > p.length()) {
+                sCnt[s.charAt(left) - 'a']--;
+                left++;
+            }
+            
+            // 使用工具类直接进行 O(26) 的常数级比较
+            if (java.util.Arrays.equals(pCnt, sCnt)) {
+                res.add(left);
+            }
+        }
+        
+        return res;
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+#include <string>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> findAnagrams(string s, string p) {
+        vector<int> res;
+        if (s.length() < p.length()) return res;
+        
+        vector<int> pCnt(26, 0);
+        vector<int> sCnt(26, 0);
+        
+        // 记录目标频次
+        for (char c : p) pCnt[c - 'a']++;
+        
+        int left = 0;
+        for (int right = 0; right < s.length(); right++) {
+            // 右端扩散
+            sCnt[s[right] - 'a']++;
+            
+            // 维持定长：由于每次只加1，长度超了必然只超1，减去左端点即可
+            if (right - left + 1 > p.length()) {
+                sCnt[s[left] - 'a']--;
+                left++;
+            }
+            
+            // C++ std::vector 重载了 == 运算符，直接比较
+            if (pCnt == sCnt) {
+                res.push_back(left);
+            }
+        }
+        
+        return res;
+    }
+};`,
+        c: `// C
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+int* findAnagrams(char * s, char * p, int* returnSize) {
+    int sLen = strlen(s);
+    int pLen = strlen(p);
+    
+    // 动态分配结果数组（最大不可能超过 sLen）
+    int* res = (int*)malloc(sizeof(int) * sLen);
+    *returnSize = 0;
+    
+    if (sLen < pLen) return res;
+    
+    int pCnt[26] = {0};
+    int sCnt[26] = {0};
+    for (int i = 0; i < pLen; i++) pCnt[p[i] - 'a']++;
+    
+    int left = 0;
+    for (int right = 0; right < sLen; right++) {
+        sCnt[s[right] - 'a']++;
+        
+        if (right - left + 1 > pLen) {
+            sCnt[s[left] - 'a']--;
+            left++;
+        }
+        
+        // C语言需手动循环遍历 26 个槽位检查是否一致
+        bool match = true;
+        for (int j = 0; j < 26; j++) {
+            if (pCnt[j] != sCnt[j]) {
+                match = false;
+                break;
+            }
+        }
+        
+        if (match) {
+            res[(*returnSize)++] = left;
+        }
+    }
+    
+    return res;
+}`
+      };
+
+      let params = { seed: 1024, speed: 1.0, n: 16, pLen: 3 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // 算法所需全局状态
+      let sStr = "";
+      let pStr = "";
+      let pCnt = new Array(26).fill(0);
+      let sCnt = new Array(26).fill(0);
+      let leftPtr = 0;
+      let rightPtr = 0;
+      let resultIndices = [];
+
+      // 动画与视图变量
+      let dispLeft = 0;
+      let dispRight = 0;
+      let dispWindowW = 0;
+      let boxSize = 35;
+      let startX = 0;
+      
+      // 0: 右指针加入新字符, 1: 检查超长并移除左字符, 2: 判定是否匹配
+      let stepState = 0;
+
+      const LANG_VARS = {
+          python: { L: 'left', R: 'right' },
+          ts: { L: 'left', R: 'right' },
+          java: { L: 'left', R: 'right' },
+          cpp: { L: 'left', R: 'right' },
+          c: { L: 'left', R: 'right' }
+      };
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        textFont("'JetBrains Mono', monospace");
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        // 1. 生成目标串 p
+        pStr = "";
+        const chars = "abcde";
+        for(let i=0; i<params.pLen; i++) pStr += random(chars.split(''));
+        
+        pCnt.fill(0);
+        for(let i=0; i<pStr.length; i++) {
+            pCnt[pStr.charCodeAt(i) - 97]++;
+        }
+
+        // 2. 生成主串 s (故意注入异位词保证能演示出结果)
+        sStr = "";
+        let i = 0;
+        while(i < params.n) {
+            if (random() < 0.25 && i + params.pLen <= params.n) {
+                // 打乱 p 插入
+                let anagram = pStr.split('').sort(() => 0.5 - Math.random()).join('');
+                sStr += anagram;
+                i += params.pLen;
+            } else {
+                sStr += random(chars.split(''));
+                i++;
+            }
+        }
+        
+        // 防止意外超出长度
+        sStr = sStr.substring(0, params.n);
+
+        leftPtr = 0;
+        rightPtr = 0;
+        sCnt.fill(0);
+        resultIndices = [];
+        stepState = 0;
+        
+        dispLeft = -1; // Flag to initialize in draw
+        dispRight = 0;
+        dispWindowW = 0;
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateDataUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg("✅ 演示环境准备就绪。目标模式串 p: <b>" + pStr + "</b>", false);
+      }
+
+      function draw() {
+        background(253, 252, 249); 
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let totalW = sStr.length * boxSize;
+        startX = width / 2 - totalW / 2;
+        let baseY = height / 2;
+
+        let targetX_L = startX + leftPtr * boxSize;
+        let targetX_R = startX + rightPtr * boxSize;
+        
+        if (dispLeft === -1) { dispLeft = targetX_L; dispRight = targetX_R; }
+
+        let lerpSpeed = 0.15 * params.speed;
+        dispLeft = lerp(dispLeft, targetX_L, lerpSpeed);
+        dispRight = lerp(dispRight, targetX_R, lerpSpeed);
+        let targetWindowW = (rightPtr - leftPtr + 1) * boxSize;
+        if (rightPtr < leftPtr) targetWindowW = 0;
+        dispWindowW = lerp(dispWindowW, targetWindowW, lerpSpeed);
+
+        // --- 绘制匹配成功的异位词底色 (绿色) ---
+        push();
+        noStroke();
+        fill(120, 140, 93, 40); // anthropic-green transparent
+        for (let idx of resultIndices) {
+            let rx = startX + idx * boxSize;
+            rect(rx - 2, baseY - 2, params.pLen * boxSize + 4, boxSize + 4, 6);
+        }
+        pop();
+
+        // --- 绘制目标模式串 P ---
+        push();
+        let pTotalW = pStr.length * boxSize;
+        let pStartX = width / 2 - pTotalW / 2;
+        let pBaseY = height / 4;
+        
+        textAlign(CENTER, CENTER);
+        fill(100);
+        textSize(12);
+        text("目标串 p", width / 2, pBaseY - 20);
+        
+        for (let i = 0; i < pStr.length; i++) {
+            let x = pStartX + i * boxSize;
+            fill(240);
+            stroke(200);
+            rect(x, pBaseY, boxSize, boxSize, 4);
+            fill(50);
+            noStroke();
+            textSize(16);
+            text(pStr[i], x + boxSize / 2, pBaseY + boxSize / 2);
+        }
+        pop();
+
+        // --- 绘制当前滑动窗口底色 (橙色框) ---
+        if (rightPtr < sStr.length && stepState > 0) {
+            push();
+            stroke(217, 119, 87);
+            strokeWeight(2);
+            fill(217, 119, 87, 20);
+            rect(dispLeft, baseY, dispWindowW, boxSize, 4);
+            pop();
+        }
+
+        // --- 绘制主串 S ---
+        push();
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < sStr.length; i++) {
+            let x = startX + i * boxSize;
+            stroke(200);
+            strokeWeight(1);
+            fill(255);
+            rect(x, baseY, boxSize, boxSize, 4);
+            noStroke();
+            fill(50);
+            textSize(16);
+            text(sStr[i], x + boxSize / 2, baseY + boxSize / 2);
+            fill(150);
+            textSize(9);
+            text(i, x + boxSize / 2, baseY + boxSize + 15);
+        }
+        pop();
+
+        // --- 绘制指针与浮动标签 ---
+        push();
+        let lName = LANG_VARS[currentLang].L;
+        let rName = LANG_VARS[currentLang].R;
+
+        // L Pointer
+        fill(106, 155, 204); 
+        noStroke();
+        triangle(
+            dispLeft + boxSize / 2, baseY + boxSize + 25,
+            dispLeft + boxSize / 2 - 6, baseY + boxSize + 35,
+            dispLeft + boxSize / 2 + 6, baseY + boxSize + 35
+        );
+        textSize(12);
+        textAlign(CENTER, TOP);
+        text(lName, dispLeft + boxSize / 2, baseY + boxSize + 40);
+
+        // R Pointer
+        if (rightPtr < sStr.length) {
+            fill(217, 119, 87);
+            triangle(
+                dispRight + boxSize / 2, baseY - 10,
+                dispRight + boxSize / 2 - 6, baseY - 20,
+                dispRight + boxSize / 2 + 6, baseY - 20
+            );
+            textAlign(CENTER, BOTTOM);
+            text(rName, dispRight + boxSize / 2, baseY - 25);
+        }
+        pop();
+        
+        // 结果收集展示
+        push();
+        fill(100);
+        textAlign(LEFT, TOP);
+        textSize(13);
+        text(`收集到的起始索引: [ ${resultIndices.join(", ")} ]`, 30, height - 40);
+        pop();
+      }
+
+      function performStep() {
+        if (isDone || rightPtr >= sStr.length) {
+            if (!isDone) {
+                isDone = true;
+                logMsg(`🏁 字符串扫描结束！共找到 ${resultIndices.length} 个字母异位词。`, true);
+            }
+            return;
+        }
+
+        if (stepState === 0) {
+            // 1. 移入右侧新字符
+            let c = sStr[rightPtr];
+            sCnt[c.charCodeAt(0) - 97]++;
+            logMsg(`📍 右指针扫入字符 <b>'${c}'</b>，更新当前窗口频次。`, false);
+            updateDataUI();
+            stepState = 1;
+
+        } else if (stepState === 1) {
+            // 2. 维持窗口大小，挤出左侧字符
+            let currentLen = rightPtr - leftPtr + 1;
+            if (currentLen > params.pLen) {
+                let outChar = sStr[leftPtr];
+                sCnt[outChar.charCodeAt(0) - 97]--;
+                let oldLeft = leftPtr;
+                leftPtr++;
+                logMsg(`⚠️ 窗口长度为 ${currentLen} 超出目标定长 ${params.pLen}。将左边界 ${oldLeft} 的字符 <b>'${outChar}'</b> 移出窗口。`, false);
+                updateDataUI();
+            } else if (currentLen < params.pLen) {
+                logMsg(`⏳ 窗口仍在构建中，当前长度 ${currentLen} < ${params.pLen}，暂不判断。`, false);
+            }
+            stepState = 2;
+
+        } else if (stepState === 2) {
+            // 3. 比较验证是否异位
+            let currentLen = rightPtr - leftPtr + 1;
+            if (currentLen === params.pLen) {
+                let isMatch = true;
+                for (let i = 0; i < 26; i++) {
+                    if (pCnt[i] !== sCnt[i]) {
+                        isMatch = false;
+                        break;
+                    }
+                }
+                
+                if (isMatch) {
+                    resultIndices.push(leftPtr);
+                    logMsg(`🚀 <b>匹配成功！</b> 窗口内的字符频次与目标完全一致。记录起始索引 <b>${leftPtr}</b>。`, true);
+                } else {
+                    logMsg(`❌ 频次对不上，不匹配。右指针准备前进。`, false);
+                }
+            }
+            rightPtr++;
+            stepState = 0;
+        }
+      }
+
+      function updateDataUI() {
+        let container = document.getElementById("freq-viz");
+        if (!container) return;
+        
+        let pActive = [];
+        let sActive = [];
+        // 只筛选目前有数字的槽位进行展示
+        for (let i = 0; i < 26; i++) {
+            let char = String.fromCharCode(i + 97);
+            if (pCnt[i] > 0 || sCnt[i] > 0) {
+                pActive.push(`<div class="freq-item ${pCnt[i]>0 ? 'active':''}">${char}:${pCnt[i]}</div>`);
+                sActive.push(`<div class="freq-item ${sCnt[i] !== pCnt[i] ? 'diff' : 'active'}">${char}:${sCnt[i]}</div>`);
+            }
+        }
+
+        container.innerHTML = `
+            <div class="freq-comparison">
+                <div class="freq-box">
+                    <div class="freq-header">目标串 p 的字符频次数组</div>
+                    <div class="freq-grid">${pActive.join('')}</div>
+                </div>
+                <div class="freq-box">
+                    <div class="freq-header">当前窗口的字符频次数组</div>
+                    <div class="freq-grid">${sActive.join('')}</div>
+                </div>
+            </div>
+        `;
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function" && sStr.length > 0) {
+          leftPtr = 0; rightPtr = 0; sCnt.fill(0); resultIndices = []; stepState = 0;
+          dispLeft = -1; isDone = false; p5Timer = 0; updateDataUI();
+          document.getElementById("log-container").innerHTML = "";
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 1024;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1000, 9999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        leftPtr = 0; rightPtr = 0; sCnt.fill(0); resultIndices = []; stepState = 0;
+        dispLeft = -1; isDone = false; p5Timer = 0;
+        updateDataUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg("🔄 动画已重置，重新开始扫描。", true);
+      }
+    </script>
+  </body>
+</html>

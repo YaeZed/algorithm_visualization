@@ -88,8 +88,9 @@ Map abstract data structures to concrete visual elements:
 ### 4. Language-Aware UX (Crucial)
 
 When the user switches between the 5 programming languages (Python, Java, C++, TS, C), the visualization MUST adapt:
+
 1. **Auto-Reset**: The `switchLang(l)` function must set `currentLang = l;` and immediately call `initializeSystem()` or `resetAnimation()` so the current animation restarts from the beginning under the rules of the new code snippet.
-2. **Dynamic Variables**: Different languages use different variable names (e.g., Python might use `pre` and `nxt`, while Java might use `prev` and `next`, and C++ uses `p` and `q`). 
+2. **Dynamic Variables**: Different languages use different variable names (e.g., Python might use `pre` and `nxt`, while Java might use `prev` and `next`, and C++ uses `p` and `q`).
    - Define a global `const LANG_VARS = { python: {...}, java: {...}, cpp: {...}, ... }` map.
    - The floating labels rendered in `draw()` must read their display name from `LANG_VARS[currentLang]` instead of being hardcoded strings.
 
@@ -133,6 +134,37 @@ Identify what makes this specific algorithm interesting to tweak.
 ### 8. Data View UI (`updateDataUI()`)
 
 For some algorithms (like Heaps or Stacks), it's highly educational to print the raw state of a secondary array beneath the codebase. Use the existing `#data-nodes` container and the `updateDataUI(array)` function provided in the template to print out the raw sequence of numbers or chars representing the hidden state.
+
+### 9. Algorithm Memo Card (`REPLACE_KNOWLEDGE_PANEL`)
+
+**Only replace this section. Do NOT modify any other part of the template.**
+
+Fill in two parts:
+
+1. **Complexity badges**: Provide the optimal time (`.time`) and space (`.space`) complexity for the algorithm.
+2. **Memo tips** (3–5 items, mix of styles):
+   - Default orange `.memo-tip` → Core execution logic / key decision points
+   - Green `.memo-tip g` → Extended insights / connections to other algorithms
+   - Amber `.memo-tip w` → Common mistakes / edge-case traps
+
+Example (Trapping Rain Water · Two Pointers):
+```html
+<div class="memo-card">
+  <h3>算法速记</h3>
+  <div class="memo-badges">
+    <span class="memo-badge time">⏱ O(n)</span>
+    <span class="memo-badge space">□ O(1)</span>
+  </div>
+  <div class="memo-tips">
+    <div class="memo-tip">💡 左右双指针向中收敛，每步移动较小高度的一侧。</div>
+    <div class="memo-tip">💡 当前侧能积水 = 当前侧最大高度 − 当前高度。</div>
+    <div class="memo-tip g">🔍 本质是贪心：较矮侧积水量已被自身最大值决定，无需看对侧。</div>
+    <div class="memo-tip w">⚠️ 不要暴力 O(n²) 枚举左右边界，双指针一次扫完即可。</div>
+  </div>
+</div>
+```
+
+**CRITICAL**: Never leave placeholder text ("核心思路描述放这里", etc.). Always replace ALL tip items with real content specific to the algorithm being visualized.
 
 ---
 

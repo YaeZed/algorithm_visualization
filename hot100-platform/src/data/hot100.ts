@@ -29,21 +29,21 @@ export interface Problem {
 export const HOT100: Problem[] = [
   // ── 哈希表 ──────────────────────────────────────────────────
   { id: 1, slug: '001_two_sum', title: '两数之和', titleEn: 'Two Sum', category: '哈希表', difficulty: 'Easy', tags: ['数组', '哈希表'], hasVisualization: true },
-  { id: 49, slug: '049_group_anagrams', title: '字母异位词分组', titleEn: 'Group Anagrams', category: '哈希表', difficulty: 'Medium', tags: ['数组', '哈希表', '排序'], hasVisualization: false },
-  { id: 128, slug: '128_longest_consecutive', title: '最长连续序列', titleEn: 'Longest Consecutive Sequence', category: '哈希表', difficulty: 'Medium', tags: ['并查集', '哈希表'], hasVisualization: false },
+  { id: 49, slug: '049_group_anagrams', title: '字母异位词分组', titleEn: 'Group Anagrams', category: '哈希表', difficulty: 'Medium', tags: ['数组', '哈希表', '排序'], hasVisualization: true },
+  { id: 128, slug: '128_longest_consecutive', title: '最长连续序列', titleEn: 'Longest Consecutive Sequence', category: '哈希表', difficulty: 'Medium', tags: ['并查集', '哈希表'], hasVisualization: true },
 
   // ── 双指针 ──────────────────────────────────────────────────
-  { id: 283, slug: '283_move_zeroes', title: '移动零', titleEn: 'Move Zeroes', category: '双指针', difficulty: 'Easy', tags: ['数组', '双指针'], hasVisualization: false },
-  { id: 11, slug: '011_container_water', title: '盛最多水的容器', titleEn: 'Container With Most Water', category: '双指针', difficulty: 'Medium', tags: ['数组', '双指针', '贪心'], hasVisualization: false },
-  { id: 15, slug: '015_three_sum', title: '三数之和', titleEn: 'Three Sum', category: '双指针', difficulty: 'Medium', tags: ['数组', '双指针', '排序'], hasVisualization: false },
+  { id: 283, slug: '283_move_zeroes', title: '移动零', titleEn: 'Move Zeroes', category: '双指针', difficulty: 'Easy', tags: ['数组', '双指针'], hasVisualization: true },
+  { id: 11, slug: '011_container_water', title: '盛最多水的容器', titleEn: 'Container With Most Water', category: '双指针', difficulty: 'Medium', tags: ['数组', '双指针', '贪心'], hasVisualization: true },
+  { id: 15, slug: '015_three_sum', title: '三数之和', titleEn: 'Three Sum', category: '双指针', difficulty: 'Medium', tags: ['数组', '双指针', '排序'], hasVisualization: true },
   { id: 42, slug: '042_trapping_rain', title: '接雨水', titleEn: 'Trapping Rain Water', category: '双指针', difficulty: 'Hard', tags: ['栈', '数组', '双指针'], hasVisualization: true },
 
   // ── 滑动窗口 ────────────────────────────────────────────────
-  { id: 3, slug: '003_longest_substring', title: '无重复字符的最长子串', titleEn: 'Longest Substring Without Repeating', category: '滑动窗口', difficulty: 'Medium', tags: ['哈希表', '字符串', '滑动窗口'], hasVisualization: false },
-  { id: 438, slug: '438_find_anagrams', title: '找到字符串中所有字母异位词', titleEn: 'Find All Anagrams in a String', category: '滑动窗口', difficulty: 'Medium', tags: ['哈希表', '字符串', '滑动窗口'], hasVisualization: false },
+  { id: 3, slug: '003_longest_substring', title: '无重复字符的最长子串', titleEn: 'Longest Substring Without Repeating', category: '滑动窗口', difficulty: 'Medium', tags: ['哈希表', '字符串', '滑动窗口'], hasVisualization: true },
+  { id: 438, slug: '438_find_anagrams', title: '找到字符串中所有字母异位词', titleEn: 'Find All Anagrams in a String', category: '滑动窗口', difficulty: 'Medium', tags: ['哈希表', '字符串', '滑动窗口'], hasVisualization: true },
 
   // ── 子串 ────────────────────────────────────────────────────
-  { id: 560, slug: '560_subarray_sum_k', title: '和为 K 的子数组', titleEn: 'Subarray Sum Equals K', category: '子串', difficulty: 'Medium', tags: ['数组', '哈希表', '前缀和'], hasVisualization: false },
+  { id: 560, slug: '560_subarray_sum_k', title: '和为 K 的子数组', titleEn: 'Subarray Sum Equals K', category: '子串', difficulty: 'Medium', tags: ['数组', '哈希表', '前缀和'], hasVisualization: true },
   { id: 239, slug: '239_sliding_window_max', title: '滑动窗口最大值', titleEn: 'Sliding Window Maximum', category: '子串', difficulty: 'Hard', tags: ['数组', '队列', '单调队列'], hasVisualization: false },
   { id: 76, slug: '076_min_window', title: '最小覆盖子串', titleEn: 'Minimum Window Substring', category: '子串', difficulty: 'Hard', tags: ['哈希表', '字符串', '滑动窗口'], hasVisualization: false },
 

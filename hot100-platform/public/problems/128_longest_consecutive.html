@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>最长连续序列 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box */
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { width: 26px; height: 26px; background: var(--anthropic-dark); color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: bold; }
+
+      /* Auto-scrolling Log */
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>最长连续序列</h1>
+        <div class="subtitle">
+          Longest Consecutive Sequence - 集合起点剪枝法
+        </div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="100" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成随机测试用例</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>数据规模 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="5" max="15" step="1" value="10" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">10</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(n)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心原理：使用 HashSet 获得 O(1) 的查找能力。</div>
+            <div class="memo-tip">💡 起点判定：遍历元素 x，如果 x-1 不在集合中，则说明 x 是一个连续序列的起点。</div>
+            <div class="memo-tip g">🔍 摊还分析：外层遍历数组，内层使用 while 循环。但只有“起点”才会触发 while 循环。这意味着数组中的每个元素最多被 while 访问一次，因此总时间复杂度严格为 O(n)。</div>
+            <div class="memo-tip w">⚠️ 常见误区：如果没有“判断是否为起点”这一步，对于 [1,2,3,4,5]，每个元素都会触发 while 导致大量重复计算，时间复杂度退化为 O(n²)。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区 <span id="max-display" style="float: right; color: var(--anthropic-orange); font-weight: bold;">Longest: 0</span></div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">原始未排序数组 (nums)</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTI-LANGUAGE SNIPPETS WITH DETAILED CHINESE COMMENTS
+      // ==========================================================
+      const SNIPPETS = {
+        python: `# Python 最优解：Hash Set O(n)
+def longestConsecutive(nums: list[int]) -> int:
+    # 步骤 1: 将所有数字放入集合中，去重并提供 O(1) 的查找时间
+    num_set = set(nums)
+    longest_streak = 0
+
+    # 步骤 2: 遍历集合（或数组）中的每一个元素
+    for num in num_set:
+        # 核心逻辑：判断当前数字是否为序列的“起点”
+        # 如果 num - 1 不存在于集合中，说明没有数字能排在它前面，它是起点！
+        if num - 1 not in num_set:
+            current_num = num
+            current_streak = 1
+
+            # 既然是起点，就开始不断向后寻找 num + 1, num + 2 ...
+            while current_num + 1 in num_set:
+                current_num += 1
+                current_streak += 1
+
+            # 更新全局最长序列长度
+            longest_streak = max(longest_streak, current_streak)
+
+    return longest_streak`,
+
+        ts: `// TypeScript 最优解：Set 数据结构
+function longestConsecutive(nums: number[]): number {
+    // 步骤 1: 使用 Set 构建哈希集合
+    const numSet = new Set(nums);
+    let longestStreak = 0;
+
+    // 步骤 2: 遍历数字
+    for (const num of numSet) {
+        // 剪枝策略：只有当 num-1 不存在时，才说明当前 num 是序列起点
+        // 这样可以避免从序列中间开始冗余的重复查找
+        if (!numSet.has(num - 1)) {
+            let currentNum = num;
+            let currentStreak = 1;
+
+            // 顺着起点不断查找后续连续元素
+            // Set 的 has 方法是 O(1) 的时间复杂度
+            while (numSet.has(currentNum + 1)) {
+                currentNum++;
+                currentStreak++;
+            }
+
+            // 对比并保存最大长度
+            longestStreak = Math.max(longestStreak, currentStreak);
+        }
+    }
+
+    return longestStreak;
+}`,
+
+        java: `// Java 最优解：HashSet
+class Solution {
+    public int longestConsecutive(int[] nums) {
+        // 构造哈希集合
+        Set<Integer> numSet = new HashSet<>();
+        for (int num : nums) {
+            numSet.add(num);
+        }
+
+        int longestStreak = 0;
+
+        for (int num : numSet) {
+            // 只有当 num - 1 不在集合中时，才把 num 当作起点开始匹配
+            // 如果 num - 1 在集合中，说明当前的 num 会在处理 num - 1 (或更前) 时被处理到，因此直接跳过
+            if (!numSet.contains(num - 1)) {
+                int currentNum = num;
+                int currentStreak = 1;
+
+                // 从起点向后枚举
+                while (numSet.contains(currentNum + 1)) {
+                    currentNum += 1;
+                    currentStreak += 1;
+                }
+
+                longestStreak = Math.max(longestStreak, currentStreak);
+            }
+        }
+
+        return longestStreak;
+    }
+}`,
+
+        cpp: `// C++ 最优解：unordered_set
+class Solution {
+public:
+    int longestConsecutive(vector<int>& nums) {
+        // 使用迭代器范围构造 unordered_set (哈希集合)
+        unordered_set<int> num_set(nums.begin(), nums.end());
+        int longest_streak = 0;
+
+        for (int num : num_set) {
+            // 在哈希集合中查找当前数字的前一个数字 (num - 1)
+            // 如果找不到 (等于 end())，说明当前数字是一个连续序列的起点
+            if (num_set.find(num - 1) == num_set.end()) {
+                int current_num = num;
+                int current_streak = 1;
+
+                // 不断寻找 num + 1，直到断开
+                while (num_set.find(current_num + 1) != num_set.end()) {
+                    current_num += 1;
+                    current_streak += 1;
+                }
+
+                // 更新最长连续序列长度
+                longest_streak = max(longest_streak, current_streak);
+            }
+        }
+
+        return longest_streak;
+    }
+};`,
+
+        c: `// C 最优解：利用 uthash 库实现哈希集合查找
+#include <stdlib.h>
+#include "uthash.h"
+
+// 定义哈希集合结构体
+struct hashTable {
+    int key;
+    UT_hash_handle hh; // uthash 句柄
+};
+
+int longestConsecutive(int* nums, int numsSize) {
+    struct hashTable* set = NULL;
+    
+    // 步骤 1: 将数据加入哈希集合（去重）
+    for (int i = 0; i < numsSize; i++) {
+        struct hashTable* tmp;
+        HASH_FIND_INT(set, &nums[i], tmp);
+        if (tmp == NULL) {
+            tmp = malloc(sizeof(struct hashTable));
+            tmp->key = nums[i];
+            HASH_ADD_INT(set, key, tmp);
+        }
+    }
+    
+    int longest_streak = 0;
+    struct hashTable *current_item, *tmp;
+    
+    // 步骤 2: 遍历集合中的元素
+    HASH_ITER(hh, set, current_item, tmp) {
+        int num = current_item->key;
+        int prev = num - 1;
+        struct hashTable* find_prev;
+        
+        // 查找 num - 1 是否存在
+        HASH_FIND_INT(set, &prev, find_prev);
+        
+        if (find_prev == NULL) { // 是起点
+            int current_num = num;
+            int current_streak = 1;
+            
+            int next = current_num + 1;
+            struct hashTable* find_next;
+            HASH_FIND_INT(set, &next, find_next);
+            
+            while (find_next != NULL) {
+                current_num += 1;
+                current_streak += 1;
+                next = current_num + 1;
+                HASH_FIND_INT(set, &next, find_next);
+            }
+            
+            if (current_streak > longest_streak) {
+                longest_streak = current_streak;
+            }
+        }
+    }
+    
+    // 省略哈希表内存释放代码...
+    return longest_streak;
+}`
+      };
+
+      const LANG_VARS = {
+          python: { iter: "num", longest: "longest_streak", cur: "current_num" },
+          ts: { iter: "num", longest: "longestStreak", cur: "currentNum" },
+          java: { iter: "num", longest: "longestStreak", cur: "currentNum" },
+          cpp: { iter: "num", longest: "longest_streak", cur: "current_num" },
+          c: { iter: "num", longest: "longest_streak", cur: "current_num" }
+      };
+
+      // ==========================================================
+      // SYSTEM PARAMS & STATE
+      // ==========================================================
+      let params = { seed: 100, speed: 1.0, n: 10 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let numsArray = [];
+      let numSet = new Set();
+      let uniqueNums = []; // Array version of Set for visualization
+      
+      let currentIndex = 0; 
+      let stepPhase = 0; 
+      // 0: Check num - 1
+      // 1: Is Start? Update curNum/curStreak
+      // 2: While +1 loop
+      // 3: Update longest
+      
+      let currentNumVal = null;
+      let checkingVal = null; // What are we looking for in the Set
+      let currentStreak = 0;
+      let longestStreak = 0;
+      let streakElements = []; // Which elements form the current sequence
+
+      // Animation layout bounds
+      let setBoxes = []; // Coordinates for Hash Set rendering
+      let dispPtrX = 0;
+      let dispPtrY = 0;
+
+      // ==========================================================
+      // P5.js LOGIC
+      // ==========================================================
+      
+      // Shuffle helper
+      function shuffleArray(a) {
+          for (let i = a.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [a[i], a[j]] = [a[j], a[i]];
+          }
+      }
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        Math.random = () => random(); // Hijack for shuffle consistency
+
+        // 1. Generate interesting numbers (clusters)
+        numsArray = [];
+        let generatedCount = 0;
+        let seeds = [100, 200, 10, 1]; // bases
+        
+        while (generatedCount < params.n) {
+            let base = random(seeds);
+            let seqLen = floor(random(1, 5));
+            for(let k=0; k<seqLen && generatedCount < params.n; k++) {
+                numsArray.push(base + k);
+                generatedCount++;
+            }
+        }
+        
+        // Add random scatter
+        for(let i=0; i<floor(params.n/3); i++) {
+            numsArray[floor(random(params.n))] = floor(random(1, 300));
+        }
+
+        shuffleArray(numsArray);
+
+        // Populate Set
+        numSet = new Set(numsArray);
+        uniqueNums = Array.from(numSet);
+        
+        updateDataUI(numsArray);
+
+        // Reset state
+        currentIndex = 0;
+        stepPhase = 0;
+        currentNumVal = null;
+        checkingVal = null;
+        currentStreak = 0;
+        longestStreak = 0;
+        streakElements = [];
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        
+        document.getElementById("max-display").innerText = `Longest: 0`;
+        
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        logMsg(`✅ 系统就绪。已将原数组映射为 <b>Hash Set</b>，O(1) 查找环境已准备完毕。`, true);
+      }
+
+      function draw() {
+        background(255);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // === Layout Math ===
+        const setY = 180;
+        const colW = 40;
+        const gap = 12;
+        const cols = min(8, uniqueNums.length);
+        const rows = ceil(uniqueNums.length / cols);
+        
+        const totalW = cols * colW + (cols - 1) * gap;
+        const startX = width/2 - totalW/2;
+        
+        // Render Array Context (Top)
+        fill(100); noStroke(); textSize(14); textAlign(CENTER, CENTER);
+        text("遍历集合 (for num in num_set)", width/2, 40);
+
+        let activeX = width/2;
+        let activeY = 80;
+
+        // Render the current iteration target explicitly
+        if (!isDone && currentIndex < uniqueNums.length) {
+            let cnum = uniqueNums[currentIndex];
+            fill(217, 119, 87);
+            textSize(13);
+            text(`${LANG_VARS[currentLang].iter} ↓`, width/2, 65);
+            
+            stroke(200); fill(245); rect(width/2 - 25, activeY, 50, 40, 6);
+            fill(217, 119, 87); noStroke(); textSize(18); fontStyle = "bold";
+            text(cnum, width/2, activeY + 20);
+        }
+
+        // Render Hash Set Grid
+        fill(100); noStroke(); textSize(14); fontStyle = "normal";
+        text("哈希集合 (Hash Set) - O(1) 查找池", width/2, setY - 30);
+
+        setBoxes = [];
+        for (let i = 0; i < uniqueNums.length; i++) {
+            let r = floor(i / cols);
+            let c = i % cols;
+            let cx = startX + c * (colW + gap);
+            let cy = setY + r * (colW + gap);
+            setBoxes.push({x: cx, y: cy, val: uniqueNums[i]});
+            
+            // Logic state colors
+            let isChecking = (uniqueNums[i] === checkingVal && !isDone);
+            let isStreakElem = streakElements.includes(uniqueNums[i]);
+            let isCurrentIter = (!isDone && i === currentIndex);
+            
+            if (isStreakElem) {
+                fill(120, 140, 93); // Green for streak member
+                stroke(100, 120, 73);
+            } else if (isChecking) {
+                fill(232, 168, 56); // Amber for checking
+                stroke(212, 148, 36);
+            } else if (isCurrentIter) {
+                fill(217, 119, 87); // Orange for main pointer
+                stroke(197, 99, 67);
+            } else {
+                fill(245);
+                stroke(210);
+            }
+            
+            strokeWeight(isChecking || isStreakElem ? 2 : 1);
+            rect(cx, cy, colW, colW, 8);
+            
+            fill(isStreakElem || isChecking || isCurrentIter ? 255 : 80);
+            noStroke(); textSize(14); fontStyle = "bold";
+            text(uniqueNums[i], cx + colW/2, cy + colW/2);
+            
+            if (isChecking) {
+                // Draw a radar/check ping
+                noFill(); stroke(232, 168, 56, 150); strokeWeight(2);
+                ellipse(cx + colW/2, cy + colW/2, colW + 10 + sin(frameCount * 0.1) * 5);
+            }
+        }
+
+        // Render the missing checking value if it's not in the set
+        if (checkingVal !== null && !numSet.has(checkingVal) && !isDone) {
+            fill(80); noStroke(); textSize(12); fontStyle = "normal";
+            text(`查询: ${checkingVal} ❌ 未命中`, width/2, setY + rows*(colW+gap) + 20);
+        } else if (checkingVal !== null && numSet.has(checkingVal) && !isDone) {
+            fill(120, 140, 93); noStroke(); textSize(12); fontStyle = "normal";
+            text(`查询: ${checkingVal} ✅ 命中`, width/2, setY + rows*(colW+gap) + 20);
+        }
+
+        // Render Current Streak Status Panel
+        const statY = setY + rows*(colW+gap) + 60;
+        fill(245); stroke(220); rect(width/2 - 150, statY, 300, 70, 8);
+        
+        fill(100); noStroke(); textSize(12); textAlign(LEFT, CENTER);
+        text("当前连续序列:", width/2 - 130, statY + 20);
+        text("当前长度 (current_streak):", width/2 - 130, statY + 50);
+        
+        fill(120, 140, 93); textSize(14); fontStyle = "bold";
+        text(`[ ${streakElements.join(" , ")} ]`, width/2 - 30, statY + 20);
+        fill(217, 119, 87); textSize(16);
+        text(currentStreak, width/2 + 50, statY + 50);
+      }
+
+      function performStep() {
+        if (currentIndex >= uniqueNums.length) {
+            isDone = true;
+            checkingVal = null;
+            document.getElementById("max-display").innerText = `Longest: ${longestStreak}`;
+            logMsg(`🏁 所有元素遍历完毕。全局最长序列长度为 <b>${longestStreak}</b>。算法执行完成！`, true);
+            return;
+        }
+
+        let num = uniqueNums[currentIndex];
+        let prev = num - 1;
+
+        if (stepPhase === 0) {
+            // Check num - 1
+            checkingVal = prev;
+            logMsg(`📍 检查元素 ${num}。询问哈希表：${num} - 1 = <b>${prev}</b> 是否存在？`, false);
+            stepPhase = 1;
+
+        } else if (stepPhase === 1) {
+            if (numSet.has(checkingVal)) {
+                // Not a start
+                logMsg(`🚫 ${checkingVal} 存在！说明 ${num} <b>不是起点</b>，跳过以避免冗余计算。`, false);
+                checkingVal = null;
+                currentIndex++; // Move to next
+                stepPhase = 0;
+            } else {
+                // Is a start!
+                logMsg(`✅ ${checkingVal} 不存在！发现序列起点 <b>${num}</b>，开始向后拓展！`, true);
+                currentNumVal = num;
+                currentStreak = 1;
+                streakElements = [num];
+                checkingVal = currentNumVal + 1; // Prepare to check next
+                stepPhase = 2;
+            }
+
+        } else if (stepPhase === 2) {
+            logMsg(`🔎 尝试拓展：在哈希表中查询 ${checkingVal} ...`, false);
+            if (numSet.has(checkingVal)) {
+                // Found next consecutive
+                logMsg(`🔗 命中 ${checkingVal}！将其加入连续序列。`, false);
+                currentNumVal = checkingVal;
+                currentStreak++;
+                streakElements.push(currentNumVal);
+                checkingVal = currentNumVal + 1; // set next
+                // Stay in phase 2
+            } else {
+                // Broken streak
+                logMsg(`❌ 未找到 ${checkingVal}。当前连续序列断开。`, false);
+                stepPhase = 3;
+            }
+
+        } else if (stepPhase === 3) {
+            // Update longest
+            if (currentStreak > longestStreak) {
+                longestStreak = currentStreak;
+                document.getElementById("max-display").innerText = `Longest: ${longestStreak}`;
+                logMsg(`🏆 更新全局最长记录: <b>${longestStreak}</b>`, true);
+            }
+            
+            // Clean up and move to next iteration
+            checkingVal = null;
+            streakElements = [];
+            currentStreak = 0;
+            currentIndex++;
+            stepPhase = 0;
+        }
+      }
+
+      // ==========================================================
+      // FIXED UTILITY FUNCTIONS
+      // ==========================================================
+      function updateDataUI(arr) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        arr.forEach((v) => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          node.innerText = v;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

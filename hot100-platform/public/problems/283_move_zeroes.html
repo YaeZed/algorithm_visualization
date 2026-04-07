@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>移动零 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box */
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { width: 24px; height: 24px; background: var(--anthropic-dark); color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: bold; }
+
+      /* Auto-scrolling Log */
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.swap { border-left-color: var(--anthropic-blue); background: #f4f8fc; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>移动零</h1>
+        <div class="subtitle">
+          Move Zeroes - 双指针原位交换法
+        </div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="123" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成随机测试用例</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>数组长度 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="5" max="15" step="1" value="10" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">10</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心原理：读写指针分离。`fast` 负责读取非零元素，`slow` 负责指示写入位置。</div>
+            <div class="memo-tip">💡 交换策略：当 `fast` 遇到非零数时，将其与 `slow` 的元素交换，然后 `slow` 后移。这样零会自然被交换到数组后方。</div>
+            <div class="memo-tip g">🔍 相比于“先覆盖写入所有非零元素，最后统一在末尾补零”的做法，直接交换能较好地应对数组中非零元素极多（甚至没有零）的情况，避免不必要的自我赋值操作。</div>
+            <div class="memo-tip w">⚠️ 常见约束：题目要求必须在原数组上操作 (In-place)，严格禁止创建拷贝数组。因此空间复杂度必须是 O(1)。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区 <span id="status-display" style="float: right; color: var(--anthropic-blue); font-weight: bold;"></span></div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">数组实时状态 (nums)</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTI-LANGUAGE SNIPPETS WITH DETAILED CHINESE COMMENTS
+      // ==========================================================
+      const SNIPPETS = {
+        python: `# Python 最优解：双指针交换法 (O(n) 时间, O(1) 空间)
+def moveZeroes(nums: list[int]) -> None:
+    # slow 指向下一个非零元素应该存放（写入）的位置
+    slow = 0
+    
+    # fast 用于扫描、遍历整个数组
+    for fast in range(len(nums)):
+        # 当扫描指针找到一个非零元素时
+        if nums[fast] != 0:
+            # 将这个非零元素交换到 slow 所指向的位置
+            # 这样可以将非零元素紧凑排在前面，同时把零推向后面
+            nums[slow], nums[fast] = nums[fast], nums[slow]
+            
+            # 写入指针向后移动一位，准备接收下一个非零元素
+            slow += 1`,
+
+        ts: `// TypeScript 最优解：双指针交换法
+function moveZeroes(nums: number[]): void {
+    let slow = 0; // 写入指针：维护已处理好的非零序列的边界
+    
+    for (let fast = 0; fast < nums.length; fast++) { // 遍历指针
+        // 如果当前扫描到的元素不为 0
+        if (nums[fast] !== 0) {
+            // 解构赋值进行原位交换
+            // 将非零元素放到前面，把遇到的 0 往后挤
+            [nums[slow], nums[fast]] = [nums[fast], nums[slow]];
+            
+            // 边界向后移动一位
+            slow++; 
+        }
+    }
+}`,
+
+        java: `// Java 最优解：双指针交换法
+class Solution {
+    public void moveZeroes(int[] nums) {
+        int slow = 0; // 记录下一个非零元素应当存放的索引
+        
+        for (int fast = 0; fast < nums.length; fast++) {
+            // 当 fast 指针寻找到非零元素时
+            if (nums[fast] != 0) {
+                // 执行标准的三变量交换操作
+                int temp = nums[slow];
+                nums[slow] = nums[fast];
+                nums[fast] = temp;
+                
+                // 准备存放下一个非零元素，更新写入指针
+                slow++;
+            }
+        }
+    }
+}`,
+
+        cpp: `// C++ 最优解：双指针 (std::swap)
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        int slow = 0; // 指向已处理好的非零序列的末尾的下一个位置
+        
+        for (int fast = 0; fast < nums.size(); ++fast) {
+            if (nums[fast] != 0) {
+                // 使用标准库的 swap 进行高效的数据交换
+                // 如果 fast 和 slow 指向同一个位置，swap 也会安全执行，无额外负担
+                swap(nums[slow], nums[fast]);
+                
+                // 推进写入边界
+                slow++;
+            }
+        }
+    }
+};`,
+
+        c: `// C 最优解：双指针原位修改
+void moveZeroes(int* nums, int numsSize) {
+    int slow = 0; // 下一个非零元素的写入位置
+    
+    for (int fast = 0; fast < numsSize; fast++) {
+        // 发现非零数据
+        if (nums[fast] != 0) {
+            // 执行元素交换操作，将 0 置换到数组后方
+            int temp = nums[slow];
+            nums[slow] = nums[fast];
+            nums[fast] = temp;
+            
+            // 写入指针后移
+            slow++;
+        }
+    }
+}`
+      };
+
+      const LANG_VARS = {
+          python: { slow: "slow", fast: "fast" },
+          ts: { slow: "slow", fast: "fast" },
+          java: { slow: "slow", fast: "fast" },
+          cpp: { slow: "slow", fast: "fast" },
+          c: { slow: "slow", fast: "fast" }
+      };
+
+      // ==========================================================
+      // SYSTEM PARAMS & STATE
+      // ==========================================================
+      let params = { seed: 123, speed: 1.0, n: 10 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let numsArray = [];
+      let slowIdx = 0;
+      let fastIdx = 0;
+      let stepPhase = 0; 
+      // 0: Evaluate fastIdx value
+      // 1: Perform Swap
+      // 2: Increment indices & cleanup for next loop
+
+      // P5 Drawing State (Smooth Lerping)
+      let dispSlowX = 0;
+      let dispFastX = 0;
+
+      // ==========================================================
+      // P5.js LOGIC
+      // ==========================================================
+      
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        numsArray = [];
+        // Ensure there are some 0s and non-zeros. About 40% chance of being 0.
+        for (let i = 0; i < params.n; i++) {
+            if (random() < 0.4) {
+                numsArray.push(0);
+            } else {
+                numsArray.push(floor(random(1, 99)));
+            }
+        }
+        
+        // Prevent pure zero or pure non-zero arrays just in case
+        numsArray[floor(random(params.n/2))] = 0; 
+        numsArray[floor(random(params.n/2, params.n))] = floor(random(1, 99));
+
+        updateDataUI(numsArray);
+
+        // State Reset
+        slowIdx = 0;
+        fastIdx = 0;
+        stepPhase = 0;
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("status-display").innerText = "运行中...";
+        document.getElementById("log-container").innerHTML = "";
+        
+        logMsg(`✅ 系统就绪。数组长度 n = <b>${params.n}</b>。双指针均已初始化为 0。`, true);
+      }
+
+      function draw() {
+        background(255);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // === Layout Math ===
+        const boxSize = 46;
+        const gap = 8;
+        const startX = width / 2 - (params.n * (boxSize + gap) - gap) / 2;
+        const baseY = height / 2 - 20;
+
+        // Init lerp on first frame
+        if (dispSlowX === 0) dispSlowX = startX + boxSize/2;
+        if (dispFastX === 0) dispFastX = startX + boxSize/2;
+
+        // Render Array Base
+        for (let i = 0; i < params.n; i++) {
+            let cx = startX + i * (boxSize + gap);
+            let val = numsArray[i];
+            
+            // Styling logic
+            let isZero = (val === 0);
+            let isSlow = (i === slowIdx && !isDone);
+            let isFast = (i === fastIdx && !isDone);
+            let isSwapping = (stepPhase === 1 && (i === slowIdx || i === fastIdx));
+
+            // Background of box
+            if (isSwapping) {
+                fill(244, 248, 252); // Very light blue
+                stroke(106, 155, 204); // Anthropic blue stroke
+                strokeWeight(2);
+            } else if (i < slowIdx && !isDone) {
+                fill(240, 245, 235); // Processed non-zero area (light green tint)
+                stroke(220);
+                strokeWeight(1);
+            } else if (isDone && !isZero) {
+                fill(120, 140, 93); // Final success green
+                stroke(100, 120, 73);
+                strokeWeight(1);
+            } else if (isDone && isZero) {
+                fill(230); // Final zeroes gray
+                stroke(200);
+                strokeWeight(1);
+            } else {
+                fill(250);
+                stroke(220);
+                strokeWeight(1);
+            }
+            
+            rect(cx, baseY, boxSize, boxSize, 6);
+
+            // Text rendering
+            if (isDone && !isZero) fill(255);
+            else if (isZero) fill(180);
+            else fill(50);
+            
+            noStroke();
+            textSize(18);
+            textAlign(CENTER, CENTER);
+            text(val, cx + boxSize/2, baseY + boxSize/2);
+
+            // Index label
+            fill(160);
+            textSize(10);
+            text(`[${i}]`, cx + boxSize/2, baseY + boxSize + 15);
+        }
+
+        if (!isDone) {
+            // Target coordinates for pointers
+            let targetSlowX = startX + slowIdx * (boxSize + gap) + boxSize/2;
+            let targetFastX = startX + fastIdx * (boxSize + gap) + boxSize/2;
+
+            dispSlowX = lerp(dispSlowX, targetSlowX, 0.2 * params.speed);
+            dispFastX = lerp(dispFastX, targetFastX, 0.2 * params.speed);
+
+            // Render Slow Pointer (Above) - Write Boundary
+            fill(106, 155, 204); // Blue
+            textSize(14);
+            textAlign(CENTER, BOTTOM);
+            text(`${LANG_VARS[currentLang].slow} ↓`, dispSlowX, baseY - 10);
+            
+            // Draw boundary line
+            stroke(106, 155, 204, 150);
+            strokeWeight(2);
+            drawingContext.setLineDash([5, 5]);
+            line(dispSlowX - boxSize/2 - gap/2, baseY - 30, dispSlowX - boxSize/2 - gap/2, baseY + boxSize + 30);
+            drawingContext.setLineDash([]); // reset
+
+            // Render Fast Pointer (Below) - Read Scanner
+            fill(217, 119, 87); // Orange
+            noStroke();
+            textSize(14);
+            textAlign(CENTER, TOP);
+            text(`↑ ${LANG_VARS[currentLang].fast}`, dispFastX, baseY + boxSize + 25);
+        }
+      }
+
+      function performStep() {
+        if (fastIdx >= params.n) {
+            isDone = true;
+            document.getElementById("status-display").innerText = "执行完成 ✓";
+            document.getElementById("status-display").style.color = "var(--anthropic-green)";
+            logMsg(`🏁 遍历完毕。所有非零元素已前置，其余位置皆为 0。算法执行完成！`, true);
+            updateDataUI(numsArray);
+            return;
+        }
+
+        let val = numsArray[fastIdx];
+        let fName = LANG_VARS[currentLang].fast;
+        let sName = LANG_VARS[currentLang].slow;
+
+        if (stepPhase === 0) {
+            if (val !== 0) {
+                logMsg(`📍 扫描指针 ${fName} 找到非零元素：<b>${val}</b>。需要将其写入到 ${sName} 的位置。`, false);
+                stepPhase = 1; // goto swap
+            } else {
+                logMsg(`⏭️ 扫描指针 ${fName} 遇到 <b>0</b>。跳过，继续向后寻找。`, false);
+                stepPhase = 2; // goto next
+            }
+        } 
+        else if (stepPhase === 1) {
+            // Perform Swap
+            let temp = numsArray[slowIdx];
+            numsArray[slowIdx] = numsArray[fastIdx];
+            numsArray[fastIdx] = temp;
+            
+            if (slowIdx === fastIdx) {
+                logMsg(`🔄 交换：由于 ${sName} 与 ${fName} 重合，原地覆盖（等效于无动作）。${sName} 边界 +1。`, false);
+            } else {
+                // Use a custom class 'swap' for visual distinction in log
+                let item = document.createElement("div");
+                item.className = "log-item swap";
+                let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                item.innerHTML = `<div class="time">${time}</div>🔄 交换：将非零数 <b>${val}</b> 从索引 ${fastIdx} 移至 ${slowIdx}，将 <b>0</b> 换到后方。${sName} 边界 +1。`;
+                let container = document.getElementById("log-container");
+                container.appendChild(item);
+                container.scrollTop = container.scrollHeight;
+            }
+            
+            updateDataUI(numsArray);
+            slowIdx++;
+            stepPhase = 2;
+        } 
+        else if (stepPhase === 2) {
+            fastIdx++;
+            stepPhase = 0;
+        }
+      }
+
+      // ==========================================================
+      // FIXED UTILITY FUNCTIONS
+      // ==========================================================
+      function updateDataUI(arr) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        arr.forEach((v) => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          node.innerText = v;
+          if (v === 0) {
+             node.style.background = "var(--anthropic-mid-gray)";
+             node.style.color = "white";
+          }
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>
