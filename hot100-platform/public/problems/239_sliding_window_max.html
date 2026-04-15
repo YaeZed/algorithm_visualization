@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>滑动窗口最大值 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      
+      .deque-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 40px; padding: 5px; background: #f0f0f0; border-radius: 6px; border-left: 4px solid var(--anthropic-blue); }
+      .deque-label { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: bold; color: #666; margin-right: 10px;}
+      .deque-node {
+          background: #fff; border: 1px solid #ccc; padding: 4px 8px; border-radius: 4px;
+          font-family: "JetBrains Mono", monospace; font-size: 12px; display: flex; flex-direction: column;
+          align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+      .deque-node .idx { font-size: 9px; color: #999; }
+      .deque-node .val { font-weight: bold; color: var(--anthropic-blue); }
+      .deque-node.popping { background: #ffebeb; border-color: #ffb3b3; transform: scale(0.9); }
+      
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.green { border-left-color: var(--anthropic-green); background: #f5faed; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #fdfef9; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>滑动窗口最大值</h1>
+        <div class="subtitle">单调队列 (Monotonic Queue) 最佳实践</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="4396" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机数组</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>窗口大小 (K)</label>
+            <div class="slider-container">
+              <input type="range" id="k" min="2" max="6" step="1" value="3" oninput="updateParam('k', this.value)" />
+              <span class="value-display" id="k-value">3</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>数组长度 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="8" max="20" step="1" value="12" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">12</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N)</span>
+            <span class="memo-badge space">□ O(K)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心思想：“比你年轻还比你强，那你就没用了”。队列维持单调递减，队首永远是当前窗口最大值。</div>
+            <div class="memo-tip">💡 数据结构：使用双端队列（Deque），因为需要从队尾查杀较小值，也要从队首弹出过期值。</div>
+            <div class="memo-tip g">🔍 为什么是 O(N)？虽然有两层循环，但每个元素最多入队一次、出队一次，平摊下来每次操作 O(1)。</div>
+            <div class="memo-tip w">⚠️ 关键细节：队列中必须存“索引（Index）”而不是具体的值。因为我们需要根据索引判断队首元素是否已经滑出了窗口范围 `i - k`。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">单调队列状态与窗口滑动演示</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">单调双端队列 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">内存状态: 双端队列 Deque[索引: 值]</div>
+          </div>
+          
+          <div class="data-viz">
+            <div id="deque-nodes" class="deque-container">
+              </div>
+          </div>
+          
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+import collections
+
+def maxSlidingWindow(nums: list[int], k: int) -> list[int]:
+    # q 是单调递减的双端队列，存储的是元素的【索引】
+    q = collections.deque()
+    ans = []
+    
+    for i, x in enumerate(nums):
+        # 1. 保持队列单调递减
+        # 如果队尾元素的值 <= 当前元素，队尾元素永远不可能成为最大值了，直接弹出
+        while q and nums[q[-1]] <= x:
+            q.pop()
+            
+        # 2. 当前元素的索引入队
+        q.append(i)
+        
+        # 3. 维护窗口大小
+        # 判断队首元素是否已经滑出了当前窗口 (i - k)
+        if q[0] <= i - k:
+            q.popleft()
+            
+        # 4. 记录答案
+        # 窗口形成后 (i >= k - 1)，队首元素就是当前窗口的最大值
+        if i >= k - 1:
+            ans.append(nums[q[0]])
+            
+    return ans`,
+        ts: `// TypeScript
+function maxSlidingWindow(nums: number[], k: number): number[] {
+    // 单调双端队列，存【索引】
+    // TS/JS 没有内置 Deque，直接用数组模拟（注意：纯数组 shift 性能差，但逻辑等价）
+    const q: number[] = [];
+    const ans: number[] = [];
+    
+    for (let i = 0; i < nums.length; i++) {
+        // 1. 查杀队尾弱者：保持递减，剔除所有 <= 当前值的历史元素
+        while (q.length > 0 && nums[q[q.length - 1]] <= nums[i]) {
+            q.pop();
+        }
+        
+        // 2. 当前选手入队
+        q.push(i);
+        
+        // 3. 淘汰过期王者：若队首索引已不在窗口内，从队首弹出
+        if (q[0] <= i - k) {
+            q.shift();
+        }
+        
+        // 4. 收集战利品：队首永远是当前窗口最大值的索引
+        if (i >= k - 1) {
+            ans.push(nums[q[0]]);
+        }
+    }
+    
+    return ans;
+}`,
+        java: `// Java
+import java.util.ArrayDeque;
+import java.util.Deque;
+
+class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        if (nums == null || nums.length == 0) return new int[0];
+        
+        // 双端队列，存储索引
+        Deque<Integer> q = new ArrayDeque<>();
+        int[] ans = new int[nums.length - k + 1];
+        int ansIdx = 0;
+        
+        for (int i = 0; i < nums.length; i++) {
+            // 1. 从队尾移除所有小于等于当前元素的值
+            // 它们不可能再成为最大值了
+            while (!q.isEmpty() && nums[q.peekLast()] <= nums[i]) {
+                q.pollLast();
+            }
+            
+            // 2. 当前索引入队尾
+            q.offerLast(i);
+            
+            // 3. 判断队首是否已经滑出当前窗口
+            if (q.peekFirst() <= i - k) {
+                q.pollFirst();
+            }
+            
+            // 4. 当窗口形成后，每次将队首元素（最大值）加入答案
+            if (i >= k - 1) {
+                ans[ansIdx++] = nums[q.peekFirst()];
+            }
+        }
+        
+        return ans;
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+#include <deque>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> maxSlidingWindow(vector<int>& nums, int k) {
+        // 单调双端队列，存放下标
+        deque<int> q;
+        vector<int> ans;
+        
+        for (int i = 0; i < nums.size(); ++i) {
+            // 1. 保持队列单调递减
+            while (!q.empty() && nums[q.back()] <= nums[i]) {
+                q.pop_back();
+            }
+            
+            // 2. 新元素下标入队
+            q.push_back(i);
+            
+            // 3. 移除滑出窗口的元素
+            if (q.front() <= i - k) {
+                q.pop_front();
+            }
+            
+            // 4. 窗口达到大小 k 后，开始记录结果
+            if (i >= k - 1) {
+                ans.push_back(nums[q.front()]);
+            }
+        }
+        
+        return ans;
+    }
+};`,
+        c: `// C
+#include <stdlib.h>
+
+int* maxSlidingWindow(int* nums, int numsSize, int k, int* returnSize) {
+    *returnSize = numsSize - k + 1;
+    int* ans = (int*)malloc(sizeof(int) * (*returnSize));
+    
+    // C语言手动分配数组模拟双端队列
+    int* q = (int*)malloc(sizeof(int) * numsSize);
+    int head = 0, tail = -1; // 队列头尾指针
+    int ansIdx = 0;
+    
+    for (int i = 0; i < numsSize; ++i) {
+        // 1. 踢出队尾比当前元素小的元素
+        while (head <= tail && nums[q[tail]] <= nums[i]) {
+            tail--;
+        }
+        
+        // 2. 当前元素入队
+        q[++tail] = i;
+        
+        // 3. 淘汰出局的队首元素
+        if (q[head] <= i - k) {
+            head++;
+        }
+        
+        // 4. 记录最大值
+        if (i >= k - 1) {
+            ans[ansIdx++] = nums[q[head]];
+        }
+    }
+    
+    free(q);
+    return ans;
+}`
+      };
+
+      let params = { seed: 4396, speed: 1.0, k: 3, n: 12 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let nums = [];
+      let deque = []; // array of indices
+      let ans = [];
+      let iPtr = 0;
+      
+      // stepState: 
+      // 0 = read nums[iPtr]
+      // 1 = pop back smaller elements (looping)
+      // 2 = push iPtr
+      // 3 = pop front if expired
+      // 4 = record answer, iPtr++
+      let stepState = 0; 
+      let poppingIndex = -1; // to highlight which node is being popped in UI
+
+      // Visuals
+      let dispIPtrX = 0;
+      let boxSize = 35;
+      let startX = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        textFont("'JetBrains Mono', monospace");
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        nums = [];
+        for(let i=0; i<params.n; i++) {
+            nums.push(floor(random(1, 100)));
+        }
+
+        deque = [];
+        ans = [];
+        iPtr = 0;
+        stepState = 0;
+        poppingIndex = -1;
+        
+        dispIPtrX = -1;
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateDequeUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg("✅ 单调队列准备就绪。开始遍历数组构建滑动窗口。");
+      }
+
+      function draw() {
+        background(253, 252, 249); 
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let totalW = nums.length * boxSize;
+        startX = width / 2 - totalW / 2;
+        let baseY = height / 3;
+
+        let targetX = startX + iPtr * boxSize;
+        if (dispIPtrX === -1) dispIPtrX = targetX;
+        let lerpSpeed = 0.2 * params.speed;
+        dispIPtrX = lerp(dispIPtrX, targetX, lerpSpeed);
+
+        // --- 1. Draw Sliding Window (Orange translucent box) ---
+        if (iPtr < nums.length) {
+            push();
+            noStroke();
+            fill(217, 119, 87, 30); // anthropic-orange very transparent
+            // Window starts at max(0, iPtr - k + 1)
+            let winStartIdx = max(0, iPtr - params.k + 1);
+            let winW = (iPtr - winStartIdx + 1) * boxSize;
+            rect(startX + winStartIdx * boxSize - 3, baseY - 3, winW + 6, boxSize + 6, 6);
+            pop();
+        }
+
+        // --- 2. Draw Main Array ---
+        push();
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < nums.length; i++) {
+            let x = startX + i * boxSize;
+            
+            // Highlight element if it's currently at the front of deque (max in window)
+            let isMax = deque.length > 0 && deque[0] === i;
+            // Highlight if it's currently being read
+            let isActive = i === iPtr;
+
+            stroke(200);
+            strokeWeight(1);
+            fill(255);
+            if (isMax) {
+                fill(237, 245, 230); // light green
+                stroke(120, 140, 93);
+                strokeWeight(2);
+            } else if (isActive) {
+                fill(255, 243, 238); // light orange
+                stroke(217, 119, 87);
+            }
+            rect(x, baseY, boxSize, boxSize, 4);
+            
+            noStroke();
+            fill(isMax ? 120 : 50);
+            if (isMax) fill(120, 140, 93); // Darker green for text
+            textSize(15);
+            text(nums[i], x + boxSize / 2, baseY + boxSize / 2);
+
+            fill(150);
+            textSize(9);
+            text(i, x + boxSize / 2, baseY + boxSize + 15);
+            
+            if (isMax) {
+                fill(120, 140, 93);
+                textSize(10);
+                text("MAX", x + boxSize / 2, baseY - 12);
+            }
+        }
+        pop();
+
+        // --- 3. Pointer ---
+        if (iPtr < nums.length) {
+            push();
+            fill(217, 119, 87); 
+            noStroke();
+            triangle(
+                dispIPtrX + boxSize / 2, baseY + boxSize + 30,
+                dispIPtrX + boxSize / 2 - 6, baseY + boxSize + 40,
+                dispIPtrX + boxSize / 2 + 6, baseY + boxSize + 40
+            );
+            pop();
+        }
+
+        // --- 4. Result Array ---
+        push();
+        let resBaseY = height - 60;
+        textAlign(LEFT, CENTER);
+        fill(100);
+        textSize(13);
+        text("Result Array (ans):", startX, resBaseY - 25);
+        
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < ans.length; i++) {
+            let x = startX + i * boxSize;
+            fill(255);
+            stroke(200);
+            rect(x, resBaseY, boxSize, boxSize, 4);
+            fill(50);
+            noStroke();
+            textSize(14);
+            text(ans[i], x + boxSize / 2, resBaseY + boxSize / 2);
+        }
+        pop();
+      }
+
+      function performStep() {
+        if (isDone || iPtr >= nums.length) {
+            if (!isDone) {
+                isDone = true;
+                logMsg(`🏁 遍历结束！答案数组构建完成。`, true);
+            }
+            return;
+        }
+
+        let currVal = nums[iPtr];
+
+        if (stepState === 0) {
+            poppingIndex = -1;
+            logMsg(`📍 窗口右侧滑入新元素 <code>nums[${iPtr}] = <b>${currVal}</b></code>。准备进行查杀。`, false);
+            stepState = 1;
+
+        } else if (stepState === 1) {
+            // While loop: maintain monotonic decreasing queue
+            if (deque.length > 0 && nums[deque[deque.length - 1]] <= currVal) {
+                let tailIdx = deque[deque.length - 1];
+                let tailVal = nums[tailIdx];
+                poppingIndex = tailIdx;
+                updateDequeUI(); // Show popping state
+                
+                deque.pop(); // Actual logic
+                logMsg(`⚠️ 队尾元素 ${tailVal} <= 当前新元素 ${currVal}，毫无出头之日，将其弹出。`, true);
+                // Stay in state 1 to check the next tail
+            } else {
+                poppingIndex = -1;
+                stepState = 2; // Nothing more to pop
+                // Execute step 2 immediately for fluidity if no pops needed
+                if (deque.length === 0 || nums[deque[deque.length - 1]] > currVal) {
+                    performStep(); 
+                }
+            }
+
+        } else if (stepState === 2) {
+            deque.push(iPtr);
+            logMsg(`➕ 将当前索引 <b>${iPtr}</b> 入队。此时队尾值为 ${currVal}。`, false);
+            updateDequeUI();
+            stepState = 3;
+
+        } else if (stepState === 3) {
+            // Check out of bounds at front
+            if (deque[0] <= iPtr - params.k) {
+                let headIdx = deque[0];
+                deque.shift();
+                logMsg(`🗑️ 队首元素 (索引 ${headIdx}) 已超出当前窗口范围 [${iPtr - params.k + 1}, ${iPtr}]，将其淘汰。`, false);
+                updateDequeUI();
+            } else {
+                logMsg(`✅ 队首元素仍然在窗口内，安全。`, false);
+            }
+            stepState = 4;
+
+        } else if (stepState === 4) {
+            // Record answer if window is fully formed
+            if (iPtr >= params.k - 1) {
+                let maxVal = nums[deque[0]];
+                ans.push(maxVal);
+                logMsg(`🏆 窗口形成。当前窗口最大值为队首元素：<b>${maxVal}</b>。压入 ans 数组。`, false);
+                // The log item gets a special green class in the template
+                let logItems = document.querySelectorAll('.log-item');
+                if(logItems.length > 0) logItems[logItems.length-1].classList.add('green');
+            }
+            
+            iPtr++;
+            stepState = 0;
+        }
+      }
+
+      function updateDequeUI() {
+        let container = document.getElementById("deque-nodes");
+        if (!container) return;
+        
+        let html = [`<span class="deque-label">Front -></span>`];
+        
+        for (let i = 0; i < deque.length; i++) {
+            let idx = deque[i];
+            let val = nums[idx];
+            // If this node is currently being popped (animation state)
+            let isPopping = (idx === poppingIndex) ? 'popping' : '';
+            html.push(`
+                <div class="deque-node ${isPopping}">
+                    <span class="idx">i:${idx}</span>
+                    <span class="val">${val}</span>
+                </div>
+            `);
+        }
+        
+        // Render the node that is about to be popped but has already been removed from array visually briefly
+        if (poppingIndex !== -1 && !deque.includes(poppingIndex)) {
+             html.push(`
+                <div class="deque-node popping">
+                    <span class="idx">i:${poppingIndex}</span>
+                    <span class="val">${nums[poppingIndex]}</span>
+                </div>
+            `);
+        }
+        
+        html.push(`<span class="deque-label" style="margin-left: 10px; color: #bbb;"><- Back</span>`);
+        container.innerHTML = html.join('');
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function" && nums.length > 0) {
+            initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 4396;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1000, 9999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

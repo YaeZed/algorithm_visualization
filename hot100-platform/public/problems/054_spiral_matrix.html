@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>螺旋矩阵 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --anthropic-red: #c95c5c;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      
+      .result-array { display: flex; flex-wrap: wrap; gap: 4px; font-family: "JetBrains Mono", monospace; font-size: 12px; max-height: 80px; overflow-y: auto;}
+      .result-item { background: #eef3ff; color: var(--anthropic-blue); padding: 4px 6px; border-radius: 4px; border: 1px solid #b8d0f0; }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.boundary { border-left-color: var(--anthropic-red); background: #fff5f5; font-weight: 500;}
+      .log-item.success { border-left-color: var(--anthropic-green); background: #f5faed; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #fdfef9; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>螺旋矩阵</h1>
+        <div class="subtitle">边界收缩遍历模型 (Boundary Shrinkage)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="998" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机矩阵</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>行数 (m)</label>
+            <div class="slider-container">
+              <input type="range" id="m" min="2" max="8" step="1" value="5" oninput="updateParam('m', this.value)" />
+              <span class="value-display" id="m-value">5</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>列数 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="2" max="8" step="1" value="6" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">6</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(M × N)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心机制：维护 <code>top</code>、<code>bottom</code>、<code>left</code>、<code>right</code> 四个物理边界。按照“向右->向下->向左->向上”的顺序不断循环剥洋葱。</div>
+            <div class="memo-tip">💡 边界收缩：每沿着一条边界走到底，对应的边界就向内部收缩一行/一列（例如向右走完，上边界 <code>top++</code>）。</div>
+            <div class="memo-tip g">🔍 终止条件：当收集到的元素数量等于 <code>m * n</code> 时，说明遍历完毕。</div>
+            <div class="memo-tip w">⚠️ 常见死循环陷阱：在向左和向上遍历时，必须二次检查 <code>if (top &lt;= bottom)</code> 和 <code>if (left &lt;= right)</code>，防止非正方形矩阵在最后一根“单排”上发生来回逆向重复遍历。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">四面边界墙收缩动画推导</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解法 (物理边界法)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">结果收集器 (Result Array)</div>
+          </div>
+          
+          <div class="data-viz">
+            <div id="result-nodes" class="result-array">
+              </div>
+          </div>
+          
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def spiralOrder(matrix: list[list[int]]) -> list[int]:
+    if not matrix: return []
+    res = []
+    
+    # 设定上、下、左、右四个物理边界
+    top, bottom = 0, len(matrix) - 1
+    left, right = 0, len(matrix[0]) - 1
+    
+    while True:
+        # 1. 向右移动：走到 right 边界
+        for i in range(left, right + 1): res.append(matrix[top][i])
+        top += 1 # 顶边下移
+        if top > bottom: break
+            
+        # 2. 向下移动：走到 bottom 边界
+        for i in range(top, bottom + 1): res.append(matrix[i][right])
+        right -= 1 # 右边左移
+        if left > right: break
+            
+        # 3. 向左移动：走到 left 边界
+        for i in range(right, left - 1, -1): res.append(matrix[bottom][i])
+        bottom -= 1 # 底边上移
+        if top > bottom: break
+            
+        # 4. 向上移动：走到 top 边界
+        for i in range(bottom, top - 1, -1): res.append(matrix[i][left])
+        left += 1 # 左边右移
+        if left > right: break
+            
+    return res`,
+        ts: `// TypeScript
+function spiralOrder(matrix: number[][]): number[] {
+    if (matrix.length === 0) return [];
+    
+    const ans: number[] = [];
+    let top = 0, bottom = matrix.length - 1;
+    let left = 0, right = matrix[0].length - 1;
+    
+    while (true) {
+        // 向右：紧贴 top 边
+        for (let i = left; i <= right; i++) ans.push(matrix[top][i]);
+        if (++top > bottom) break;
+        
+        // 向下：紧贴 right 边
+        for (let i = top; i <= bottom; i++) ans.push(matrix[i][right]);
+        if (--right < left) break;
+        
+        // 向左：紧贴 bottom 边
+        for (let i = right; i >= left; i--) ans.push(matrix[bottom][i]);
+        if (--bottom < top) break;
+        
+        // 向上：紧贴 left 边
+        for (let i = bottom; i >= top; i--) ans.push(matrix[i][left]);
+        if (++left > right) break;
+    }
+    
+    return ans;
+}`,
+        java: `// Java
+import java.util.ArrayList;
+import java.util.List;
+
+class Solution {
+    public List<Integer> spiralOrder(int[][] matrix) {
+        List<Integer> ans = new ArrayList<>();
+        if (matrix.length == 0) return ans;
+        
+        int top = 0, bottom = matrix.length - 1;
+        int left = 0, right = matrix[0].length - 1;
+        
+        while (true) {
+            // 向右遍历
+            for (int i = left; i <= right; i++) ans.add(matrix[top][i]);
+            if (++top > bottom) break;
+            
+            // 向下遍历
+            for (int i = top; i <= bottom; i++) ans.add(matrix[i][right]);
+            if (--right < left) break;
+            
+            // 向左遍历
+            for (int i = right; i >= left; i--) ans.add(matrix[bottom][i]);
+            if (--bottom < top) break;
+            
+            // 向上遍历
+            for (int i = bottom; i >= top; i--) ans.add(matrix[i][left]);
+            if (++left > right) break;
+        }
+        
+        return ans;
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> spiralOrder(vector<vector<int>>& matrix) {
+        if (matrix.empty()) return {};
+        
+        vector<int> ans;
+        int top = 0, bottom = matrix.size() - 1;
+        int left = 0, right = matrix[0].size() - 1;
+        
+        while (true) {
+            for (int i = left; i <= right; ++i) ans.push_back(matrix[top][i]);
+            if (++top > bottom) break;
+            
+            for (int i = top; i <= bottom; ++i) ans.push_back(matrix[i][right]);
+            if (--right < left) break;
+            
+            for (int i = right; i >= left; --i) ans.push_back(matrix[bottom][i]);
+            if (--bottom < top) break;
+            
+            for (int i = bottom; i >= top; --i) ans.push_back(matrix[i][left]);
+            if (++left > right) break;
+        }
+        
+        return ans;
+    }
+};`,
+        c: `// C
+#include <stdlib.h>
+
+int* spiralOrder(int** matrix, int matrixSize, int* matrixColSize, int* returnSize) {
+    if (matrixSize == 0) {
+        *returnSize = 0;
+        return NULL;
+    }
+    
+    int m = matrixSize, n = matrixColSize[0];
+    *returnSize = m * n;
+    int* ans = (int*)malloc(sizeof(int) * (*returnSize));
+    int count = 0;
+    
+    int top = 0, bottom = m - 1;
+    int left = 0, right = n - 1;
+    
+    while (1) {
+        for (int i = left; i <= right; i++) ans[count++] = matrix[top][i];
+        if (++top > bottom) break;
+        
+        for (int i = top; i <= bottom; i++) ans[count++] = matrix[i][right];
+        if (--right < left) break;
+        
+        for (int i = right; i >= left; i--) ans[count++] = matrix[bottom][i];
+        if (--bottom < top) break;
+        
+        for (int i = bottom; i >= top; i--) ans[count++] = matrix[i][left];
+        if (++left > right) break;
+    }
+    
+    return ans;
+}`
+      };
+
+      let params = { seed: 998, speed: 1.0, m: 5, n: 6 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let matrix = [];
+      let visited = [];
+      let ans = [];
+      
+      let topBound, bottomBound, leftBound, rightBound;
+      let r = 0, c = 0;
+      let dir = 0; // 0: Right, 1: Down, 2: Left, 3: Up
+      
+      let dispX = 0, dispY = 0; // Visual floating cursor
+
+      // Visual Layout
+      let cellSize = 45;
+      let gridStartX = 0;
+      let gridStartY = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        textFont("'JetBrains Mono', monospace");
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        let m = params.m;
+        let n = params.n;
+        
+        matrix = [];
+        visited = [];
+        let val = 1;
+        for (let i = 0; i < m; i++) {
+            let row = [];
+            let vRow = [];
+            for (let j = 0; j < n; j++) {
+                row.push(floor(random(10, 99)));
+                vRow.push(false);
+            }
+            matrix.push(row);
+            visited.push(vRow);
+        }
+        
+        ans = [];
+        topBound = 0;
+        bottomBound = m - 1;
+        leftBound = 0;
+        rightBound = n - 1;
+        
+        r = 0;
+        c = 0;
+        dir = 0;
+        
+        dispX = -1;
+        dispY = -1;
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateDataUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ 矩阵初始化完毕 (${m}x${n})。物理边界：Top=${topBound}, Bottom=${bottomBound}, Left=${leftBound}, Right=${rightBound}。`);
+        logMsg(`👉 开始向右沿顶边遍历。`, false);
+      }
+
+      function draw() {
+        background(253, 252, 249); 
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.04 * params.speed; // slightly faster tick
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let m = params.m;
+        let n = params.n;
+        let totalW = n * cellSize;
+        let totalH = m * cellSize;
+        
+        // Scale to fit
+        let scaleFactor = 1;
+        if (totalW > width - 60 || totalH > height - 60) {
+            scaleFactor = min((width - 60) / totalW, (height - 60) / totalH);
+        }
+        let effSize = cellSize * scaleFactor;
+        
+        gridStartX = width / 2 - (n * effSize) / 2;
+        gridStartY = height / 2 - (m * effSize) / 2;
+
+        let targetX = gridStartX + c * effSize;
+        let targetY = gridStartY + r * effSize;
+        
+        if (dispX === -1) { dispX = targetX; dispY = targetY; }
+        
+        let lerpSpeed = 0.3 * params.speed;
+        dispX = lerp(dispX, targetX, lerpSpeed);
+        dispY = lerp(dispY, targetY, lerpSpeed);
+
+        // --- 1. Draw 4 Boundaries (Red Dashed Lines) ---
+        push();
+        stroke(201, 92, 92);
+        strokeWeight(3);
+        drawingContext.setLineDash([8, 8]);
+        
+        // Top line
+        line(gridStartX + leftBound * effSize - 5, gridStartY + topBound * effSize - 5, 
+             gridStartX + (rightBound + 1) * effSize + 5, gridStartY + topBound * effSize - 5);
+             
+        // Bottom line
+        line(gridStartX + leftBound * effSize - 5, gridStartY + (bottomBound + 1) * effSize + 5, 
+             gridStartX + (rightBound + 1) * effSize + 5, gridStartY + (bottomBound + 1) * effSize + 5);
+             
+        // Left line
+        line(gridStartX + leftBound * effSize - 5, gridStartY + topBound * effSize - 5, 
+             gridStartX + leftBound * effSize - 5, gridStartY + (bottomBound + 1) * effSize + 5);
+             
+        // Right line
+        line(gridStartX + (rightBound + 1) * effSize + 5, gridStartY + topBound * effSize - 5, 
+             gridStartX + (rightBound + 1) * effSize + 5, gridStartY + (bottomBound + 1) * effSize + 5);
+             
+        drawingContext.setLineDash([]);
+        
+        // Boundary Labels
+        noStroke();
+        fill(201, 92, 92);
+        textSize(12);
+        textAlign(CENTER, BOTTOM); text("TOP", width/2, gridStartY + topBound * effSize - 10);
+        textAlign(CENTER, TOP);    text("BOTTOM", width/2, gridStartY + (bottomBound + 1) * effSize + 10);
+        textAlign(RIGHT, CENTER);  text("LEFT", gridStartX + leftBound * effSize - 10, height/2);
+        textAlign(LEFT, CENTER);   text("RIGHT", gridStartX + (rightBound + 1) * effSize + 10, height/2);
+        pop();
+
+        // --- 2. Draw Matrix ---
+        push();
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < m; i++) {
+            for (let j = 0; j < n; j++) {
+                let x = gridStartX + j * effSize;
+                let y = gridStartY + i * effSize;
+                
+                let isVis = visited[i][j];
+                
+                if (isVis) {
+                    fill(245, 250, 237); // Light green
+                    stroke(120, 140, 93);
+                } else {
+                    fill(255);
+                    stroke(200);
+                }
+                
+                rect(x, y, effSize, effSize, 4);
+                
+                noStroke();
+                if (isVis) {
+                    fill(120, 140, 93);
+                } else {
+                    fill(50);
+                }
+                textSize(effSize * 0.4);
+                text(matrix[i][j], x + effSize / 2, y + effSize / 2);
+                
+                // Dimly draw coordinates for empty cells
+                if (!isVis) {
+                    fill(200); textSize(effSize * 0.15);
+                    text(`(${i},${j})`, x + effSize / 2, y + effSize * 0.85);
+                }
+            }
+        }
+        pop();
+
+        // --- 3. Draw Snake/Cursor ---
+        if (!isDone) {
+            push();
+            noFill();
+            stroke(217, 119, 87); // Orange
+            strokeWeight(3);
+            rect(dispX, dispY, effSize, effSize, 6);
+            
+            // Draw a dot in center
+            fill(217, 119, 87);
+            noStroke();
+            circle(dispX + effSize/2, dispY + effSize/2, 8);
+            pop();
+        }
+      }
+
+      function performStep() {
+        if (isDone) return;
+        
+        let m = params.m, n = params.n;
+        let total = m * n;
+
+        if (ans.length === total) {
+            isDone = true;
+            logMsg(`🏁 收集元素数量已达到 ${total}，矩阵遍历彻底完成！`, true);
+            return;
+        }
+
+        // Process current cell
+        if (!visited[r][c]) {
+            let val = matrix[r][c];
+            ans.push(val);
+            visited[r][c] = true;
+            updateDataUI();
+        }
+        
+        // If we hit the target size right after pushing, stop to avoid bounds increment logic
+        if (ans.length === total) {
+            isDone = true;
+            logMsg(`🏁 收集元素数量已达到 ${total}，矩阵遍历彻底完成！`, true);
+            return;
+        }
+
+        // Determine next move based on current direction
+        if (dir === 0) { // Moving Right
+            if (c < rightBound) {
+                c++;
+            } else {
+                // Hit right boundary
+                topBound++;
+                dir = 1;
+                r++;
+                logMsg(`🛑 到达 Right 边界。顶边界向内收缩 (<code>top++</code> 变为 ${topBound})。👇 转向向下遍历。`, true);
+                document.querySelectorAll('.log-item')[document.querySelectorAll('.log-item').length-1].classList.add('boundary');
+            }
+        } else if (dir === 1) { // Moving Down
+            if (r < bottomBound) {
+                r++;
+            } else {
+                rightBound--;
+                dir = 2;
+                c--;
+                logMsg(`🛑 到达 Bottom 边界。右边界向内收缩 (<code>right--</code> 变为 ${rightBound})。👈 转向向左遍历。`, true);
+                document.querySelectorAll('.log-item')[document.querySelectorAll('.log-item').length-1].classList.add('boundary');
+            }
+        } else if (dir === 2) { // Moving Left
+            if (c > leftBound) {
+                c--;
+            } else {
+                bottomBound--;
+                dir = 3;
+                r--;
+                logMsg(`🛑 到达 Left 边界。底边界向内收缩 (<code>bottom--</code> 变为 ${bottomBound})。👆 转向向上遍历。`, true);
+                document.querySelectorAll('.log-item')[document.querySelectorAll('.log-item').length-1].classList.add('boundary');
+            }
+        } else if (dir === 3) { // Moving Up
+            if (r > topBound) {
+                r--;
+            } else {
+                leftBound++;
+                dir = 0;
+                c++;
+                logMsg(`🛑 到达 Top 边界。左边界向内收缩 (<code>left++</code> 变为 ${leftBound})。👉 转向向右遍历。`, true);
+                document.querySelectorAll('.log-item')[document.querySelectorAll('.log-item').length-1].classList.add('boundary');
+            }
+        }
+      }
+
+      function updateDataUI() {
+        let container = document.getElementById("result-nodes");
+        if (!container) return;
+        
+        let html = [];
+        for (let i = 0; i < ans.length; i++) {
+            html.push(`<div class="result-item">${ans[i]}</div>`);
+        }
+        container.innerHTML = html.join('');
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function" && matrix.length > 0) {
+            initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 998;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1000, 9999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

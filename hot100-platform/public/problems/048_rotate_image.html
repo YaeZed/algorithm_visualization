@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>旋转图像 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --anthropic-red: #c95c5c;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; text-align: center; color: #888; background: #f5f5f5;}
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; align-items: center;}
+      .phase-tag { background: #eef3ff; color: var(--anthropic-blue); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #b8d0f0;}
+      .phase-tag.active { background: var(--anthropic-orange); color: white; border-color: var(--anthropic-orange);}
+
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      
+      .tracker-panel { display: flex; gap: 10px; }
+      .tracker-box { flex: 1; background: #fff; border: 1px solid #e0e0e0; padding: 8px; border-radius: 6px; text-align: center; }
+      .tracker-label { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+      .tracker-val { font-family: "JetBrains Mono", monospace; font-size: 14px; font-weight: bold; color: var(--anthropic-blue); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.success { border-left-color: var(--anthropic-green); background: #f5faed; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #fdfef9; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>旋转图像</h1>
+        <div class="subtitle">转置 + 翻转 (Transpose & Reverse)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="text" id="seed-input" class="seed-input" value="顺序矩阵便于观察旋转" readonly />
+          <button class="button" onclick="resetAnimation()">🔄 重置为原始矩阵</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>矩阵大小 (N × N)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="3" max="8" step="1" value="5" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">5</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N²)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 优雅降维：<b>顺时针旋转 90° = 先沿主对角线转置，再逐行水平翻转。</b></div>
+            <div class="memo-tip">💡 这种拆解方法避免了复杂的四个坐标点推导替换，并且每一阶段的内存访问模式更连续。</div>
+            <div class="memo-tip g">🔍 延伸思考：如果是<b>逆时针旋转 90°</b> 呢？答案是：沿主对角线转置 + <b>上下翻转</b>！</div>
+            <div class="memo-tip w">⚠️ 边界死角：第一步转置时，内层循环 `j` 必须从 `i + 1` 开始！如果从 `0` 开始，转过去的元素又会被转回来，等于没做。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+            <span>几何变换推导</span>
+            <div style="display:flex; gap:8px;">
+                <div id="ui-tag-0" class="phase-tag">1. 转置 (Transpose)</div>
+                <div id="ui-tag-1" class="phase-tag">2. 水平翻转 (Reverse)</div>
+            </div>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解法 (原地两步走)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">当前交换目标 (Swap Targets)</div>
+          </div>
+          
+          <div class="data-viz">
+            <div class="tracker-panel">
+                <div class="tracker-box">
+                    <div class="tracker-label">Cell A 坐标</div>
+                    <div class="tracker-val" id="ui-cell-a">-</div>
+                </div>
+                <div class="tracker-box" style="flex:0.3; display:flex; align-items:center; justify-content:center;">
+                    <span style="color:#aaa;">⇄</span>
+                </div>
+                <div class="tracker-box">
+                    <div class="tracker-label">Cell B 坐标</div>
+                    <div class="tracker-val" id="ui-cell-b">-</div>
+                </div>
+            </div>
+          </div>
+          
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def rotate(matrix: list[list[int]]) -> None:
+    n = len(matrix)
+    
+    # 阶段 1：沿主对角线进行转置 (Transpose)
+    # 注意：内层循环 j 必须从 i + 1 开始，否则会重复翻转
+    for i in range(n):
+        for j in range(i + 1, n):
+            matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
+            
+    # 阶段 2：对每一行进行水平左右翻转 (Reverse)
+    for i in range(n):
+        # 可以自己写双指针，或者直接利用语言内置方法
+        matrix[i].reverse()`,
+        ts: `// TypeScript
+/**
+ * Do not return anything, modify matrix in-place instead.
+ */
+function rotate(matrix: number[][]): void {
+    const n = matrix.length;
+    
+    // 阶段 1：主对角线转置
+    for (let i = 0; i < n; i++) {
+        // j 从 i + 1 开始，只遍历主对角线右上方的元素
+        for (let j = i + 1; j < n; j++) {
+            let temp = matrix[i][j];
+            matrix[i][j] = matrix[j][i];
+            matrix[j][i] = temp;
+        }
+    }
+    
+    // 阶段 2：逐行水平翻转
+    for (let i = 0; i < n; i++) {
+        matrix[i].reverse();
+    }
+}`,
+        java: `// Java
+class Solution {
+    public void rotate(int[][] matrix) {
+        int n = matrix.length;
+        
+        // 1. 主对角线转置 (Transpose)
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                int temp = matrix[i][j];
+                matrix[i][j] = matrix[j][i];
+                matrix[j][i] = temp;
+            }
+        }
+        
+        // 2. 每行水平左右翻转 (Reverse)
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n / 2; j++) {
+                int temp = matrix[i][j];
+                matrix[i][j] = matrix[i][n - 1 - j];
+                matrix[i][n - 1 - j] = temp;
+            }
+        }
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    void rotate(vector<vector<int>>& matrix) {
+        int n = matrix.size();
+        
+        // 第一步：沿主对角线对称转置
+        for (int i = 0; i < n; ++i) {
+            for (int j = i + 1; j < n; ++j) {
+                // C++ 自带的 swap 函数非常方便
+                swap(matrix[i][j], matrix[j][i]);
+            }
+        }
+        
+        // 第二步：每一行水平对称翻转
+        for (int i = 0; i < n; ++i) {
+            // algorithm 库自带 reverse
+            reverse(matrix[i].begin(), matrix[i].end());
+        }
+    }
+};`,
+        c: `// C
+void rotate(int** matrix, int matrixSize, int* matrixColSize) {
+    int n = matrixSize;
+    
+    // 1. 沿主对角线翻转 (Transpose)
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            int temp = matrix[i][j];
+            matrix[i][j] = matrix[j][i];
+            matrix[j][i] = temp;
+        }
+    }
+    
+    // 2. 水平翻转 (Reverse)
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n / 2; j++) {
+            int temp = matrix[i][j];
+            matrix[i][j] = matrix[i][n - 1 - j];
+            matrix[i][n - 1 - j] = temp;
+        }
+    }
+}`
+      };
+
+      let params = { speed: 1.0, n: 5 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let matrix = [];
+      let iPtr = 0, jPtr = 0;
+      let swap1 = null;
+      let swap2 = null;
+      
+      // stepState: 
+      // 0: Search next Transpose pair
+      // 1: Swap Transpose pair
+      // 2: Search next Reverse pair
+      // 3: Swap Reverse pair
+      // 4: Done
+      let stepState = 0; 
+      
+      // Visual variables
+      let cellSize = 45;
+      let gridStartX = 0;
+      let gridStartY = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        textFont("'JetBrains Mono', monospace");
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        let n = params.n;
+        matrix = [];
+        
+        // Fill sequential numbers 1 to N^2 to make the rotation easily verifiable visually
+        let counter = 1;
+        for (let i = 0; i < n; i++) {
+            let row = [];
+            for (let j = 0; j < n; j++) {
+                row.push(counter++);
+            }
+            matrix.push(row);
+        }
+
+        iPtr = 0;
+        jPtr = 1; // start from i+1
+        stepState = 0;
+        swap1 = null;
+        swap2 = null;
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updatePhaseUI();
+        updateTrackerUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ ${n}x${n} 顺序矩阵生成完毕。观察数字排布即可轻松验证旋转效果。`);
+        logMsg(`👉 <b>第一阶段启动</b>：准备沿主对角线进行转置操作。`);
+      }
+
+      function draw() {
+        background(253, 252, 249); 
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.03 * params.speed; 
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let n = params.n;
+        let totalW = n * cellSize;
+        let totalH = n * cellSize;
+        
+        let scaleFactor = 1;
+        if (totalW > width - 40 || totalH > height - 60) {
+            scaleFactor = min((width - 40) / totalW, (height - 60) / totalH);
+        }
+        let effSize = cellSize * scaleFactor;
+        
+        gridStartX = width / 2 - (n * effSize) / 2;
+        gridStartY = height / 2 - (n * effSize) / 2 + 10;
+
+        // --- Axis Lines (Context Clues) ---
+        push();
+        if (stepState < 2) {
+            // Draw Main Diagonal
+            stroke(106, 155, 204, 80); // Blueish
+            strokeWeight(4);
+            line(gridStartX, gridStartY, gridStartX + n * effSize, gridStartY + n * effSize);
+            
+            fill(106, 155, 204); noStroke(); textSize(12);
+            text("主对角线 (Axis)", gridStartX - 20, gridStartY - 10);
+        } else if (stepState >= 2 && stepState < 4) {
+            // Draw Vertical Middle Line
+            stroke(120, 140, 93, 80); // Greenish
+            strokeWeight(4);
+            let midX = gridStartX + (n * effSize) / 2;
+            line(midX, gridStartY, midX, gridStartY + n * effSize);
+            
+            fill(120, 140, 93); noStroke(); textSize(12); textAlign(CENTER, BOTTOM);
+            text("水平中轴线", midX, gridStartY - 10);
+        }
+        pop();
+
+        // --- Draw Grid ---
+        push();
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+                let x = gridStartX + j * effSize;
+                let y = gridStartY + i * effSize;
+                let val = matrix[i][j];
+                
+                let isTarget1 = swap1 && swap1.r === i && swap1.c === j;
+                let isTarget2 = swap2 && swap2.r === i && swap2.c === j;
+                let isDiagonal = (stepState < 2 && i === j);
+                
+                // Color mapping: generate a color based on the ORIGINAL value (1 to N^2)
+                // This makes the 90 degree rotation visually striking
+                colorMode(HSB, 360, 100, 100, 100);
+                let hue = map(val, 1, n*n, 0, 300); // from red to purple
+                
+                // Draw Cell Base
+                if (isTarget1 || isTarget2) {
+                    fill(30, 80, 100); // Bright Orange in HSB roughly
+                    colorMode(RGB);
+                    fill(255, 243, 238); // Override with standard theme highlight
+                    stroke(217, 119, 87);
+                    strokeWeight(3);
+                } else {
+                    fill(hue, 20, 98); // Very light pastel color of its original position
+                    colorMode(RGB);
+                    stroke(200);
+                    strokeWeight(1);
+                    if (isDiagonal) fill(245, 245, 250); // Mute the diagonal slightly during transpose
+                }
+                
+                rect(x, y, effSize, effSize, 4);
+                
+                // Draw Value
+                noStroke();
+                if (isTarget1 || isTarget2) {
+                    fill(217, 119, 87);
+                    textSize(effSize * 0.5);
+                    textStyle(BOLD);
+                } else {
+                    fill(50);
+                    textSize(effSize * 0.4);
+                    textStyle(NORMAL);
+                }
+                text(val, x + effSize / 2, y + effSize / 2);
+                
+                // Draw Indices Small
+                fill(150); textSize(effSize * 0.15);
+                text(`(${i},${j})`, x + effSize / 2, y + effSize * 0.85);
+            }
+        }
+        colorMode(RGB); // Restore default
+        pop();
+
+        // --- Draw Swap Arc ---
+        if ((stepState === 1 || stepState === 3) && swap1 && swap2) {
+            push();
+            let x1 = gridStartX + swap1.c * effSize + effSize/2;
+            let y1 = gridStartY + swap1.r * effSize + effSize/2;
+            let x2 = gridStartX + swap2.c * effSize + effSize/2;
+            let y2 = gridStartY + swap2.r * effSize + effSize/2;
+            
+            noFill();
+            stroke(217, 119, 87); // orange
+            strokeWeight(3);
+            drawingContext.setLineDash([5, 5]);
+            
+            // Draw a subtle curve between them
+            let mx = (x1 + x2) / 2;
+            let my = (y1 + y2) / 2;
+            // offset control point to make an arc
+            let offset = effSize;
+            if (stepState === 1) offset = -effSize; // bulge differently
+            
+            bezier(x1, y1, mx + offset, my + offset, mx + offset, my + offset, x2, y2);
+            drawingContext.setLineDash([]);
+            pop();
+        }
+      }
+
+      function performStep() {
+        if (isDone) return;
+        let n = params.n;
+
+        if (stepState === 0) { // Seek Transpose Pair
+            if (iPtr >= n) {
+                // Phase 1 Done
+                logMsg(`✅ <b>第一阶段完成！</b> 主对角线转置已结束。此时矩阵行与列已互换。`);
+                logMsg(`👉 <b>第二阶段启动</b>：准备逐行进行水平翻转。`);
+                stepState = 2;
+                iPtr = 0; 
+                jPtr = 0;
+                swap1 = null; swap2 = null;
+                updatePhaseUI();
+                performStep(); // chain next step immediately
+                return;
+            }
+            if (jPtr >= n) {
+                iPtr++;
+                jPtr = iPtr + 1;
+                performStep();
+                return;
+            }
+            
+            // Found a valid pair
+            swap1 = {r: iPtr, c: jPtr};
+            swap2 = {r: jPtr, c: iPtr};
+            updateTrackerUI();
+            stepState = 1;
+
+        } else if (stepState === 1) { // Execute Transpose Swap
+            let temp = matrix[swap1.r][swap1.c];
+            matrix[swap1.r][swap1.c] = matrix[swap2.r][swap2.c];
+            matrix[swap2.r][swap2.c] = temp;
+            
+            logMsg(`🔄 [转置] 交换坐标 <code>(${swap1.r}, ${swap1.c})</code> 与 <code>(${swap2.r}, ${swap2.c})</code> 的元素。`);
+            
+            jPtr++;
+            swap1 = null; swap2 = null;
+            updateTrackerUI();
+            stepState = 0;
+
+        } else if (stepState === 2) { // Seek Reverse Pair
+            if (iPtr >= n) {
+                // All done
+                stepState = 4;
+                swap1 = null; swap2 = null;
+                isDone = true;
+                updateTrackerUI();
+                logMsg(`🎉 <b>第二阶段完成！</b> 图像 90度 顺时针旋转完美实现。`, true);
+                document.querySelectorAll('.log-item')[document.querySelectorAll('.log-item').length-1].classList.add('success');
+                return;
+            }
+            if (jPtr >= Math.floor(n / 2)) {
+                iPtr++;
+                jPtr = 0;
+                performStep();
+                return;
+            }
+            
+            // Found pair
+            swap1 = {r: iPtr, c: jPtr};
+            swap2 = {r: iPtr, c: n - 1 - jPtr};
+            updateTrackerUI();
+            stepState = 3;
+
+        } else if (stepState === 3) { // Execute Reverse Swap
+            let temp = matrix[swap1.r][swap1.c];
+            matrix[swap1.r][swap1.c] = matrix[swap2.r][swap2.c];
+            matrix[swap2.r][swap2.c] = temp;
+            
+            logMsg(`↔️ [翻转] 第 ${iPtr} 行：交换左右对称元素 <code>(${swap1.r}, ${swap1.c})</code> 与 <code>(${swap2.r}, ${swap2.c})</code>。`);
+            
+            jPtr++;
+            swap1 = null; swap2 = null;
+            updateTrackerUI();
+            stepState = 2;
+        }
+      }
+
+      function updatePhaseUI() {
+          let t1 = document.getElementById("ui-tag-0");
+          let t2 = document.getElementById("ui-tag-1");
+          if (!t1 || !t2) return;
+          
+          if (stepState < 2) {
+              t1.classList.add("active");
+              t2.classList.remove("active");
+          } else if (stepState < 4) {
+              t1.classList.remove("active");
+              t2.classList.add("active");
+          } else {
+              t1.classList.remove("active");
+              t2.classList.remove("active");
+          }
+      }
+
+      function updateTrackerUI() {
+          let cA = document.getElementById("ui-cell-a");
+          let cB = document.getElementById("ui-cell-b");
+          if (!cA || !cB) return;
+          
+          if (swap1 && swap2) {
+              cA.innerText = `(${swap1.r}, ${swap1.c})`;
+              cB.innerText = `(${swap2.r}, ${swap2.c})`;
+          } else {
+              cA.innerText = "-";
+              cB.innerText = "-";
+          }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function" && matrix.length > 0) {
+            initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

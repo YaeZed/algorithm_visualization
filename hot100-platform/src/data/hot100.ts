@@ -44,22 +44,22 @@ export const HOT100: Problem[] = [
 
   // ── 子串 ────────────────────────────────────────────────────
   { id: 560, slug: '560_subarray_sum_k', title: '和为 K 的子数组', titleEn: 'Subarray Sum Equals K', category: '子串', difficulty: 'Medium', tags: ['数组', '哈希表', '前缀和'], hasVisualization: true },
-  { id: 239, slug: '239_sliding_window_max', title: '滑动窗口最大值', titleEn: 'Sliding Window Maximum', category: '子串', difficulty: 'Hard', tags: ['数组', '队列', '单调队列'], hasVisualization: false },
-  { id: 76, slug: '076_min_window', title: '最小覆盖子串', titleEn: 'Minimum Window Substring', category: '子串', difficulty: 'Hard', tags: ['哈希表', '字符串', '滑动窗口'], hasVisualization: false },
+  { id: 239, slug: '239_sliding_window_max', title: '滑动窗口最大值', titleEn: 'Sliding Window Maximum', category: '子串', difficulty: 'Hard', tags: ['数组', '队列', '单调队列'], hasVisualization: true },
+  { id: 76, slug: '076_min_window', title: '最小覆盖子串', titleEn: 'Minimum Window Substring', category: '子串', difficulty: 'Hard', tags: ['哈希表', '字符串', '滑动窗口'], hasVisualization: true },
 
   // ── 普通数组 ────────────────────────────────────────────────
-  { id: 53, slug: '053_max_subarray', title: '最大子数组和', titleEn: 'Maximum Subarray', category: '普通数组', difficulty: 'Medium', tags: ['数组', '分治', 'DP'], hasVisualization: false },
-  { id: 56, slug: '056_merge_intervals', title: '合并区间', titleEn: 'Merge Intervals', category: '普通数组', difficulty: 'Medium', tags: ['数组', '排序'], hasVisualization: false },
-  { id: 189, slug: '189_rotate_array', title: '轮转数组', titleEn: 'Rotate Array', category: '普通数组', difficulty: 'Medium', tags: ['数组', '双指针'], hasVisualization: false },
-  { id: 238, slug: '238_product_except_self', title: '除自身以外数组的乘积', titleEn: 'Product of Array Except Self', category: '普通数组', difficulty: 'Medium', tags: ['数组', '前缀和'], hasVisualization: false },
-  { id: 41, slug: '041_first_missing', title: '缺失的第一个正数', titleEn: 'First Missing Positive', category: '普通数组', difficulty: 'Hard', tags: ['数组', '哈希表'], hasVisualization: false },
-  { id: 84, slug: '084_largest_rectangle', title: '柱状图中最大的矩形', titleEn: 'Largest Rectangle in Histogram', category: '普通数组', difficulty: 'Hard', tags: ['栈', '数组', '单调栈'], hasVisualization: false },
+  { id: 53, slug: '053_max_subarray', title: '最大子数组和', titleEn: 'Maximum Subarray', category: '普通数组', difficulty: 'Medium', tags: ['数组', '分治', 'DP'], hasVisualization: true },
+  { id: 56, slug: '056_merge_intervals', title: '合并区间', titleEn: 'Merge Intervals', category: '普通数组', difficulty: 'Medium', tags: ['数组', '排序'], hasVisualization: true },
+  { id: 189, slug: '189_rotate_array', title: '轮转数组', titleEn: 'Rotate Array', category: '普通数组', difficulty: 'Medium', tags: ['数组', '双指针'], hasVisualization: true },
+  { id: 238, slug: '238_product_except_self', title: '除自身以外数组的乘积', titleEn: 'Product of Array Except Self', category: '普通数组', difficulty: 'Medium', tags: ['数组', '前缀和'], hasVisualization: true },
+  { id: 41, slug: '041_first_missing', title: '缺失的第一个正数', titleEn: 'First Missing Positive', category: '普通数组', difficulty: 'Hard', tags: ['数组', '哈希表'], hasVisualization: true },
+  // { id: 84, slug: '084_largest_rectangle', title: '柱状图中最大的矩形', titleEn: 'Largest Rectangle in Histogram', category: '普通数组', difficulty: 'Hard', tags: ['栈', '数组', '单调栈'], hasVisualization: false },
 
   // ── 矩阵 ────────────────────────────────────────────────────
-  { id: 73, slug: '073_set_matrix_zeroes', title: '矩阵置零', titleEn: 'Set Matrix Zeroes', category: '矩阵', difficulty: 'Medium', tags: ['数组', '矩阵'], hasVisualization: false },
-  { id: 54, slug: '054_spiral_matrix', title: '螺旋矩阵', titleEn: 'Spiral Matrix', category: '矩阵', difficulty: 'Medium', tags: ['数组', '矩阵', '模拟'], hasVisualization: false },
-  { id: 48, slug: '048_rotate_image', title: '旋转图像', titleEn: 'Rotate Image', category: '矩阵', difficulty: 'Medium', tags: ['数组', '矩阵'], hasVisualization: false },
-  { id: 240, slug: '240_search_2d_matrix', title: '搜索二维矩阵 II', titleEn: 'Search a 2D Matrix II', category: '矩阵', difficulty: 'Medium', tags: ['数组', '二分', '矩阵'], hasVisualization: false },
+  { id: 73, slug: '073_set_matrix_zeroes', title: '矩阵置零', titleEn: 'Set Matrix Zeroes', category: '矩阵', difficulty: 'Medium', tags: ['数组', '矩阵'], hasVisualization: true },
+  { id: 54, slug: '054_spiral_matrix', title: '螺旋矩阵', titleEn: 'Spiral Matrix', category: '矩阵', difficulty: 'Medium', tags: ['数组', '矩阵', '模拟'], hasVisualization: true },
+  { id: 48, slug: '048_rotate_image', title: '旋转图像', titleEn: 'Rotate Image', category: '矩阵', difficulty: 'Medium', tags: ['数组', '矩阵'], hasVisualization: true },
+  { id: 240, slug: '240_search_2d_matrix', title: '搜索二维矩阵 II', titleEn: 'Search a 2D Matrix II', category: '矩阵', difficulty: 'Medium', tags: ['数组', '二分', '矩阵'], hasVisualization: true },
 
   // ── 链表 ────────────────────────────────────────────────────
   { id: 160, slug: '160_intersection_linked', title: '相交链表', titleEn: 'Intersection of Two Linked Lists', category: '链表', difficulty: 'Easy', tags: ['哈希表', '链表', '双指针'], hasVisualization: false },

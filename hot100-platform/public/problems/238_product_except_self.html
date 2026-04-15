@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>除自身以外数组的乘积 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto;
+        border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 {
+        font-family: "Lora", serif;
+        font-size: 18px;
+        margin-bottom: 4px;
+        color: var(--anthropic-orange);
+      }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: var(--anthropic-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .control-section h3::before {
+        content: "";
+        width: 4px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 2px;
+      }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] {
+        flex: 1; height: 4px; background: var(--anthropic-light-gray);
+        border-radius: 2px; appearance: none; outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 14px; height: 14px;
+        background: var(--anthropic-orange); border-radius: 50%;
+        cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button {
+        background: var(--anthropic-orange); color: white; border: none;
+        padding: 10px; border-radius: 6px; width: 100%; cursor: pointer;
+        font-size: 13px; transition: 0.2s; font-weight: 500;
+      }
+      .button:hover { background: #c86641; }
+      .seed-input {
+        width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray);
+        border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px;
+      }
+
+      /* Middle - Canvas */
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray);
+        position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header {
+        padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray);
+        font-size: 13px; font-weight: 500; color: #888;
+      }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      
+      /* Code Box */
+      .code-box {
+        flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333;
+        display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab {
+        padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer;
+        background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500;
+        font-size: 11px; font-family: "Poppins", sans-serif;
+      }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.5; display: block; padding: 15px; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box {
+        flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray);
+        display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node {
+        min-width: 22px; padding: 0 6px; height: 22px; background: var(--anthropic-orange);
+        color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+        font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: bold;
+      }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>除自身以外的乘积</h1>
+        <div class="subtitle">LeetCode 238 · 最优解演示工具 (O(1) 空间)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="1357" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机数组</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>数组长度 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="4" max="8" step="1" value="5" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">5</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 数学分解：除自身以外的乘积 = 索引左侧所有元素的乘积 $\times$ 索引右侧所有元素的乘积。</div>
+            <div class="memo-tip">💡 前向遍历计算前缀乘积并存入结果数组，实现第一层逻辑预处理。</div>
+            <div class="memo-tip g">🔍 空间优化：后向遍历时利用单个标量变量维护后缀乘积状态，动态与结果数组中的前缀乘积相乘，省去显式后缀数组。</div>
+            <div class="memo-tip w">⚠️ 严禁使用除法操作（数组元素为 $0$ 时将抛出异常或逻辑断层，且题目强制规定禁用）。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">内存读写与前缀/后缀乘积双向扫描过程</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (双向线性扫描)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行日志 (Memory State Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">结果数组状态 (Output Array Buffer)</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTILINGUAL CODE SNIPPETS
+      // ==========================================================
+      const SNIPPETS = {
+        python: `# Python
+class Solution:
+    def productExceptSelf(self, nums: List[int]) -> List[int]:
+        n = len(nums)
+        # 初始化结果数组，作为 O(1) 空间复杂度的唯一输出容器
+        ans = [1] * n
+        
+        # 1. 前向扫描：计算前缀乘积
+        left_prod = 1
+        for i in range(n):
+            # 将左侧所有元素的乘积写入结果数组
+            ans[i] = left_prod
+            # 更新左侧乘积标量状态
+            left_prod *= nums[i]
+            
+        # 2. 后向扫描：计算后缀乘积并就地合并
+        right_prod = 1
+        for i in range(n - 1, -1, -1):
+            # 将当前前缀乘积与累积的后缀乘积相乘
+            ans[i] *= right_prod
+            # 更新右侧乘积标量状态
+            right_prod *= nums[i]
+            
+        return ans`,
+        ts: `// TypeScript
+function productExceptSelf(nums: number[]): number[] {
+    const n = nums.length;
+    // 分配结果数组的内存空间，初始值赋为 1
+    const ans = new Array(n).fill(1);
+    
+    // 1. 前向线性扫描：推导左侧前缀乘积
+    let leftProd = 1;
+    for (let i = 0; i < n; i++) {
+        ans[i] = leftProd;           // 存入当前计算的左侧前缀
+        leftProd *= nums[i];         // 将当前元素合并入前缀乘积状态
+    }
+    
+    // 2. 后向线性扫描：推导右侧后缀乘积并就地相乘
+    let rightProd = 1;
+    for (let i = n - 1; i >= 0; i--) {
+        ans[i] *= rightProd;         // 前缀乘积 * 后缀乘积 = 最终结果
+        rightProd *= nums[i];        // 将当前元素合并入后缀乘积状态
+    }
+    
+    return ans;
+}`,
+        java: `// Java
+class Solution {
+    public int[] productExceptSelf(int[] nums) {
+        int n = nums.length;
+        // 申请存储输出的整型数组，根据题意不计入空间复杂度
+        int[] ans = new int[n];
+        
+        // 1. 左序遍历计算前缀乘积
+        int leftProd = 1;
+        for (int i = 0; i < n; i++) {
+            ans[i] = leftProd;
+            leftProd *= nums[i];
+        }
+        
+        // 2. 右序遍历计算后缀乘积
+        int rightProd = 1;
+        for (int i = n - 1; i >= 0; i--) {
+            // ans[i] 目前存储的是前缀乘积，将其乘以 rightProd 即为最终解
+            ans[i] *= rightProd;
+            rightProd *= nums[i];
+        }
+        
+        return ans;
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> productExceptSelf(vector<int>& nums) {
+        int n = nums.size();
+        // 初始化 vector 容器，默认以 1 填充
+        vector<int> ans(n, 1);
+        
+        // 1. 正向遍历，获取数组中索引 i 之前的所有元素乘积
+        int leftProd = 1;
+        for (int i = 0; i < n; ++i) {
+            ans[i] = leftProd;
+            leftProd *= nums[i];
+        }
+        
+        // 2. 逆向遍历，获取数组中索引 i 之后的所有元素乘积
+        int rightProd = 1;
+        for (int i = n - 1; i >= 0; --i) {
+            // 执行就地更新（In-place update）
+            ans[i] *= rightProd;
+            rightProd *= nums[i];
+        }
+        
+        return ans;
+    }
+};`,
+        c: `// C
+#include <stdlib.h>
+
+int* productExceptSelf(int* nums, int numsSize, int* returnSize) {
+    // 动态分配堆内存空间
+    int* ans = (int*)malloc(sizeof(int) * numsSize);
+    *returnSize = numsSize;
+    
+    // 1. 扫描左侧连续内存，记录前缀状态
+    int leftProd = 1;
+    for (int i = 0; i < numsSize; i++) {
+        ans[i] = leftProd;
+        leftProd *= nums[i];
+    }
+    
+    // 2. 扫描右侧连续内存，记录后缀状态并合并
+    int rightProd = 1;
+    for (int i = numsSize - 1; i >= 0; i--) {
+        ans[i] *= rightProd;
+        rightProd *= nums[i];
+    }
+    
+    return ans;
+}`
+      };
+
+      const LANG_VARS = {
+        python: { ptr: 'i', L: 'left_prod', R: 'right_prod' },
+        ts: { ptr: 'i', L: 'leftProd', R: 'rightProd' },
+        java: { ptr: 'i', L: 'leftProd', R: 'rightProd' },
+        cpp: { ptr: 'i', L: 'leftProd', R: 'rightProd' },
+        c: { ptr: 'i', L: 'leftProd', R: 'rightProd' }
+      };
+
+      let params = { seed: 1357, speed: 1.0, n: 5 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+
+      let nums = [];
+      let ans = [];
+      let phase = 0; // 0: Init, 1: Left Pass, 2: Right Pass, 3: Done
+      let idx = 0;
+      let leftProd = 1;
+      let rightProd = 1;
+      let currentLang = 'python';
+
+      // Graphics metrics
+      let canvasW, canvasH;
+      let boxW = 50, boxH = 40;
+      let topY, bottomY, startX;
+      let animStep = 0; // 0: write to ans, 1: update prod
+
+      // Colors
+      const C_BLUE = [106, 155, 204];
+      const C_ORANGE = [217, 119, 87];
+      const C_GREEN = [120, 140, 93];
+      const C_GRAY = [220, 220, 220];
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        canvasW = container.offsetWidth || 500;
+        canvasH = container.offsetHeight || 600;
+        let canvas = createCanvas(canvasW, canvasH);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => {
+          canvasW = container.offsetWidth;
+          canvasH = container.offsetHeight;
+          resizeCanvas(canvasW, canvasH);
+          computeLayout();
+        });
+
+        switchLang('python');
+      }
+
+      function computeLayout() {
+        let totalW = params.n * (boxW + 15) - 15;
+        startX = (canvasW - totalW) / 2;
+        topY = 80;
+        bottomY = 220;
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false; isPaused = false; p5Timer = 0;
+        
+        let btn = document.getElementById("pause-btn");
+        if(btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+
+        computeLayout();
+        nums = []; ans = [];
+        phase = 1; idx = 0; animStep = 0;
+        leftProd = 1; rightProd = 1;
+
+        // Generate numbers between 1 and 4 to avoid massive visualization numbers
+        for (let i = 0; i < params.n; i++) {
+          nums.push(floor(random(1, 5)));
+          ans.push(1); // default init
+        }
+
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ 内存分配完成：输入数组 nums (长度 ${params.n})，结果缓存 ans 已创建。`, true);
+        logMsg(`📍 阶段一：启动前向扫描，维护前缀标量。`, true);
+        updateDataUI(ans);
+      }
+
+      function draw() {
+        background(253, 252, 249);
+
+        // Titles
+        textAlign(LEFT, TOP);
+        textSize(12); textStyle(BOLD);
+        fill(80);
+        text("输入数组 (nums)", startX, topY - 30);
+        text("输出数组 (ans)", startX, bottomY - 30);
+        textStyle(NORMAL);
+
+        // Draw arrays
+        textAlign(CENTER, CENTER);
+        for(let i = 0; i < params.n; i++) {
+            let x = startX + i * (boxW + 15);
+            
+            // Draw Nums
+            let hlNums = (!isDone && idx === i && animStep === 1) ? C_ORANGE : C_BLUE;
+            fill(hlNums[0], hlNums[1], hlNums[2]);
+            rect(x, topY, boxW, boxH, 4);
+            fill(255); textSize(16);
+            text(nums[i], x + boxW/2, topY + boxH/2);
+            
+            // Draw Index
+            fill(150); textSize(11);
+            text(`[${i}]`, x + boxW/2, topY + boxH + 15);
+
+            // Draw Ans
+            let hlAns = (!isDone && idx === i && animStep === 0) ? C_ORANGE : 
+                        (phase === 3 ? C_GREEN : C_GRAY);
+            fill(hlAns[0], hlAns[1], hlAns[2]);
+            rect(x, bottomY, boxW, boxH, 4);
+            fill(phase === 3 ? 255 : 50);
+            text(ans[i], x + boxW/2, bottomY + boxH/2);
+        }
+
+        // Draw Pointer and Scalar Variables
+        if(!isDone) {
+            let ptrX = startX + idx * (boxW + 15) + boxW/2;
+            fill(C_ORANGE[0], C_ORANGE[1], C_ORANGE[2]);
+            textSize(12); textStyle(BOLD);
+            text(`${LANG_VARS[currentLang].ptr} ↓`, ptrX, topY - 15);
+
+            // Scalar Status Box
+            let statusY = 320;
+            fill(250); stroke(200); strokeWeight(1);
+            rect(startX, statusY, canvasW - startX*2, 60, 6);
+            noStroke(); fill(80); textAlign(LEFT, CENTER); textSize(13);
+            
+            if(phase === 1) {
+                text(`标量状态：${LANG_VARS[currentLang].L} = ${leftProd}`, startX + 20, statusY + 30);
+            } else if (phase === 2) {
+                text(`标量状态：${LANG_VARS[currentLang].R} = ${rightProd}`, startX + 20, statusY + 30);
+            }
+            textStyle(NORMAL);
+        }
+
+        // Execution Logic
+        if (!isDone && !isPaused) {
+            p5Timer += 0.015 * params.speed;
+            if (p5Timer > 1) {
+                p5Timer = 0;
+                performStep();
+            }
+        }
+      }
+
+      function performStep() {
+          if (phase === 1) {
+              if (idx < params.n) {
+                  if (animStep === 0) {
+                      // Write left_prod to ans[i]
+                      ans[idx] = leftProd;
+                      logMsg(`  ↳ 索引 ${idx}: 写入当前前缀状态 ans[${idx}] = ${leftProd}`);
+                      updateDataUI(ans);
+                      animStep = 1;
+                  } else {
+                      // Update left_prod
+                      let nextL = leftProd * nums[idx];
+                      logMsg(`  ↳ 索引 ${idx}: 更新前缀标量 ${LANG_VARS[currentLang].L} = ${leftProd} * ${nums[idx]} = ${nextL}`);
+                      leftProd = nextL;
+                      animStep = 0;
+                      idx++;
+                  }
+              } else {
+                  phase = 2;
+                  idx = params.n - 1;
+                  animStep = 0;
+                  logMsg(`✅ 阶段一完成。内存前向赋值结束。`);
+                  logMsg(`📍 阶段二：启动后向扫描，结合后缀标量就地合并计算最终解。`, true);
+              }
+          } else if (phase === 2) {
+              if (idx >= 0) {
+                  if (animStep === 0) {
+                      // Multiply ans[i] with right_prod
+                      let oldVal = ans[idx];
+                      ans[idx] = oldVal * rightProd;
+                      logMsg(`  ↳ 索引 ${idx}: 就地计算结果 ans[${idx}] = ${oldVal} (前缀) * ${rightProd} (后缀) = ${ans[idx]}`);
+                      updateDataUI(ans);
+                      animStep = 1;
+                  } else {
+                      // Update right_prod
+                      let nextR = rightProd * nums[idx];
+                      logMsg(`  ↳ 索引 ${idx}: 更新后缀标量 ${LANG_VARS[currentLang].R} = ${rightProd} * ${nums[idx]} = ${nextR}`);
+                      rightProd = nextR;
+                      animStep = 0;
+                      idx--;
+                  }
+              } else {
+                  phase = 3; // Done
+                  isDone = true;
+                  logMsg(`🏁 双向线性扫描全部执行完毕，算法结束！`, true);
+              }
+          }
+      }
+
+      function updateDataUI(arr) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        arr.forEach((v) => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          node.innerText = v;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c"
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof p5 !== 'undefined') initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 1357;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续执行"; btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

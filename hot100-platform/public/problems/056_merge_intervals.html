@@ -1,0 +1,1041 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>合并区间 (Merge Intervals) - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        height: 100vh;
+        padding: 15px;
+        gap: 15px;
+      }
+
+      /* Left Sidebar - Controls */
+      .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto;
+        border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 {
+        font-family: "Lora", serif;
+        font-size: 18px;
+        margin-bottom: 4px;
+        color: var(--anthropic-orange);
+      }
+      .subtitle {
+        color: var(--anthropic-mid-gray);
+        font-size: 11px;
+        margin-bottom: 20px;
+      }
+      .control-section {
+        margin-bottom: 20px;
+      }
+      .control-section h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: var(--anthropic-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .control-section h3::before {
+        content: "";
+        width: 4px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 2px;
+      }
+      .control-group {
+        margin-bottom: 12px;
+      }
+      .control-group label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 4px;
+        color: #666;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      input[type="range"] {
+        flex: 1;
+        height: 4px;
+        background: var(--anthropic-light-gray);
+        border-radius: 2px;
+        appearance: none;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        min-width: 25px;
+        text-align: right;
+      }
+      .button {
+        background: var(--anthropic-orange);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        width: 100%;
+        cursor: pointer;
+        font-size: 13px;
+        transition: 0.2s;
+        font-weight: 500;
+      }
+      .button:hover {
+        background: #c86641;
+      }
+      .seed-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--anthropic-light-gray);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+
+      /* Middle - Canvas */
+      .canvas-area {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .canvas-header {
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--anthropic-light-gray);
+        font-size: 13px;
+        font-weight: 500;
+        color: #888;
+      }
+      #canvas-container {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Right Panel - Logic & Code */
+      .right-panel {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      /* Code Box (VS Code Dark+ Style) */
+      .code-box {
+        flex: 1.1;
+        background: #1e1e1e;
+        border-radius: 12px;
+        border: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .box-header {
+        padding: 8px 15px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .box-header.dark {
+        background: #282828;
+        border-bottom: 1px solid #1e1e1e;
+        padding: 10px 15px 0 15px;
+      }
+      .box-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+      }
+      .box-title.dark {
+        color: #ccc;
+        padding-bottom: 10px;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+      }
+      .tabs.dark {
+        gap: 1px;
+        align-items: flex-end;
+      }
+      .tabs.dark .tab {
+        padding: 8px 16px;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        background: #2d2d2d;
+        transition: 0.2s;
+        color: #888;
+        font-weight: 500;
+        font-size: 11px;
+        font-family: "Poppins", sans-serif;
+      }
+      .tabs.dark .tab:hover {
+        background: #3c3c3c;
+        color: #ddd;
+      }
+      .tabs.dark .tab.active {
+        background: #1e1e1e;
+        color: #4ec9b0;
+        border-top: 2px solid #007acc;
+      }
+
+      .code-content {
+        flex: 1;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        background: #1e1e1e;
+        border-radius: 0 0 12px 12px;
+      }
+      #code-viewer {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 15px;
+        line-height: 1.6;
+        display: block;
+        padding: 15px;
+        background: transparent;
+        color: #d4d4d4;
+      }
+
+      /* Highlight.js CSS Overrides for precise Dark+ accuracy */
+      .hljs {
+        background: transparent !important;
+        padding: 0 !important;
+        color: #d4d4d4 !important;
+      }
+      .hljs-keyword,
+      .hljs-literal,
+      .hljs-selector-tag {
+        color: #569cd6 !important;
+      }
+      .hljs-type,
+      .hljs-title.class_,
+      .hljs-class .hljs-title,
+      .hljs-built_in {
+        color: #4ec9b0 !important;
+      }
+      .hljs-variable,
+      .hljs-variable.language_,
+      .hljs-property,
+      .hljs-attr,
+      .hljs-params {
+        color: #9cdcfe !important;
+      }
+      .hljs-number {
+        color: #b5cea8 !important;
+      }
+      .hljs-punctuation,
+      .hljs-operator {
+        color: #d4d4d4 !important;
+      }
+      .hljs-string,
+      .hljs-char {
+        color: #ce9178 !important;
+      }
+      .hljs-comment {
+        color: #6a9955 !important;
+      }
+      .hljs-title.function_,
+      .hljs-function .hljs-title,
+      .hljs-title.function_.invoke__ {
+        color: #dcdcaa !important;
+      }
+
+      /* Logic Log Box */
+      .logic-box {
+        flex: 0.9;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--anthropic-light-gray);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+
+      .data-viz {
+        padding: 12px;
+        background: #fffcf9;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .data-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--anthropic-orange);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .data-array {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-height: 30px;
+      }
+      .data-node {
+        padding: 0 6px;
+        height: 22px;
+        background: var(--anthropic-orange);
+        color: white;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: bold;
+      }
+
+      /* Auto-scrolling Log */
+      .log-area {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 11.5px;
+        background: #fff;
+      }
+      .log-item {
+        padding: 5px 10px;
+        border-radius: 4px;
+        background: #fcfcfc;
+        border-left: 2px solid #ddd;
+        border-bottom: 1px solid #f5f5f5;
+        line-height: 1.4;
+        color: #444;
+      }
+      .log-item.highlight {
+        border-left-color: var(--anthropic-orange);
+        background: #fff9f5;
+        font-weight: 500;
+      }
+      .log-item .time {
+        font-size: 9px;
+        color: #bbb;
+        margin-bottom: 2px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #e0e0e0;
+        border-radius: 3px;
+      }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>合并区间</h1>
+        <div class="subtitle">LeetCode 56 · 最优解演示工具</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input
+            type="number"
+            id="seed-input"
+            class="seed-input"
+            value="2026"
+            onchange="updateSeed()"
+          />
+          <button class="button" onclick="randomSeedAndUpdate()">
+            生成新随机场景
+          </button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="speed"
+                min="0.1"
+                max="2.5"
+                step="0.1"
+                value="1.0"
+                oninput="updateParam('speed', this.value)"
+              />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>区间数量 (n)</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="n"
+                min="3"
+                max="12"
+                step="1"
+                value="7"
+                oninput="updateParam('n', this.value)"
+              />
+              <span class="value-display" id="n-value">7</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button
+            id="pause-btn"
+            class="button"
+            style="background: var(--anthropic-dark)"
+            onclick="togglePause()"
+          >
+            ⏸ 暂停
+          </button>
+          <button
+            class="button"
+            style="background: var(--anthropic-blue)"
+            onclick="resetAnimation()"
+          >
+            🔄 重新运行
+          </button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n log n)</span>
+            <span class="memo-badge space">□ O(log n)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心操作：根据每个区间的左端点对数组进行升序排序。</div>
+            <div class="memo-tip">💡 重叠判断逻辑：遍历当前区间，若 `当前左端点 <= 结果集最后元素的右端点`，则存在重叠。</div>
+            <div class="memo-tip g">🔍 数据结构特性：排序保证了所有可能产生交集的区间在物理存储上必定相邻，将全局合并转化为局部验证。</div>
+            <div class="memo-tip w">⚠️ 边界处理错误：重叠时不能直接用当前区间的右端点覆盖，必须执行 `Math.max(旧右端点, 新右端点)` 以防包含关系。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区：扫描线与端点合并过程</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (排序 + 线性扫描)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre
+            class="code-content"
+          ><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">当前输入数组状态 (已排序)</div>
+            <div id="data-nodes" class="data-array">
+              </div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def merge(intervals):
+    # 边界条件：空数组直接返回
+    if not intervals: return []
+    
+    # 1. 按照区间的左端点进行升序排序
+    # 这是算法的核心前提，使得可能重叠的区间一定在数组中连续排列
+    intervals.sort(key=lambda x: x[0])
+    
+    # 初始化结果数组
+    merged = []
+    
+    # 2. 线性遍历排好序的区间
+    for interval in intervals:
+        # 3. 逻辑判断：如果结果数组为空，
+        # 或者当前区间的左端点 > 结果数组中最后一个区间的右端点，
+        # 说明当前区间与前面已处理的区间无重叠，作为一个新区间入列。
+        if not merged or merged[-1][1] < interval[0]:
+            merged.append(interval)
+        else:
+            # 4. 否则说明存在重叠区域，
+            # 需要更新结果数组中最后一个区间的右端点边界，
+            # 取两者右端点的最大值（以处理当前区间被完全包含的情况）。
+            merged[-1][1] = max(merged[-1][1], interval[1])
+            
+    return merged`,
+        ts: `// TypeScript
+function merge(intervals: number[][]): number[][] {
+    // 边界条件判断
+    if (intervals.length === 0) return [];
+
+    // 1. 按照区间的左端点进行升序排序
+    // 这是算法的核心前提，保证后续遍历时能够依据顺序合并
+    intervals.sort((a, b) => a[0] - b[0]);
+    
+    const merged: number[][] = [];
+    
+    // 2. 线性遍历排好序的区间
+    for (const interval of intervals) {
+        // 3. 逻辑判断：如果结果数组为空，
+        // 或者当前区间的左端点 > 结果数组中最后一个区间的右端点，
+        // 说明当前区间与前面已处理的区间无交集。
+        if (merged.length === 0 || merged[merged.length - 1][1] < interval[0]) {
+            merged.push([interval[0], interval[1]]);
+        } else {
+            // 4. 存在重叠区域，
+            // 提取结果数组的最后一个区间对象，并更新其右端点，
+            // 取当前存储右端点与待处理区间右端点的最大值。
+            merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], interval[1]);
+        }
+    }
+    
+    return merged;
+}`,
+        java: `// Java
+class Solution {
+    public int[][] merge(int[][] intervals) {
+        // 边界条件判断
+        if (intervals.length == 0) return new int[0][2];
+        
+        // 1. 按照区间的左端点进行升序排序
+        // Arrays.sort 提供 O(N log N) 的时间复杂度
+        Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
+        
+        List<int[]> merged = new ArrayList<>();
+        
+        // 2. 线性遍历排好序的区间
+        for (int[] interval : intervals) {
+            // 3. 获取结果列表中当前最后一个区间的索引与状态
+            // 若列表为空或无重叠（当前左端点 > 最后右端点），直接添加
+            if (merged.isEmpty() || merged.get(merged.size() - 1)[1] < interval[0]) {
+                merged.add(new int[]{interval[0], interval[1]});
+            } else {
+                // 4. 存在重叠，就地更新列表中最后一个区间的右端点，
+                // 注意必须使用 Math.max 防止前一个区间完全包含后一个区间。
+                merged.get(merged.size() - 1)[1] = Math.max(merged.get(merged.size() - 1)[1], interval[1]);
+            }
+        }
+        
+        // 转换回二维数组格式输出
+        return merged.toArray(new int[merged.size()][]);
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    vector<vector<int>> merge(vector<vector<int>>& intervals) {
+        // 边界条件判断
+        if (intervals.empty()) return {};
+        
+        // 1. 按照区间的左端点进行升序排序
+        // std::sort 默认根据 vector<int> 的第一个元素进行比较
+        sort(intervals.begin(), intervals.end());
+        
+        vector<vector<int>> merged;
+        
+        // 2. 线性遍历排好序的区间
+        for (int i = 0; i < intervals.size(); ++i) {
+            // 3. 逻辑判断：若结果数组为空，
+            // 或当前区间的左端点严格大于结果数组最后元素的右端点，
+            // 说明不存在交集。
+            if (merged.empty() || merged.back()[1] < intervals[i][0]) {
+                merged.push_back(intervals[i]);
+            } else {
+                // 4. 存在重叠，修改 merged.back() 的右端点，
+                // 确保保留两个重叠区间中最远的右侧边界。
+                merged.back()[1] = max(merged.back()[1], intervals[i][1]);
+            }
+        }
+        
+        return merged;
+    }
+};`,
+        c: `// C
+#include <stdlib.h>
+
+// qsort 所需的比较函数，实现根据区间左端点升序排列
+int cmp(const void* a, const void* b) {
+    int* p1 = *(int**)a;
+    int* p2 = *(int**)b;
+    return p1[0] - p2[0];
+}
+
+int** merge(int** intervals, int intervalsSize, int* intervalsColSize, int* returnSize, int** returnColumnSizes) {
+    if (intervalsSize == 0) {
+        *returnSize = 0;
+        return NULL;
+    }
+    
+    // 1. 调用快速排序对区间数组进行预处理
+    qsort(intervals, intervalsSize, sizeof(int*), cmp);
+    
+    // 预分配最坏情况（全部无交集）所需的内存空间
+    int** merged = (int**)malloc(sizeof(int*) * intervalsSize);
+    *returnColumnSizes = (int*)malloc(sizeof(int) * intervalsSize);
+    int count = 0;
+    
+    // 2. 线性扫描与合并执行过程
+    for (int i = 0; i < intervalsSize; i++) {
+        // 3. 结果集为空，或当前区间左端点 > 最后一个区间右端点
+        if (count == 0 || merged[count - 1][1] < intervals[i][0]) {
+            merged[count] = (int*)malloc(sizeof(int) * 2);
+            merged[count][0] = intervals[i][0];
+            merged[count][1] = intervals[i][1];
+            (*returnColumnSizes)[count] = 2; // 列数固定为2
+            count++;
+        } else {
+            // 4. 发生重叠，通过数值大小判断更新右侧边界
+            if (merged[count - 1][1] < intervals[i][1]) {
+                merged[count - 1][1] = intervals[i][1];
+            }
+        }
+    }
+    
+    *returnSize = count;
+    return merged;
+}`
+      };
+
+      let params = {
+        seed: 2026,
+        speed: 1.0,
+        n: 7,
+      };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // P5.js State Variables
+      let intervals = [];
+      let mergedData = [];
+      let phase = 'INIT'; // INIT -> SORTING -> MERGING -> DONE
+      let currentIndex = 0;
+      let sortTimer = 0;
+      let canvasW, canvasH;
+
+      const COLOR_BLUE = [106, 155, 204];
+      const COLOR_ORANGE = [217, 119, 87];
+      const COLOR_GREEN = [120, 140, 93];
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        canvasW = container.offsetWidth || 500;
+        canvasH = container.offsetHeight || 600;
+        let canvas = createCanvas(canvasW, canvasH);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => {
+          canvasW = container.offsetWidth;
+          canvasH = container.offsetHeight;
+          resizeCanvas(canvasW, canvasH);
+        });
+
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        intervals = [];
+        mergedData = [];
+        phase = 'INIT';
+        currentIndex = 0;
+        sortTimer = 0;
+
+        let maxVal = 100;
+        for (let i = 0; i < params.n; i++) {
+          let start = floor(random(0, maxVal - 15));
+          let len = floor(random(5, 25));
+          let end = min(maxVal, start + len);
+          
+          intervals.push({
+            id: i,
+            start: start,
+            end: end,
+            x: map(start, 0, maxVal, 40, canvasW - 40),
+            w: map(end - start, 0, maxVal, 0, canvasW - 80),
+            y: 45 + i * 28,
+            targetY: 45 + i * 28,
+            color: COLOR_BLUE
+          });
+        }
+
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ 演示系统初始化完毕：生成了 ${params.n} 个随机输入区间。`, true);
+        updateDataUI(intervals.map(i => `[${i.start}, ${i.end}]`));
+      }
+
+      function draw() {
+        background(253, 252, 249); 
+
+        let maxVal = 100;
+        
+        // Draw Grid X-Axis
+        stroke(220);
+        strokeWeight(1);
+        line(40, 20, canvasW - 40, 20);
+        fill(150);
+        noStroke();
+        textAlign(CENTER, TOP);
+        for(let i=0; i<=10; i++) {
+            let x = map(i*10, 0, maxVal, 40, canvasW - 40);
+            text(i*10, x, 25);
+            stroke(230);
+            line(x, 20, x, canvasH);
+            noStroke();
+        }
+
+        // Split Layout
+        let splitY = canvasH / 2 + 10;
+        stroke(200);
+        strokeWeight(2);
+        line(15, splitY, canvasW - 15, splitY);
+        noStroke();
+        fill(120);
+        textAlign(LEFT, BOTTOM);
+        textSize(11);
+        text("↑ 未处理/排队处理中的区间数据", 15, splitY - 5);
+        text("↓ 最终确定的不重叠区间集 (Merged Array)", 15, canvasH - 10);
+
+        // Render Intervals
+        let allInPosition = true;
+        for (let i of intervals) {
+            i.y = lerp(i.y, i.targetY, 0.1 * params.speed);
+            if (abs(i.y - i.targetY) > 1) allInPosition = false;
+            
+            fill(i.color[0], i.color[1], i.color[2]);
+            rect(i.x, i.y, i.w, 16, 4);
+            fill(255);
+            textAlign(CENTER, CENTER);
+            textSize(10);
+            if (i.w > 35) text(`[${i.start},${i.end}]`, i.x + i.w/2, i.y + 8);
+        }
+
+        for (let m of mergedData) {
+            m.w = lerp(m.w, m.targetW, 0.15 * params.speed);
+            fill(m.color[0], m.color[1], m.color[2]);
+            rect(m.x, m.y, m.w, 20, 5);
+            fill(255);
+            textAlign(CENTER, CENTER);
+            textSize(11);
+            if (m.w > 35) text(`[${m.start},${m.end}]`, m.x + m.w/2, m.y + 10);
+        }
+
+        // Logic progression
+        if (!isDone && !isPaused) {
+            if (phase === 'INIT') {
+                p5Timer += 0.015 * params.speed;
+                if (p5Timer > 1) {
+                    p5Timer = 0;
+                    logMsg("📍 第一步执行排序：按照区间的左端点数值进行升序排列。", true);
+                    
+                    intervals.sort((a, b) => a.start - b.start);
+                    
+                    let spacing = (splitY - 80) / max(1, params.n);
+                    for (let i = 0; i < intervals.length; i++) {
+                        intervals[i].targetY = 45 + i * spacing;
+                    }
+                    phase = 'SORTING';
+                }
+            } else if (phase === 'SORTING') {
+                if (allInPosition) {
+                    sortTimer += 0.05 * params.speed;
+                    if (sortTimer > 1) {
+                        phase = 'MERGING';
+                        logMsg("✅ 数组物理位置排序已完成，开始进行线性扫描迭代。", true);
+                        updateDataUI(intervals.map(i => `[${i.start}, ${i.end}]`));
+                    }
+                }
+            } else if (phase === 'MERGING') {
+                p5Timer += 0.012 * params.speed;
+                if (p5Timer > 1) {
+                    p5Timer = 0;
+                    performStep();
+                }
+            }
+        }
+      }
+
+      function performStep() {
+        if (currentIndex >= intervals.length) {
+            isDone = true;
+            logMsg("🏁 输入数组遍历完毕，合并执行结束！", true);
+            
+            // Clean up colors
+            for(let iv of intervals) iv.color = COLOR_BLUE;
+            for(let m of mergedData) m.color = COLOR_GREEN;
+            return;
+        }
+
+        let curr = intervals[currentIndex];
+        
+        // Reset previously active colors
+        for(let iv of intervals) {
+            iv.color = COLOR_BLUE;
+        }
+        // Highlight current scanning item
+        curr.color = COLOR_ORANGE;
+
+        if (mergedData.length === 0) {
+            logMsg(`📍 结果集当前为空，直接将 [${curr.start}, ${curr.end}] 压入结果数组。`, false);
+            pushToMerged(curr);
+        } else {
+            let lastMerged = mergedData[mergedData.length - 1];
+            
+            if (lastMerged.end < curr.start) {
+                // No overlap
+                logMsg(`📍 当前区间左端点 (${curr.start}) > 结果集最新元素的右端点 (${lastMerged.end})。无数值重叠，直接作为独立区间压入。`, false);
+                pushToMerged(curr);
+            } else {
+                // Overlap occurs
+                let newEnd = max(lastMerged.end, curr.end);
+                if (lastMerged.end < curr.end) {
+                    logMsg(`⚠️ 触发合并条件：当前区间 [${curr.start}, ${curr.end}] 的左端点落在结果集 [${lastMerged.start}, ${lastMerged.end}] 范围内。更新结果集的右边界取极大值 -> ${newEnd}。`, true);
+                    lastMerged.end = newEnd;
+                    // Calculate visual width mapping
+                    lastMerged.targetW = map(newEnd - lastMerged.start, 0, 100, 0, canvasW - 80);
+                } else {
+                    logMsg(`📍 验证冗余：当前区间 [${curr.start}, ${curr.end}] 在数值范围上被结果集元素 [${lastMerged.start}, ${lastMerged.end}] 完全覆盖，右边界保持不变。`, false);
+                }
+                
+                // Visual feedback flash
+                lastMerged.color = COLOR_GREEN;
+                setTimeout(() => { 
+                    if(lastMerged && !isDone) lastMerged.color = COLOR_ORANGE; 
+                }, 400);
+            }
+        }
+
+        currentIndex++;
+      }
+
+      function pushToMerged(curr) {
+        mergedData.push({
+            start: curr.start,
+            end: curr.end,
+            x: curr.x,
+            y: (canvasH / 2) + 40 + mergedData.length * 32,
+            w: curr.w,
+            targetW: curr.w,
+            color: COLOR_ORANGE
+        });
+      }
+
+      // ==========================================================
+      // FIXED UTILITY FUNCTIONS
+      // ==========================================================
+
+      function updateDataUI(arr) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        arr.forEach((v) => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          node.innerText = v;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python",
+          ts: "language-typescript",
+          java: "language-java",
+          cpp: "language-cpp",
+          c: "language-c",
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function" && typeof p5 !== 'undefined') {
+          initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 2026;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+        logMsg("🔄 系统状态重置：已生成全新的随机数据输入。", true);
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续执行";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

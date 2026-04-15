@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>搜索二维矩阵 II - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --anthropic-red: #c95c5c;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; text-align: center; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; align-items: center;}
+      
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      
+      .status-panel { display: flex; gap: 15px; }
+      .status-card { flex: 1; background: white; border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;}
+      .status-card .label { font-size: 11px; color: #777; margin-bottom: 4px; text-transform: uppercase;}
+      .status-card .value { font-family: "JetBrains Mono", monospace; font-size: 18px; font-weight: bold;}
+      .status-card.target .value { color: var(--anthropic-orange); }
+      .status-card.current .value { color: var(--anthropic-blue); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-blue); background: #f0f4f8; font-weight: 500; }
+      .log-item.success { border-left-color: var(--anthropic-green); background: #f5faed; font-weight: 500; }
+      .log-item.danger { border-left-color: var(--anthropic-red); background: #fff5f5; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #fdfef9; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>搜索二维矩阵 II</h1>
+        <div class="subtitle">Z字形查找 (右上角二叉搜索树视角)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="8848" onchange="updateSeed()" style="display:none;" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新矩阵与随机目标值</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>行数 (m)</label>
+            <div class="slider-container">
+              <input type="range" id="m" min="4" max="10" step="1" value="7" oninput="updateParam('m', this.value)" />
+              <span class="value-display" id="m-value">7</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>列数 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="4" max="10" step="1" value="8" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">8</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(M + N)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心哲学：<b>将矩阵视为一棵二叉搜索树 (BST)。</b> 以右上角为根节点，向左走元素变小，向下走元素变大。</div>
+            <div class="memo-tip">💡 行列消除：如果当前元素大于目标值，说明当前列下方的元素只会更大，整列淘汰（向左移）；如果小于目标值，说明当前行左侧的元素只会更小，整行淘汰（向下移）。</div>
+            <div class="memo-tip g">🔍 延伸思考：为什么不能从左上角开始？因为左上角向下和向右都是变大，失去了“岔路口”的分流判断能力。必须从右上角或左下角出发。</div>
+            <div class="memo-tip w">⚠️ 边界条件：循环条件必须是 `r < matrix.length` 且 `c >= 0`，任何一个越界说明目标值不存在。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+            <span>右上角扫描可视化</span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解法 (Z字形搜索)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">比对状态面板</div>
+          </div>
+          
+          <div class="data-viz">
+            <div class="status-panel">
+                <div class="status-card target">
+                    <div class="label">目标值 (Target)</div>
+                    <div class="value" id="ui-target">-</div>
+                </div>
+                <div class="status-card current">
+                    <div class="label">当前游标 (Current)</div>
+                    <div class="value" id="ui-current">-</div>
+                </div>
+            </div>
+          </div>
+          
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def searchMatrix(matrix: list[list[int]], target: int) -> bool:
+    if not matrix or not matrix[0]:
+        return False
+        
+    m, n = len(matrix), len(matrix[0])
+    
+    # 从右上角开始扫描
+    r, c = 0, n - 1
+    
+    while r < m and c >= 0:
+        if matrix[r][c] == target:
+            return True
+        elif matrix[r][c] > target:
+            # 当前值比目标大，向下只会更大，所以淘汰当前列，向左走
+            c -= 1
+        else:
+            # 当前值比目标小，向左只会更小，所以淘汰当前行，向下走
+            r += 1
+            
+    return False`,
+        ts: `// TypeScript
+function searchMatrix(matrix: number[][], target: number): boolean {
+    if (matrix.length === 0 || matrix[0].length === 0) return false;
+    
+    const m = matrix.length;
+    const n = matrix[0].length;
+    
+    // 初始化游标：矩阵右上角
+    let r = 0;
+    let c = n - 1;
+    
+    while (r < m && c >= 0) {
+        if (matrix[r][c] === target) {
+            return true;
+        } else if (matrix[r][c] > target) {
+            // 当前值 > 目标值：当前列下方的数字都会更大，此列淘汰，向左移
+            c--;
+        } else {
+            // 当前值 < 目标值：当前行左侧的数字都会更小，此行淘汰，向下移
+            r++;
+        }
+    }
+    
+    return false;
+}`,
+        java: `// Java
+class Solution {
+    public boolean searchMatrix(int[][] matrix, int target) {
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0) {
+            return false;
+        }
+        
+        int m = matrix.length, n = matrix[0].length;
+        // 定位到右上角元素
+        int row = 0, col = n - 1;
+        
+        while (row < m && col >= 0) {
+            if (matrix[row][col] == target) {
+                return true;
+            } else if (matrix[row][col] > target) {
+                // 向左收缩空间
+                col--;
+            } else {
+                // 向下收缩空间
+                row++;
+            }
+        }
+        
+        return false;
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    bool searchMatrix(vector<vector<int>>& matrix, int target) {
+        if (matrix.empty() || matrix[0].empty()) return false;
+        
+        int m = matrix.size();
+        int n = matrix[0].size();
+        
+        // 指针停靠在右上角
+        int r = 0;
+        int c = n - 1;
+        
+        while (r < m && c >= 0) {
+            if (matrix[r][c] == target) {
+                return true; // 命中目标
+            } else if (matrix[r][c] > target) {
+                c--; // 嫌大往左走
+            } else {
+                r++; // 嫌小往下走
+            }
+        }
+        
+        return false;
+    }
+};`,
+        c: `// C
+#include <stdbool.h>
+
+bool searchMatrix(int** matrix, int matrixSize, int* matrixColSize, int target) {
+    if (matrixSize == 0 || matrixColSize[0] == 0) return false;
+    
+    int m = matrixSize;
+    int n = matrixColSize[0];
+    
+    int r = 0;
+    int c = n - 1;
+    
+    while (r < m && c >= 0) {
+        if (matrix[r][c] == target) {
+            return true;
+        } else if (matrix[r][c] > target) {
+            // 剔除整列
+            c--;
+        } else {
+            // 剔除整行
+            r++;
+        }
+    }
+    
+    return false;
+}`
+      };
+
+      let params = { seed: 8848, speed: 1.0, m: 7, n: 8 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let matrix = [];
+      let targetValue = 0;
+      let targetFound = false;
+      
+      let rPtr = 0, cPtr = 0;
+      
+      // State arrays to keep track of eliminated zones for visualization
+      let rowEliminated = []; // stores boolean
+      let colEliminated = []; // stores boolean
+      
+      // stepState:
+      // 0: Compare
+      // 1: Move Left
+      // 2: Move Down
+      let stepState = 0; 
+      
+      // Visual variables
+      let dispX = 0, dispY = 0; // Floating cursor coords
+      let cellSize = 45;
+      let gridStartX = 0;
+      let gridStartY = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        textFont("'JetBrains Mono', monospace");
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        let m = params.m;
+        let n = params.n;
+        
+        matrix = [];
+        rowEliminated = Array(m).fill(false);
+        colEliminated = Array(n).fill(false);
+        
+        // Generate valid matrix
+        for (let i = 0; i < m; i++) {
+            let row = [];
+            for (let j = 0; j < n; j++) {
+                let up = i > 0 ? matrix[i-1][j] : 0;
+                let left = j > 0 ? row[j-1] : 0;
+                // Value must be greater than both top and left to satisfy conditions strictly
+                row.push(Math.max(up, left) + floor(random(1, 15)));
+            }
+            matrix.push(row);
+        }
+        
+        // 80% chance target exists, 20% it doesn't
+        if (random() < 0.8) {
+            targetValue = matrix[floor(random(m))][floor(random(n))];
+        } else {
+            targetValue = matrix[floor(random(m))][floor(random(n))] + 1; // likely missing
+        }
+
+        rPtr = 0;
+        cPtr = n - 1;
+        stepState = 0;
+        targetFound = false;
+        
+        dispX = -1;
+        dispY = -1;
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateStatusUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ ${m}x${n} 矩阵已生成，行列严格递增。目标查找值 Target: <b>${targetValue}</b>`);
+        logMsg(`👉 游标初始化在矩阵右上角 (0, ${n-1})。`);
+      }
+
+      function draw() {
+        background(253, 252, 249); 
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed; 
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let m = params.m;
+        let n = params.n;
+        let totalW = n * cellSize;
+        let totalH = m * cellSize;
+        
+        let scaleFactor = 1;
+        if (totalW > width - 40 || totalH > height - 60) {
+            scaleFactor = min((width - 40) / totalW, (height - 60) / totalH);
+        }
+        let effSize = cellSize * scaleFactor;
+        
+        gridStartX = width / 2 - (n * effSize) / 2;
+        gridStartY = height / 2 - (m * effSize) / 2 + 10;
+
+        let targetX = gridStartX + cPtr * effSize;
+        let targetY = gridStartY + rPtr * effSize;
+        
+        if (dispX === -1) { dispX = targetX; dispY = targetY; }
+        
+        let lerpSpeed = 0.25 * params.speed;
+        dispX = lerp(dispX, targetX, lerpSpeed);
+        dispY = lerp(dispY, targetY, lerpSpeed);
+
+        // --- Draw Grid ---
+        push();
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < m; i++) {
+            for (let j = 0; j < n; j++) {
+                let x = gridStartX + j * effSize;
+                let y = gridStartY + i * effSize;
+                let val = matrix[i][j];
+                
+                // Determine logic state
+                // Cell is eliminated if its row < rPtr OR col > cPtr
+                let isEliminated = (i < rPtr) || (j > cPtr);
+                let isActive = (i === rPtr && j === cPtr && !isDone);
+                let isTargetFound = (isDone && targetFound && i === rPtr && j === cPtr);
+                
+                if (isTargetFound) {
+                    fill(245, 250, 237); // Light green
+                    stroke(120, 140, 93);
+                    strokeWeight(3);
+                } else if (isActive) {
+                    fill(255, 243, 238); // Light orange
+                    stroke(217, 119, 87);
+                    strokeWeight(2);
+                } else if (isEliminated) {
+                    fill(245, 245, 245); // Grayed out
+                    stroke(220);
+                    strokeWeight(1);
+                } else {
+                    fill(255);
+                    stroke(200);
+                    strokeWeight(1);
+                }
+                
+                rect(x, y, effSize, effSize, 4);
+                
+                noStroke();
+                if (isTargetFound) {
+                    fill(120, 140, 93);
+                    textStyle(BOLD);
+                } else if (isActive) {
+                    fill(217, 119, 87);
+                    textStyle(BOLD);
+                } else if (isEliminated) {
+                    fill(180); // Faded text
+                    textStyle(NORMAL);
+                } else {
+                    fill(50);
+                    textStyle(NORMAL);
+                }
+                
+                textSize(effSize * 0.4);
+                text(val, x + effSize / 2, y + effSize / 2);
+                
+                // Show coordinates dimly for context
+                if (!isEliminated && !isActive && !isTargetFound) {
+                    fill(180); textSize(effSize * 0.15);
+                    text(`(${i},${j})`, x + effSize / 2, y + effSize * 0.85);
+                }
+            }
+        }
+        pop();
+
+        // --- Draw Crosshair/Arrows (BST Intuition) ---
+        if (!isDone && rPtr < m && cPtr >= 0) {
+            push();
+            strokeWeight(2);
+            let cx = gridStartX + cPtr * effSize + effSize/2;
+            let cy = gridStartY + rPtr * effSize + effSize/2;
+            
+            // Left Arrow (Smaller)
+            if (cPtr > 0) {
+                stroke(106, 155, 204); // Blue for move left
+                fill(106, 155, 204);
+                line(cx - 20, cy, cx - effSize + 20, cy);
+                triangle(cx - effSize + 20, cy, cx - effSize + 25, cy - 4, cx - effSize + 25, cy + 4);
+                noStroke(); textSize(10); textAlign(CENTER, BOTTOM);
+                text("<", cx - effSize/2, cy - 2);
+            }
+            
+            // Down Arrow (Larger)
+            if (rPtr < m - 1) {
+                stroke(217, 119, 87); // Orange for move down
+                fill(217, 119, 87);
+                line(cx, cy + 20, cx, cy + effSize - 20);
+                triangle(cx, cy + effSize - 20, cx - 4, cy + effSize - 25, cx + 4, cy + effSize - 25);
+                noStroke(); textSize(10); textAlign(LEFT, CENTER);
+                text(">", cx + 4, cy + effSize/2);
+            }
+            pop();
+        }
+
+        // --- Active Pointer Outline ---
+        if (!isDone && rPtr < m && cPtr >= 0) {
+            push();
+            noFill();
+            stroke(50);
+            strokeWeight(2);
+            rect(dispX, dispY, effSize, effSize, 4);
+            pop();
+        }
+      }
+
+      function performStep() {
+        if (isDone) return;
+        
+        let m = params.m, n = params.n;
+        
+        if (rPtr >= m || cPtr < 0) {
+            isDone = true;
+            logMsg(`🏁 游标越界。矩阵中未找到目标值 ${targetValue}。返回 <b>False</b>。`, true);
+            document.querySelectorAll('.log-item')[document.querySelectorAll('.log-item').length-1].classList.add('danger');
+            updateStatusUI();
+            return;
+        }
+
+        let currentVal = matrix[rPtr][cPtr];
+        updateStatusUI(currentVal);
+
+        if (stepState === 0) {
+            if (currentVal === targetValue) {
+                targetFound = true;
+                isDone = true;
+                logMsg(`🎉 <b>命中目标！</b> 游标在 <code>(${rPtr}, ${cPtr})</code> 处发现目标值 <b>${targetValue}</b>。返回 <b>True</b>。`, true);
+                document.querySelectorAll('.log-item')[document.querySelectorAll('.log-item').length-1].classList.add('success');
+            } else if (currentVal > targetValue) {
+                logMsg(`⚖️ 当前值 <b>${currentVal}</b> > 目标值 ${targetValue}。`, false);
+                stepState = 1; // Will move left
+            } else {
+                logMsg(`⚖️ 当前值 <b>${currentVal}</b> < 目标值 ${targetValue}。`, false);
+                stepState = 2; // Will move down
+            }
+        } else if (stepState === 1) {
+            logMsg(`👈 当前列下方的元素只会更大，<b>剔除第 ${cPtr} 列</b>。游标向左移动 (c--)。`, true);
+            cPtr--;
+            stepState = 0;
+        } else if (stepState === 2) {
+            logMsg(`👇 当前行左侧的元素只会更小，<b>剔除第 ${rPtr} 行</b>。游标向下移动 (r++)。`, true);
+            document.querySelectorAll('.log-item')[document.querySelectorAll('.log-item').length-1].classList.add('highlight'); // Use blueish highlight for down
+            rPtr++;
+            stepState = 0;
+        }
+      }
+
+      function updateStatusUI(currVal = "-") {
+        let tEl = document.getElementById("ui-target");
+        let cEl = document.getElementById("ui-current");
+        if (!tEl || !cEl) return;
+        
+        tEl.innerText = targetValue;
+        cEl.innerText = currVal;
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight && !msg.includes('向左') && !msg.includes('向右') ? " highlight" : "");
+        // Custom coloring for log items based on content
+        if (msg.includes('剔除第') && msg.includes('列')) item.className = "log-item highlight"; // Blueish for left
+        if (msg.includes('剔除第') && msg.includes('行')) item.className = "log-item"; // Orange standard handled below implicitly, wait, let's just make it standard orange
+        if (msg.includes('向左')) item.style.borderLeftColor = "var(--anthropic-blue)";
+        if (msg.includes('向下')) item.style.borderLeftColor = "var(--anthropic-orange)";
+        
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function" && matrix.length > 0) {
+            initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 8848;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1000, 9999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

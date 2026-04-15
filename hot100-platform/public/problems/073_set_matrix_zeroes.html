@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>矩阵置零 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --anthropic-red: #c95c5c;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      
+      .status-panel { display: flex; gap: 15px; }
+      .status-card { flex: 1; background: white; border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;}
+      .status-card .label { font-size: 11px; color: #777; margin-bottom: 4px; text-transform: uppercase;}
+      .status-card .value { font-family: "JetBrains Mono", monospace; font-size: 14px; font-weight: bold; padding: 4px; border-radius: 4px;}
+      .status-card .value.true { background: #ffebeb; color: var(--anthropic-red); }
+      .status-card .value.false { background: #f5faed; color: var(--anthropic-green); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.danger { border-left-color: var(--anthropic-red); background: #fff5f5; }
+      .log-item.success { border-left-color: var(--anthropic-green); background: #f5faed; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #fdfef9; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>矩阵置零</h1>
+        <div class="subtitle">O(1) 空间极速解法 (In-place Marker Array)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="2048" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机生成零矩阵</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>行数 (m)</label>
+            <div class="slider-container">
+              <input type="range" id="m" min="4" max="10" step="1" value="6" oninput="updateParam('m', this.value)" />
+              <span class="value-display" id="m-value">6</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>列数 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="4" max="10" step="1" value="7" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">7</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(M × N)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心机制：征用矩阵自己的<b>第一行和第一列</b>作为“置零标记数组”，从而省去 O(M+N) 的辅助空间。</div>
+            <div class="memo-tip">💡 独立变量：由于 `matrix[0][0]` 处于第一行和第一列的交叉点，为了防止状态混淆，先用两个额外的布尔变量 `firstRowZero` 和 `firstColZero` 记录它们原本是否含 0。</div>
+            <div class="memo-tip g">🔍 状态隔离：扫描内部区域 `(1..m, 1..n)` 时，如果遇到 0，就将它对应的首行、首列位置标记为 0。</div>
+            <div class="memo-tip w">⚠️ 致命顺序陷阱：最后清算置零时，<b>必须先置零内部矩阵，再处理首行/首列</b>！如果上来就先把首行全变 0，那你内部矩阵的标记就全被抹杀了。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">第一行/第一列征用标记推导过程</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解法 (原地标记)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">外围边界状态 (Outer Boundaries)</div>
+          </div>
+          
+          <div class="data-viz">
+            <div class="status-panel">
+                <div class="status-card">
+                    <div class="label">firstRowZero (第一行原本有0?)</div>
+                    <div class="value" id="ui-row-zero">False</div>
+                </div>
+                <div class="status-card">
+                    <div class="label">firstColZero (第一列原本有0?)</div>
+                    <div class="value" id="ui-col-zero">False</div>
+                </div>
+            </div>
+          </div>
+          
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def setZeroes(matrix: list[list[int]]) -> None:
+    m, n = len(matrix), len(matrix[0])
+    
+    # 1. 扫描第一行和第一列，记录它们原本是否包含 0
+    first_col_zero = any(matrix[i][0] == 0 for i in range(m))
+    first_row_zero = any(matrix[0][j] == 0 for j in range(n))
+
+    # 2. 扫描内部矩阵 (忽略第一行/列)
+    # 如果内部元素遇到 0，将其坐标映射到第一行和第一列作为标记
+    for i in range(1, m):
+        for j in range(1, n):
+            if matrix[i][j] == 0:
+                matrix[i][0] = 0
+                matrix[0][j] = 0
+
+    # 3. 根据第一行和第一列的标记，将内部矩阵置零
+    for i in range(1, m):
+        for j in range(1, n):
+            if matrix[i][0] == 0 or matrix[0][j] == 0:
+                matrix[i][j] = 0
+
+    # 4. 最后清算！根据第一步记录的独立变量，决定是否抹平第一行/列
+    if first_row_zero:
+        for j in range(n): matrix[0][j] = 0
+    if first_col_zero:
+        for i in range(m): matrix[i][0] = 0`,
+        ts: `// TypeScript
+function setZeroes(matrix: number[][]): void {
+    const m = matrix.length, n = matrix[0].length;
+    
+    // 1. 提前记录首行、首列是否本来就包含 0
+    let firstRowZero = false;
+    let firstColZero = false;
+    for (let i = 0; i < m; i++) if (matrix[i][0] === 0) firstColZero = true;
+    for (let j = 0; j < n; j++) if (matrix[0][j] === 0) firstRowZero = true;
+    
+    // 2. 用首行、首列当做记录内部 0 的草稿本
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            if (matrix[i][j] === 0) {
+                matrix[i][0] = 0;
+                matrix[0][j] = 0;
+            }
+        }
+    }
+    
+    // 3. 根据草稿本，把内部该置零的全部置零
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            if (matrix[i][0] === 0 || matrix[0][j] === 0) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+    
+    // 4. 清算草稿本自己
+    if (firstRowZero) for (let j = 0; j < n; j++) matrix[0][j] = 0;
+    if (firstColZero) for (let i = 0; i < m; i++) matrix[i][0] = 0;
+}`,
+        java: `// Java
+class Solution {
+    public void setZeroes(int[][] matrix) {
+        int m = matrix.length, n = matrix[0].length;
+        boolean firstRowZero = false, firstColZero = false;
+        
+        // 1. 判断第一列是否有 0
+        for (int i = 0; i < m; i++) {
+            if (matrix[i][0] == 0) firstColZero = true;
+        }
+        // 判断第一行是否有 0
+        for (int j = 0; j < n; j++) {
+            if (matrix[0][j] == 0) firstRowZero = true;
+        }
+        
+        // 2. 遍历其余部分，将 0 投射到第一行和第一列
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                if (matrix[i][j] == 0) {
+                    matrix[i][0] = 0;
+                    matrix[0][j] = 0;
+                }
+            }
+        }
+        
+        // 3. 依靠第一行和第一列的记号，覆盖内部矩阵
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                if (matrix[i][0] == 0 || matrix[0][j] == 0) {
+                    matrix[i][j] = 0;
+                }
+            }
+        }
+        
+        // 4. 恢复/置零第一行和第一列
+        if (firstRowZero) {
+            for (int j = 0; j < n; j++) matrix[0][j] = 0;
+        }
+        if (firstColZero) {
+            for (int i = 0; i < m; i++) matrix[i][0] = 0;
+        }
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    void setZeroes(vector<vector<int>>& matrix) {
+        int m = matrix.size(), n = matrix[0].size();
+        bool firstRowZero = false, firstColZero = false;
+        
+        for (int i = 0; i < m; ++i) if (matrix[i][0] == 0) firstColZero = true;
+        for (int j = 0; j < n; ++j) if (matrix[0][j] == 0) firstRowZero = true;
+        
+        // 把第一行和第一列当作 "标记数组"
+        for (int i = 1; i < m; ++i) {
+            for (int j = 1; j < n; ++j) {
+                if (matrix[i][j] == 0) {
+                    matrix[i][0] = 0;
+                    matrix[0][j] = 0;
+                }
+            }
+        }
+        
+        // 读取 "标记数组" 执行覆盖
+        for (int i = 1; i < m; ++i) {
+            for (int j = 1; j < n; ++j) {
+                if (matrix[i][0] == 0 || matrix[0][j] == 0) {
+                    matrix[i][j] = 0;
+                }
+            }
+        }
+        
+        if (firstRowZero) for (int j = 0; j < n; ++j) matrix[0][j] = 0;
+        if (firstColZero) for (int i = 0; i < m; ++i) matrix[i][0] = 0;
+    }
+};`,
+        c: `// C
+void setZeroes(int** matrix, int matrixSize, int* matrixColSize) {
+    int m = matrixSize, n = matrixColSize[0];
+    int firstRowZero = 0, firstColZero = 0;
+    
+    // 检查首列
+    for (int i = 0; i < m; i++) {
+        if (matrix[i][0] == 0) firstColZero = 1;
+    }
+    // 检查首行
+    for (int j = 0; j < n; j++) {
+        if (matrix[0][j] == 0) firstRowZero = 1;
+    }
+    
+    // 内部扫面，标记边缘
+    for (int i = 1; i < m; i++) {
+        for (int j = 1; j < n; j++) {
+            if (matrix[i][j] == 0) {
+                matrix[i][0] = 0;
+                matrix[0][j] = 0;
+            }
+        }
+    }
+    
+    // 内部清算
+    for (int i = 1; i < m; i++) {
+        for (int j = 1; j < n; j++) {
+            if (matrix[i][0] == 0 || matrix[0][j] == 0) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+    
+    // 边缘清算
+    if (firstRowZero) {
+        for (int j = 0; j < n; j++) matrix[0][j] = 0;
+    }
+    if (firstColZero) {
+        for (int i = 0; i < m; i++) matrix[i][0] = 0;
+    }
+}`
+      };
+
+      let params = { seed: 2048, speed: 1.0, m: 6, n: 7 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let matrix = [];
+      let firstRowZero = false;
+      let firstColZero = false;
+      
+      let iPtr = 0, jPtr = 0;
+      
+      // Phases:
+      // 0: Check row 0
+      // 1: Check col 0
+      // 2: Scan inner (i=1..m-1, j=1..n-1) -> mark outer
+      // 3: Update inner (i=1..m-1, j=1..n-1) -> zero out
+      // 4: Update outer row 0 & col 0
+      let phase = 0; 
+      
+      // Visual variables
+      let cellSize = 40;
+      let gridStartX = 0;
+      let gridStartY = 0;
+
+      // Laser animations
+      let laserLines = []; // [{x1,y1,x2,y2, life}]
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        textFont("'JetBrains Mono', monospace");
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        let m = params.m;
+        let n = params.n;
+        matrix = Array.from({length: m}, () => Array(n).fill(1));
+        
+        // Randomly place a few 0s (about 10% chance)
+        // Ensure at least one in outer boundary and one in inner
+        let zerosToPlace = max(3, floor((m*n) * 0.15));
+        
+        for (let k = 0; k < zerosToPlace; k++) {
+            let i = floor(random(m));
+            let j = floor(random(n));
+            matrix[i][j] = 0;
+        }
+        // Force one inner zero
+        matrix[floor(random(1, m-1))][floor(random(1, n-1))] = 0;
+
+        firstRowZero = false;
+        firstColZero = false;
+        iPtr = 0;
+        jPtr = 0;
+        phase = 0;
+        laserLines = [];
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateStatusUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ 矩阵已生成 (${m}x${n})。开始第一步：脱离内部矩阵，先扫描评估最外围的首行与首列状态。`);
+      }
+
+      function draw() {
+        background(253, 252, 249); 
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let m = params.m;
+        let n = params.n;
+        let totalW = n * cellSize;
+        let totalH = m * cellSize;
+        
+        // Scale if needed
+        let scaleFactor = 1;
+        if (totalW > width - 40 || totalH > height - 60) {
+            scaleFactor = min((width - 40) / totalW, (height - 60) / totalH);
+        }
+        let effectiveSize = cellSize * scaleFactor;
+        totalW = n * effectiveSize;
+        totalH = m * effectiveSize;
+        
+        gridStartX = width / 2 - totalW / 2;
+        gridStartY = height / 2 - totalH / 2 + 10;
+
+        // --- Draw Grid ---
+        push();
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < m; i++) {
+            for (let j = 0; j < n; j++) {
+                let x = gridStartX + j * effectiveSize;
+                let y = gridStartY + i * effectiveSize;
+                
+                let isMarkerRow = (i === 0);
+                let isMarkerCol = (j === 0);
+                let isMarker = isMarkerRow || isMarkerCol;
+                let isActive = (i === iPtr && j === jPtr && !isDone);
+                let val = matrix[i][j];
+                
+                // Base background
+                if (isMarker) {
+                    fill(240, 240, 240); // Grey boundary
+                    stroke(200);
+                } else {
+                    fill(255);
+                    stroke(200);
+                }
+                
+                // Highlights
+                if (isActive) {
+                    fill(255, 243, 238); // Light orange cursor
+                    stroke(217, 119, 87);
+                    strokeWeight(2);
+                } else {
+                    strokeWeight(1);
+                }
+                
+                rect(x, y, effectiveSize, effectiveSize, 4);
+                
+                // Text
+                noStroke();
+                textSize(effectiveSize * 0.4);
+                if (val === 0) {
+                    fill(201, 92, 92); // Red for zero
+                    textStyle(BOLD);
+                } else {
+                    fill(100);
+                    textStyle(NORMAL);
+                }
+                text(val, x + effectiveSize / 2, y + effectiveSize / 2);
+            }
+        }
+        pop();
+        
+        // --- Draw Lasers (Visual cues for marking) ---
+        push();
+        for (let l = laserLines.length - 1; l >= 0; l--) {
+            let laser = laserLines[l];
+            let opacity = map(laser.life, 0, 30, 0, 255);
+            stroke(217, 119, 87, opacity); // Orange dash
+            strokeWeight(2);
+            drawingContext.setLineDash([5, 5]);
+            
+            let lx1 = gridStartX + laser.j1 * effectiveSize + effectiveSize/2;
+            let ly1 = gridStartY + laser.i1 * effectiveSize + effectiveSize/2;
+            let lx2 = gridStartX + laser.j2 * effectiveSize + effectiveSize/2;
+            let ly2 = gridStartY + laser.i2 * effectiveSize + effectiveSize/2;
+            
+            line(lx1, ly1, lx2, ly2);
+            
+            // Draw impact dot
+            noStroke();
+            fill(217, 119, 87, opacity);
+            circle(lx2, ly2, 8);
+            
+            laser.life -= params.speed * 2;
+            if (laser.life <= 0) laserLines.splice(l, 1);
+        }
+        drawingContext.setLineDash([]);
+        pop();
+
+        // --- Labels ---
+        push();
+        fill(150); textSize(12); textAlign(CENTER, BOTTOM);
+        text("Row 0 / Col 0 = Marker Arrays (标记草稿本)", width/2, gridStartY - 15);
+        pop();
+      }
+
+      function performStep() {
+        if (isDone) return;
+        let m = params.m, n = params.n;
+
+        if (phase === 0) { // Check row 0
+            if (jPtr < n) {
+                if (matrix[0][jPtr] === 0) {
+                    firstRowZero = true;
+                    logMsg(`⚠️ 发现首行元素 <code>matrix[0][${jPtr}] == 0</code>。标记全局变量 <b>firstRowZero = True</b>。`, true);
+                    updateStatusUI();
+                }
+                jPtr++;
+            } else {
+                jPtr = 0;
+                iPtr = 0;
+                phase = 1;
+                logMsg(`📍 首行扫描完成。开始扫描首列...`, false);
+            }
+            
+        } else if (phase === 1) { // Check col 0
+            if (iPtr < m) {
+                if (matrix[iPtr][0] === 0) {
+                    firstColZero = true;
+                    logMsg(`⚠️ 发现首列元素 <code>matrix[${iPtr}][0] == 0</code>。标记全局变量 <b>firstColZero = True</b>。`, true);
+                    updateStatusUI();
+                }
+                iPtr++;
+            } else {
+                iPtr = 1; jPtr = 1;
+                phase = 2;
+                logMsg(`📍 边界扫描完毕！第一行与第一列的原始状态已保存。接下来将它们当做<b>草稿本</b>使用，扫描内部矩阵。`, false);
+            }
+            
+        } else if (phase === 2) { // Scan inner & Mark
+            if (iPtr < m) {
+                if (jPtr < n) {
+                    if (matrix[iPtr][jPtr] === 0) {
+                        matrix[iPtr][0] = 0;
+                        matrix[0][jPtr] = 0;
+                        // Fire lasers to markers
+                        laserLines.push({i1: iPtr, j1: jPtr, i2: iPtr, j2: 0, life: 30});
+                        laserLines.push({i1: iPtr, j1: jPtr, i2: 0, j2: jPtr, life: 30});
+                        logMsg(`🎯 内部坐标 <code>(${iPtr}, ${jPtr})</code> 为 0！将其投影到边界：设定 <code>matrix[${iPtr}][0]=0</code> 和 <code>matrix[0][${jPtr}]=0</code>。`, true);
+                    }
+                    jPtr++;
+                } else {
+                    jPtr = 1;
+                    iPtr++;
+                }
+            } else {
+                iPtr = 1; jPtr = 1;
+                phase = 3;
+                logMsg(`📝 内部矩阵的 0 已全部投影完毕。开始根据草稿本上的标记，将内部矩阵清零。`, false);
+            }
+            
+        } else if (phase === 3) { // Update inner
+            if (iPtr < m) {
+                if (jPtr < n) {
+                    if (matrix[iPtr][0] === 0 || matrix[0][jPtr] === 0) {
+                        if (matrix[iPtr][jPtr] !== 0) {
+                            matrix[iPtr][jPtr] = 0;
+                            logMsg(`❌ 受到草稿本标记波及，将内部坐标 <code>(${iPtr}, ${jPtr})</code> 覆写为 0。`, false);
+                        }
+                    }
+                    jPtr++;
+                } else {
+                    jPtr = 1;
+                    iPtr++;
+                }
+            } else {
+                phase = 4;
+                logMsg(`🧹 内部矩阵已清场！最后，根据初始的两个全局变量，决定是否抹除被当做草稿本的首行和首列。`, false);
+            }
+            
+        } else if (phase === 4) { // Update outer
+            if (firstRowZero) {
+                for (let j = 0; j < n; j++) matrix[0][j] = 0;
+                logMsg(`💥 因为 <code>firstRowZero</code> 为 True，将第一行全部置为 0。`, true);
+                firstRowZero = false; // Prevent repeating log if we add minor delay
+            }
+            if (firstColZero) {
+                for (let i = 0; i < m; i++) matrix[i][0] = 0;
+                logMsg(`💥 因为 <code>firstColZero</code> 为 True，将第一列全部置为 0。`, true);
+                firstColZero = false;
+            }
+            
+            isDone = true;
+            iPtr = -1; jPtr = -1; // hide cursor
+            logMsg(`🏁 <b>矩阵原地置零执行完毕！</b> 完美实现了 O(1) 空间复杂度。`, true);
+        }
+      }
+
+      function updateStatusUI() {
+        let rEl = document.getElementById("ui-row-zero");
+        let cEl = document.getElementById("ui-col-zero");
+        if (!rEl || !cEl) return;
+        
+        rEl.innerText = firstRowZero ? "True" : "False";
+        rEl.className = "value " + (firstRowZero ? "true" : "false");
+        
+        cEl.innerText = firstColZero ? "True" : "False";
+        cEl.className = "value " + (firstColZero ? "true" : "false");
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function" && matrix.length > 0) {
+            initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 2048;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1000, 9999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>最小覆盖子串 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between;}
+      
+      .hash-map-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;}
+      .hash-entry {
+          background: #fff; border: 1px solid #ccc; padding: 4px 8px; border-radius: 6px;
+          font-family: "JetBrains Mono", monospace; font-size: 12px; display: flex; flex-direction: column;
+          align-items: center; min-width: 45px; transition: 0.2s;
+      }
+      .hash-entry .char { color: #555; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 2px; margin-bottom: 2px; width: 100%; text-align: center;}
+      .hash-entry .count { color: var(--anthropic-orange); }
+      .hash-entry.met { background: #f5faed; border-color: var(--anthropic-green); }
+      .hash-entry.met .char { color: var(--anthropic-green); border-bottom-color: #dcedc8; }
+      .hash-entry.met .count { color: var(--anthropic-green); font-weight: bold; }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.green { border-left-color: var(--anthropic-green); background: #f5faed; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #fdfef9; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>最小覆盖子串</h1>
+        <div class="subtitle">滑动窗口 + 状态比对 (Sliding Window & Hash Map)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="76" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机用例</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>主串 S 长度 (N)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="10" max="25" step="1" value="15" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">15</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>目标串 T 长度 (M)</label>
+            <div class="slider-container">
+              <input type="range" id="m" min="2" max="5" step="1" value="3" oninput="updateParam('m', this.value)" />
+              <span class="value-display" id="m-value">3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N + M)</span>
+            <span class="memo-badge space">□ O(|Σ|)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心机制：<b>右指针找可行解，左指针找最优解</b>。右端不断扩张直到包容 T，然后左端开始收缩剔除冗余。</div>
+            <div class="memo-tip">💡 状态降维：不使用遍历比较两个哈希表，而是用 `valid` 变量记录“已满足频次要求的字符种类数”。当 `valid == need.size` 时即为合法窗口。</div>
+            <div class="memo-tip g">🔍 性能洞察：不论窗口如何伸缩，每个字符最多进入窗口一次，离开窗口一次，严格线性复杂度。</div>
+            <div class="memo-tip w">⚠️ 常见误区：左指针收缩时，必须是<b>先</b>更新全局最优最短记录，<b>然后</b>减去将要移出的字符状态，<b>最后</b> `left++`。顺序不可错乱。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">动态滑动窗口缩放动画</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解法 (双哈希表 + Valid校验)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">内存状态: Window频率比对</div>
+          </div>
+          
+          <div class="data-viz">
+            <div class="data-title">
+                <span>窗口字符收集进度 ( window / need )</span>
+                <span id="valid-tracker" style="color:var(--anthropic-blue)">Valid: 0 / 0</span>
+            </div>
+            <div id="hash-nodes" class="hash-map-container">
+              </div>
+          </div>
+          
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+import collections
+
+def minWindow(s: str, t: str) -> str:
+    # need 记录目标串 t 中各字符的频次要求
+    need = collections.defaultdict(int)
+    for c in t: need[c] += 1
+    
+    # window 记录当前窗口中的字符频次
+    window = collections.defaultdict(int)
+    
+    left, right = 0, 0
+    valid = 0  # 满足要求的字符种类数量
+    
+    # 记录最小覆盖子串的起始索引及长度
+    start = 0
+    min_len = float('inf')
+    
+    while right < len(s):
+        # c 是将移入窗口的字符
+        c = s[right]
+        # 右移窗口
+        right += 1
+        
+        # 1. 窗口内数据的一系列更新
+        if c in need:
+            window[c] += 1
+            if window[c] == need[c]:
+                valid += 1
+                
+        # 2. 判断左侧窗口是否要收缩
+        while valid == len(need):
+            # 更新最小覆盖子串
+            if right - left < min_len:
+                start = left
+                min_len = right - left
+                
+            # d 是将移出窗口的字符
+            d = s[left]
+            # 左移窗口
+            left += 1
+            
+            # 窗口内数据的一系列更新
+            if d in need:
+                if window[d] == need[d]:
+                    valid -= 1
+                window[d] -= 1
+                
+    return "" if min_len == float('inf') else s[start:start+min_len]`,
+        ts: `// TypeScript
+function minWindow(s: string, t: string): string {
+    const need = new Map<string, number>();
+    const window = new Map<string, number>();
+    
+    // 初始化 need 哈希表
+    for (const c of t) {
+        need.set(c, (need.get(c) || 0) + 1);
+    }
+    
+    let left = 0, right = 0;
+    let valid = 0;
+    
+    let start = 0, minLen = Infinity;
+    
+    while (right < s.length) {
+        const c = s[right];
+        right++; // 扩大窗口
+        
+        // 更新窗口内的数据
+        if (need.has(c)) {
+            window.set(c, (window.get(c) || 0) + 1);
+            if (window.get(c) === need.get(c)) {
+                valid++;
+            }
+        }
+        
+        // 当窗口包含了所有目标字符，开始收缩左边界找最小
+        while (valid === need.size) {
+            // 更新最优解
+            if (right - left < minLen) {
+                start = left;
+                minLen = right - left;
+            }
+            
+            const d = s[left];
+            left++; // 缩小窗口
+            
+            // 剔除旧字符状态
+            if (need.has(d)) {
+                if (window.get(d) === need.get(d)) {
+                    valid--;
+                }
+                window.set(d, window.get(d)! - 1);
+            }
+        }
+    }
+    
+    return minLen === Infinity ? "" : s.substring(start, start + minLen);
+}`,
+        java: `// Java
+class Solution {
+    public String minWindow(String s, String t) {
+        // 使用数组代替哈希表提升效率 (ASCII)
+        int[] need = new int[128];
+        int[] window = new int[128];
+        
+        int needCount = 0; // T中不同字符的种类数
+        for (char c : t.toCharArray()) {
+            if (need[c] == 0) needCount++;
+            need[c]++;
+        }
+        
+        int left = 0, right = 0;
+        int valid = 0;
+        int start = 0, minLen = Integer.MAX_VALUE;
+        
+        while (right < s.length()) {
+            char c = s.charAt(right);
+            right++; // 扩大窗口
+            
+            // 进行窗口内数据更新
+            if (need[c] > 0) {
+                window[c]++;
+                if (window[c] == need[c]) valid++;
+            }
+            
+            // 判断左侧窗口是否要收缩
+            while (valid == needCount) {
+                // 更新最小覆盖子串
+                if (right - left < minLen) {
+                    start = left;
+                    minLen = right - left;
+                }
+                
+                // d 是将移出窗口的字符
+                char d = s.charAt(left);
+                left++; // 缩小窗口
+                
+                // 进行窗口内数据更新
+                if (need[d] > 0) {
+                    if (window[d] == need[d]) valid--;
+                    window[d]--;
+                }
+            }
+        }
+        return minLen == Integer.MAX_VALUE ? "" : s.substring(start, start + minLen);
+    }
+}`,
+        cpp: `// C++
+#include <string>
+#include <unordered_map>
+using namespace std;
+
+class Solution {
+public:
+    string minWindow(string s, string t) {
+        unordered_map<char, int> need, window;
+        for (char c : t) need[c]++;
+        
+        int left = 0, right = 0;
+        int valid = 0;
+        int start = 0, minLen = INT_MAX;
+        
+        while (right < s.size()) {
+            char c = s[right];
+            right++; // 右移
+            
+            // 更新数据
+            if (need.count(c)) {
+                window[c]++;
+                if (window[c] == need[c]) valid++;
+            }
+            
+            // 尝试左侧收缩
+            while (valid == need.size()) {
+                if (right - left < minLen) {
+                    start = left;
+                    minLen = right - left;
+                }
+                
+                char d = s[left];
+                left++; // 左移
+                
+                if (need.count(d)) {
+                    if (window[d] == need[d]) valid--;
+                    window[d]--;
+                }
+            }
+        }
+        return minLen == INT_MAX ? "" : s.substr(start, minLen);
+    }
+};`,
+        c: `// C
+#include <string.h>
+#include <limits.h>
+
+char * minWindow(char * s, char * t) {
+    int need[128] = {0};
+    int window[128] = {0};
+    
+    int needCount = 0;
+    int tLen = strlen(t);
+    for (int i = 0; i < tLen; i++) {
+        if (need[t[i]] == 0) needCount++;
+        need[t[i]]++;
+    }
+    
+    int left = 0, right = 0;
+    int valid = 0;
+    int start = 0, minLen = INT_MAX;
+    int sLen = strlen(s);
+    
+    while (right < sLen) {
+        char c = s[right];
+        right++;
+        
+        if (need[c] > 0) {
+            window[c]++;
+            if (window[c] == need[c]) valid++;
+        }
+        
+        while (valid == needCount) {
+            if (right - left < minLen) {
+                start = left;
+                minLen = right - left;
+            }
+            
+            char d = s[left];
+            left++;
+            
+            if (need[d] > 0) {
+                if (window[d] == need[d]) valid--;
+                window[d]--;
+            }
+        }
+    }
+    
+    if (minLen == INT_MAX) return "";
+    
+    // C语言需手动分配内存返回
+    char* res = (char*)malloc(sizeof(char) * (minLen + 1));
+    strncpy(res, s + start, minLen);
+    res[minLen] = '\\0';
+    return res;
+}`
+      };
+
+      let params = { seed: 76, speed: 1.0, n: 15, m: 3 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let sStr = "";
+      let tStr = "";
+      let need = {};
+      let needCount = 0;
+      let windowMap = {};
+      let leftPtr = 0;
+      let rightPtr = 0;
+      let validCount = 0;
+      let bestStart = -1;
+      let minLen = Infinity;
+      
+      // stepState: 
+      // 0: Expand (read right, update)
+      // 1: Check Valid (if valid -> 2, else right++, -> 0)
+      // 2: Shrink Record (record min, read left, update)
+      // 3: Shrink Advance (left++, if still valid -> 2, else right++, -> 0)
+      let stepState = 0; 
+      
+      const LANG_VARS = {
+          python: { L: 'left', R: 'right' },
+          ts: { L: 'left', R: 'right' },
+          java: { L: 'left', R: 'right' },
+          cpp: { L: 'left', R: 'right' },
+          c: { L: 'left', R: 'right' }
+      };
+
+      // Visuals
+      let dispLeft = 0;
+      let dispRight = 0;
+      let dispWindowW = 0;
+      let boxSize = 35;
+      let startX = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        textFont("'JetBrains Mono', monospace");
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        const chars = "ABCDEF";
+        tStr = "";
+        for(let i=0; i<params.m; i++) tStr += chars[floor(random(chars.length))];
+        
+        need = {};
+        needCount = 0;
+        for(let i=0; i<tStr.length; i++) {
+            if(!need[tStr[i]]) { need[tStr[i]] = 0; needCount++; }
+            need[tStr[i]]++;
+        }
+
+        // Generate S ensuring T is embedded so we actually find a window
+        sStr = "";
+        let tIndex = 0;
+        for(let i=0; i<params.n; i++) {
+            // Mix T chars and random chars to ensure match
+            if (random() < 0.4 && tIndex < tStr.length) {
+                sStr += tStr[tIndex++];
+            } else {
+                sStr += chars[floor(random(chars.length))];
+            }
+        }
+        // Force remaining T chars at the end if not all picked
+        while(tIndex < tStr.length) {
+            sStr = sStr.substring(0, sStr.length-1) + tStr[tIndex++];
+        }
+
+        windowMap = {};
+        for(let c in need) windowMap[c] = 0;
+        
+        leftPtr = 0;
+        rightPtr = 0;
+        validCount = 0;
+        bestStart = -1;
+        minLen = Infinity;
+        stepState = 0;
+        
+        dispLeft = -1;
+        dispRight = 0;
+        dispWindowW = 0;
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateHashUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ 系统初始化。目标串 T = <b>"${tStr}"</b>。需要满足的独立字符种类数 (need.size) = ${needCount}。`);
+      }
+
+      function draw() {
+        background(253, 252, 249); 
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let totalW = sStr.length * boxSize;
+        startX = width / 2 - totalW / 2;
+        let baseY = height / 2;
+
+        let targetX_L = startX + leftPtr * boxSize;
+        let targetX_R = startX + rightPtr * boxSize;
+        
+        if (dispLeft === -1) { dispLeft = targetX_L; dispRight = targetX_R; }
+
+        let lerpSpeed = 0.15 * params.speed;
+        dispLeft = lerp(dispLeft, targetX_L, lerpSpeed);
+        dispRight = lerp(dispRight, targetX_R, lerpSpeed);
+        // rightPtr is EXCLUSIVE in the code logic, so width is (rightPtr - leftPtr)
+        let targetWindowW = (rightPtr - leftPtr) * boxSize; 
+        if (targetWindowW < 0) targetWindowW = 0;
+        dispWindowW = lerp(dispWindowW, targetWindowW, lerpSpeed);
+
+        // --- 1. Draw Target String T at Top ---
+        push();
+        let tTotalW = tStr.length * boxSize;
+        let pStartX = width / 2 - tTotalW / 2;
+        let pBaseY = height / 5;
+        
+        textAlign(CENTER, CENTER);
+        fill(100);
+        textSize(12);
+        text("目标串 T", width / 2, pBaseY - 20);
+        for (let i = 0; i < tStr.length; i++) {
+            let x = pStartX + i * boxSize;
+            fill(240); stroke(200); rect(x, pBaseY, boxSize, boxSize, 4);
+            fill(50); noStroke(); textSize(16); text(tStr[i], x + boxSize / 2, pBaseY + boxSize / 2);
+        }
+        pop();
+
+        // --- 2. Draw Historical Best Window (Gold) ---
+        if (bestStart !== -1 && minLen !== Infinity) {
+            push();
+            noStroke();
+            fill(232, 168, 56, 30); // Gold transparent
+            let bestX = startX + bestStart * boxSize;
+            let bestW = minLen * boxSize;
+            rect(bestX - 2, baseY - 2, bestW + 4, boxSize + 4, 6);
+            
+            fill(232, 168, 56);
+            textSize(11);
+            textAlign(CENTER, BOTTOM);
+            text(`🏆 历史最短 (长度:${minLen})`, bestX + bestW/2, baseY - 5);
+            pop();
+        }
+
+        // --- 3. Draw Active Window ---
+        if (rightPtr > leftPtr) {
+            push();
+            noStroke();
+            // Green if valid, orange if searching
+            if (validCount === needCount) {
+                fill(120, 140, 93, 40); // green
+            } else {
+                fill(217, 119, 87, 30); // orange
+            }
+            rect(dispLeft, baseY, dispWindowW, boxSize, 4);
+            pop();
+        }
+
+        // --- 4. Draw Array S ---
+        push();
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < sStr.length; i++) {
+            let x = startX + i * boxSize;
+            stroke(200); strokeWeight(1); fill(255);
+            rect(x, baseY, boxSize, boxSize, 4);
+            
+            noStroke(); fill(50); textSize(16);
+            text(sStr[i], x + boxSize / 2, baseY + boxSize / 2);
+
+            fill(150); textSize(9);
+            text(i, x + boxSize / 2, baseY + boxSize + 15);
+        }
+        pop();
+
+        // --- 5. Draw Pointers ---
+        push();
+        let lName = LANG_VARS[currentLang].L;
+        let rName = LANG_VARS[currentLang].R;
+
+        // L Pointer
+        fill(106, 155, 204); 
+        noStroke();
+        triangle(
+            dispLeft + boxSize / 2, baseY + boxSize + 25,
+            dispLeft + boxSize / 2 - 6, baseY + boxSize + 35,
+            dispLeft + boxSize / 2 + 6, baseY + boxSize + 35
+        );
+        textSize(12); textAlign(CENTER, TOP);
+        text(lName, dispLeft + boxSize / 2, baseY + boxSize + 40);
+
+        // R Pointer (rightPtr points to the NEXT element to read, so it sits on the right edge of the window)
+        fill(217, 119, 87);
+        triangle(
+            dispRight + boxSize / 2, baseY - 10,
+            dispRight + boxSize / 2 - 6, baseY - 20,
+            dispRight + boxSize / 2 + 6, baseY - 20
+        );
+        textAlign(CENTER, BOTTOM);
+        text(rName, dispRight + boxSize / 2, baseY - 25);
+        pop();
+      }
+
+      function performStep() {
+        if (isDone) return;
+
+        if (stepState === 0) {
+            // Expand: Read right element
+            if (rightPtr >= sStr.length) {
+                if (!isDone) {
+                    isDone = true;
+                    let finalAns = (minLen === Infinity) ? "无" : sStr.substring(bestStart, bestStart + minLen);
+                    logMsg(`🏁 扫描结束。最小覆盖子串为: <b>"${finalAns}"</b> (长度 ${minLen === Infinity ? 0 : minLen})`, true);
+                }
+                return;
+            }
+            
+            let c = sStr[rightPtr];
+            if (need[c] !== undefined) {
+                windowMap[c]++;
+                if (windowMap[c] === need[c]) {
+                    validCount++;
+                    logMsg(`🎯 字符 <b>'${c}'</b> 频次达标！(${windowMap[c]}/${need[c]})。<code>valid</code> 增加到 ${validCount}。`, false);
+                } else {
+                    logMsg(`📍 右侧扫入目标字符 <b>'${c}'</b>，更新 window 计数为 ${windowMap[c]}/${need[c]}。`, false);
+                }
+            } else {
+                logMsg(`📍 右侧扫入冗余字符 <b>'${c}'</b>，忽略。`, false);
+            }
+            updateHashUI();
+            stepState = 1;
+
+        } else if (stepState === 1) {
+            // Check validity
+            if (validCount === needCount) {
+                logMsg(`✅ 当前窗口 <b>合法</b> (<code>valid == need.size</code>)。准备锁定并收缩左边界。`, true);
+                stepState = 2; // Go to shrink mode
+            } else {
+                rightPtr++; // Expand window visually
+                stepState = 0; // Read next
+            }
+
+        } else if (stepState === 2) {
+            // Shrink mode: Record best and process left pop
+            let currentLen = rightPtr - leftPtr + 1; // Note: rightPtr hasn't incremented visually yet in step 1, so +1
+            if (currentLen < minLen) {
+                minLen = currentLen;
+                bestStart = leftPtr;
+                logMsg(`🚀 刷新最短记录！起始位置 ${bestStart}，长度缩减为 <b>${minLen}</b>。`, true);
+            }
+            
+            let d = sStr[leftPtr];
+            if (need[d] !== undefined) {
+                if (windowMap[d] === need[d]) {
+                    validCount--;
+                    logMsg(`⚠️ 移出关键字符 <b>'${d}'</b>，频次跌破阈值。<code>valid</code> 降为 ${validCount}。`, false);
+                } else {
+                    logMsg(`✂️ 移出冗余目标字符 <b>'${d}'</b>，频次依然达标。`, false);
+                }
+                windowMap[d]--;
+            } else {
+                logMsg(`✂️ 左侧收缩，移出非目标字符 <b>'${d}'</b>。`, false);
+            }
+            updateHashUI();
+            stepState = 3;
+
+        } else if (stepState === 3) {
+            // Advance left and decide next mode
+            leftPtr++;
+            if (validCount === needCount) {
+                logMsg(`✅ 移出后窗口仍然合法！继续收缩以追求更短。`, false);
+                stepState = 2; // Loop shrink
+            } else {
+                logMsg(`🔍 窗口不再合法，恢复右侧扩张寻找下一个解。`, false);
+                rightPtr++; // We must advance right here to match the loop end
+                stepState = 0; // Go to expand mode
+            }
+        }
+      }
+
+      function updateHashUI() {
+        let container = document.getElementById("hash-nodes");
+        let tracker = document.getElementById("valid-tracker");
+        if (!container || !tracker) return;
+        
+        let html = [];
+        for (let c in need) {
+            let n = need[c];
+            let w = windowMap[c] || 0;
+            let isMet = w >= n ? 'met' : '';
+            html.push(`
+                <div class="hash-entry ${isMet}">
+                    <span class="char">${c}</span>
+                    <span class="count">${w}/${n}</span>
+                </div>
+            `);
+        }
+        container.innerHTML = html.join('');
+        
+        tracker.innerHTML = `Valid: <b>${validCount} / ${needCount}</b>`;
+        if(validCount === needCount) {
+            tracker.style.color = "var(--anthropic-green)";
+        } else {
+            tracker.style.color = "var(--anthropic-blue)";
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        if (msg.includes("合法") && highlight) item.className = "log-item green";
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function" && sStr.length > 0) {
+            initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 76;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1000, 9999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

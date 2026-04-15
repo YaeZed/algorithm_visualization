@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>最大子数组和 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --anthropic-red: #c95c5c;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      
+      .status-panel { display: flex; gap: 15px; }
+      .status-card { flex: 1; background: white; border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;}
+      .status-card .label { font-size: 11px; color: #777; margin-bottom: 4px; text-transform: uppercase;}
+      .status-card .value { font-family: "JetBrains Mono", monospace; font-size: 18px; font-weight: bold;}
+      .status-card.active-sum .value { color: var(--anthropic-blue); }
+      .status-card.active-sum.negative .value { color: var(--anthropic-red); }
+      .status-card.global-max .value { color: var(--anthropic-green); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.danger { border-left-color: var(--anthropic-red); background: #fff5f5; }
+      .log-item.success { border-left-color: var(--anthropic-green); background: #f5faed; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #fdfef9; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>最大子数组和</h1>
+        <div class="subtitle">Kadane 算法 (动态规划空间优化)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="53" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机生成包含正负数的数组</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>数组长度 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="5" max="18" step="1" value="12" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">12</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心方程：`dp[i] = max(nums[i], dp[i-1] + nums[i])`。只与前一个状态有关，所以可以把 dp 数组压缩成单个变量 `cur_sum`。</div>
+            <div class="memo-tip">💡 贪心哲学：如果之前的累加和（`cur_sum`）已经小于 0，那它对后续序列只会产生“拖累”作用，不如直接抛弃历史，从当前元素重新算起。</div>
+            <div class="memo-tip g">🔍 本质：寻找数组中连续的“最大增益段”。通过一次遍历就能完成全局最大值的捕捉。</div>
+            <div class="memo-tip w">⚠️ 致命错误：全局最大值 `max_sum` 必须初始化为 `nums[0]` 或极小值，千万不能初始化为 `0`！否则当数组全是负数时，会错误地返回 `0`。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">动态累加与截断重置演示</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">Kadane 算法 (最优解)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">状态变量 (Variables)</div>
+          </div>
+          
+          <div class="data-viz">
+            <div class="status-panel">
+                <div class="status-card active-sum" id="ui-cur-sum">
+                    <div class="label">当前窗口累加和 (curSum)</div>
+                    <div class="value">-</div>
+                </div>
+                <div class="status-card global-max">
+                    <div class="label">历史最高记录 (maxSum)</div>
+                    <div class="value" id="ui-max-sum">-</div>
+                </div>
+            </div>
+          </div>
+          
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def maxSubArray(nums: list[int]) -> int:
+    # ⚠️ 初始化必须为第一个元素，不能是 0 (防止全负数数组报错)
+    cur_sum = nums[0]
+    max_sum = nums[0]
+    
+    # 从第二个元素开始遍历
+    for i in range(1, len(nums)):
+        num = nums[i]
+        
+        # 核心逻辑：如果之前的 cur_sum 已经是负数，
+        # 加上当前的 num 只会比 num 本身更小。
+        # 此时果断抛弃历史累加，从当前 num 重新开始计算。
+        cur_sum = max(num, cur_sum + num)
+        
+        # 随时挑战并更新全局最大值记录
+        max_sum = max(max_sum, cur_sum)
+        
+    return max_sum`,
+        ts: `// TypeScript
+function maxSubArray(nums: number[]): number {
+    // ⚠️ 初始化为 nums[0]
+    let curSum = nums[0];
+    let maxSum = nums[0];
+    
+    for (let i = 1; i < nums.length; i++) {
+        // 若 curSum < 0，则 curSum + nums[i] 必然小于 nums[i]
+        // Math.max 完美地处理了“是否要抛弃过去”的逻辑
+        curSum = Math.max(nums[i], curSum + nums[i]);
+        
+        // 记录历史上出现过的最大累加和
+        maxSum = Math.max(maxSum, curSum);
+    }
+    
+    return maxSum;
+}`,
+        java: `// Java
+class Solution {
+    public int maxSubArray(int[] nums) {
+        // 初始状态设定
+        int curSum = nums[0];
+        int maxSum = nums[0];
+        
+        for (int i = 1; i < nums.length; i++) {
+            // 如果过去的收益变成了负债，不如直接从现在从零(nums[i])开始
+            if (curSum < 0) {
+                curSum = nums[i]; 
+            } else {
+                curSum += nums[i]; 
+            }
+            
+            // 或者用更简练的写法: 
+            // curSum = Math.max(nums[i], curSum + nums[i]);
+            
+            // 更新全局最大值
+            if (curSum > maxSum) {
+                maxSum = curSum;
+            }
+        }
+        
+        return maxSum;
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    int maxSubArray(vector<int>& nums) {
+        int curSum = nums[0];
+        int maxSum = nums[0];
+        
+        for (int i = 1; i < nums.size(); ++i) {
+            // 状态转移：取 "自立门户" 和 "延续历史" 中的较大者
+            curSum = max(nums[i], curSum + nums[i]);
+            
+            // 更新历史最强王者
+            maxSum = max(maxSum, curSum);
+        }
+        
+        return maxSum;
+    }
+};`,
+        c: `// C
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+int maxSubArray(int* nums, int numsSize) {
+    if (numsSize == 0) return 0;
+    
+    int curSum = nums[0];
+    int maxSum = nums[0];
+    
+    for (int i = 1; i < numsSize; i++) {
+        // 如果前面连加的收益已经是负数，就不要前面那段了
+        if (curSum < 0) {
+            curSum = nums[i];
+        } else {
+            curSum += nums[i];
+        }
+        
+        // 更新最大值
+        maxSum = MAX(maxSum, curSum);
+    }
+    
+    return maxSum;
+}`
+      };
+
+      let params = { seed: 53, speed: 1.0, n: 12 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = 'python';
+
+      // Algorithm State
+      let nums = [];
+      let iPtr = 0;
+      let curSum = 0;
+      let maxSum = -Infinity;
+      
+      let winStart = 0;  // Start of the current contiguous segment
+      let bestStart = 0; // Global best start
+      let bestEnd = 0;   // Global best end
+      
+      // stepState: 
+      // 0: Initial read i=0
+      // 1: Read iPtr
+      // 2: Update curSum (decide to keep or reset)
+      // 3: Update maxSum
+      let stepState = 0; 
+      
+      const LANG_VARS = {
+          python: { I: 'i' },
+          ts: { I: 'i' },
+          java: { I: 'i' },
+          cpp: { I: 'i' },
+          c: { I: 'i' }
+      };
+
+      // Visuals
+      let dispIPtrX = 0;
+      let boxSize = 38;
+      let startX = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        textFont("'JetBrains Mono', monospace");
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        nums = [];
+        // Ensure a good mix of positives and negatives to trigger resets
+        for(let i=0; i<params.n; i++) {
+            nums.push(floor(random(-8, 12))); 
+        }
+        // Force at least one negative early on to demonstrate the cut-off
+        if (nums[1] > 0 && nums[2] > 0) nums[1] = -floor(random(5, 10));
+
+        iPtr = 0;
+        curSum = 0;
+        maxSum = -Infinity;
+        winStart = 0;
+        bestStart = 0;
+        bestEnd = 0;
+        stepState = 0;
+        
+        dispIPtrX = -1;
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateStatusUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ 数组初始化完成。开始 Kadane 算法动态规划推导。`);
+      }
+
+      function draw() {
+        background(253, 252, 249); 
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let totalW = nums.length * boxSize;
+        startX = width / 2 - totalW / 2;
+        let baseY = height / 2;
+
+        let targetX = startX + iPtr * boxSize;
+        if (dispIPtrX === -1) dispIPtrX = targetX;
+        let lerpSpeed = 0.2 * params.speed;
+        dispIPtrX = lerp(dispIPtrX, targetX, lerpSpeed);
+
+        // --- 1. Draw Global Best Subarray (Gold Highlight) ---
+        if (stepState > 0 || iPtr > 0) {
+            push();
+            noStroke();
+            fill(232, 168, 56, 30); // Gold
+            let bestX = startX + bestStart * boxSize;
+            let bestW = (bestEnd - bestStart + 1) * boxSize;
+            rect(bestX - 2, baseY - 2, bestW + 4, boxSize + 4, 6);
+            
+            fill(232, 168, 56);
+            textSize(11);
+            textAlign(CENTER, BOTTOM);
+            text(`🏆 全局最大区间 (和:${maxSum})`, bestX + bestW/2, baseY - 8);
+            pop();
+        }
+
+        // --- 2. Draw Current Active Subarray (Orange/Red/Green Bottom Bracket) ---
+        if (stepState > 0 || iPtr > 0) {
+            push();
+            let currColor = color(106, 155, 204); // Default blue
+            if (curSum > 0) currColor = color(120, 140, 93); // Green if gaining
+            if (curSum < 0) currColor = color(201, 92, 92);  // Red if dragging
+            
+            stroke(currColor);
+            strokeWeight(3);
+            noFill();
+            
+            let bracketStart = startX + winStart * boxSize;
+            let bracketEnd = startX + iPtr * boxSize + boxSize; // to the right edge of current
+            
+            // Draw bracket beneath array
+            let by = baseY + boxSize + 8;
+            line(bracketStart, by, bracketEnd, by);
+            line(bracketStart, by, bracketStart, by - 6);
+            line(bracketEnd, by, bracketEnd, by - 6);
+            
+            noStroke();
+            fill(currColor);
+            textSize(11);
+            textAlign(CENTER, TOP);
+            text(`当前累加和: ${curSum}`, bracketStart + (bracketEnd - bracketStart)/2, by + 4);
+            pop();
+        }
+
+        // --- 3. Draw Array Elements ---
+        push();
+        textAlign(CENTER, CENTER);
+        for (let i = 0; i < nums.length; i++) {
+            let x = startX + i * boxSize;
+            
+            stroke(200); strokeWeight(1); fill(255);
+            rect(x, baseY, boxSize, boxSize, 4);
+            
+            noStroke(); fill(50); textSize(15);
+            // Highlight negative values subtly
+            if (nums[i] < 0) fill(200, 80, 80);
+            text(nums[i], x + boxSize / 2, baseY + boxSize / 2);
+
+            fill(150); textSize(9);
+            text(i, x + boxSize / 2, baseY + boxSize + 18);
+        }
+        pop();
+
+        // --- 4. Pointer ---
+        if (iPtr < nums.length) {
+            push();
+            fill(106, 155, 204); 
+            noStroke();
+            triangle(
+                dispIPtrX + boxSize / 2, baseY - 12,
+                dispIPtrX + boxSize / 2 - 6, baseY - 22,
+                dispIPtrX + boxSize / 2 + 6, baseY - 22
+            );
+            textSize(12); textAlign(CENTER, BOTTOM);
+            text(LANG_VARS[currentLang].I, dispIPtrX + boxSize / 2, baseY - 26);
+            pop();
+        }
+      }
+
+      function performStep() {
+        if (isDone || iPtr >= nums.length) {
+            if (!isDone) {
+                isDone = true;
+                logMsg(`🏁 遍历结束！全局最大子数组和为: <b>${maxSum}</b>，区间为 [${bestStart}, ${bestEnd}]。`, true);
+            }
+            return;
+        }
+
+        let val = nums[iPtr];
+
+        if (stepState === 0) {
+            // First element initialization
+            curSum = val;
+            maxSum = val;
+            winStart = 0;
+            bestStart = 0;
+            bestEnd = 0;
+            updateStatusUI();
+            logMsg(`📍 初始化：取第一个元素 <code>nums[0] = ${val}</code>。设定 <code>curSum</code> 和 <code>maxSum</code> 均为 ${val}。`);
+            
+            iPtr++;
+            stepState = 1;
+
+        } else if (stepState === 1) {
+            logMsg(`👉 指针移动到 <code>i=${iPtr}</code>，元素值为 <b>${val}</b>。`, false);
+            stepState = 2;
+
+        } else if (stepState === 2) {
+            // Decide to accumulate or reset
+            if (curSum < 0) {
+                let oldSum = curSum;
+                curSum = val;
+                winStart = iPtr;
+                logMsg(`✂️ <b>抛弃历史负资产！</b> 前面的累加和是 ${oldSum}，继续加上只会比 ${val} 更小。从当前索引 ${iPtr} 重新开始计算段落：<code>curSum = ${val}</code>。`, false);
+                document.querySelectorAll('.log-item')[document.querySelectorAll('.log-item').length-1].classList.add('danger');
+            } else {
+                let oldSum = curSum;
+                curSum = curSum + val;
+                logMsg(`➕ <b>累加正收益！</b> 前面的累加和是 ${oldSum} (>=0)，对当前段有增益。合并计算：<code>curSum = ${oldSum} + ${val} = ${curSum}</code>。`, false);
+            }
+            updateStatusUI();
+            stepState = 3;
+
+        } else if (stepState === 3) {
+            // Check global max
+            if (curSum > maxSum) {
+                maxSum = curSum;
+                bestStart = winStart;
+                bestEnd = iPtr;
+                logMsg(`🚀 <b>打破记录！</b> 当前累加和 ${curSum} 超越了历史最高值，更新 <code>maxSum = ${curSum}</code>。`, true);
+                document.querySelectorAll('.log-item')[document.querySelectorAll('.log-item').length-1].classList.add('success');
+            } else {
+                logMsg(`⚖️ 当前累加和 ${curSum} 未能超越历史记录 ${maxSum}。`, false);
+            }
+            updateStatusUI();
+            
+            iPtr++;
+            stepState = 1;
+        }
+      }
+
+      function updateStatusUI() {
+        let curEl = document.getElementById("ui-cur-sum");
+        let maxEl = document.getElementById("ui-max-sum");
+        if (!curEl || !maxEl) return;
+        
+        curEl.querySelector('.value').innerText = curSum;
+        maxEl.innerText = maxSum === -Infinity ? "-" : maxSum;
+        
+        if (curSum < 0) {
+            curEl.classList.add('negative');
+        } else {
+            curEl.classList.remove('negative');
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function" && nums.length > 0) {
+            initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 53;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1000, 9999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>
