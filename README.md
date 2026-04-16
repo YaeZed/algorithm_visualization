@@ -10,7 +10,7 @@
 
 | 首页 (Home) | 题目详情 (Problem View) |
 | :---: | :---: |
-| ![首页预览](./docs/screenshots/home.png) | ![算法演示预览](./docs/screenshots/problem.png) |
+| ![首页预览](/hot100-platform/docs/screenshots/home.png) | ![算法演示预览](/hot100-platform/docs/screenshots/problem.png) |
 
 ## ✨ 核心特性
 
