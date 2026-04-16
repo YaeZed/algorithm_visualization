@@ -36,8 +36,8 @@
 ### 1. 克隆与安装
 ```bash
 # 获取项目
-git clone https://github.com/your-repo/hot100-platform.git
-cd hot100-platform
+git clone https://github.com/YaeZed/algorithm_visualization.git
+cd algorithm_visualization/hot100-platform
 
 # 安装依赖
 npm install
