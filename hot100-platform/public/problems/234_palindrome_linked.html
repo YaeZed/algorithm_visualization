@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>回文链表 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css" id="hljs-theme" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root { --anthropic-dark: #141413; --anthropic-light: #faf9f5; --anthropic-mid-gray: #b0aea5; --anthropic-light-gray: #e8e6dc; --anthropic-orange: #d97757; --anthropic-blue: #6a9bcc; --anthropic-green: #788c5d; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      select { width: 100%; padding: 6px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; font-size: 12px; font-family: "Poppins", sans-serif; outline: none; background: #fff; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; margin-top: 5px; }
+      .button:hover { background: #c86641; }
+      
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.5; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_ { color: #4ec9b0 !important; }
+      .hljs-variable { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-string { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>LeetCode 234. 回文链表</h1>
+        <div class="subtitle">O(1) 空间复杂度最优解展示</div>
+
+        <div class="control-section">
+          <h3>数据映射配置</h3>
+          <div class="control-group">
+            <label>生成策略</label>
+            <select id="data-mode" onchange="updateParam('isPalindrome', this.value === '1')">
+              <option value="1">构造严格回文结构 (True)</option>
+              <option value="0">生成随机结构 (False)</option>
+            </select>
+          </div>
+          <button class="button" onclick="resetAnimation()">生成并运行新场景</button>
+        </div>
+
+        <div class="control-section">
+          <h3>算法参数</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>链表长度 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="4" max="8" step="1" value="5" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">5</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 阶段一：通过 2:1 的偏移量比例，快慢指针同步推演，精准定位链表逻辑中点。</div>
+            <div class="memo-tip">💡 阶段二：利用三指针迭代法，将后半区段的拓扑结构进行反转，使尾节点转变为次级头节点。</div>
+            <div class="memo-tip g">🔍 阶段三：初始化双指针对撞遍历，执行节点值的布尔比对操作，确认数据分布对称性。</div>
+            <div class="memo-tip w">⚠️ 常见错误：阶段一中忽视偶数/奇数长度边界条件，导致慢指针越过中轴线或引发越界异常。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法拓扑执行视图</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (反转后半部分)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">内存与逻辑状态追踪</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+class Solution:
+    def isPalindrome(self, head: ListNode) -> bool:
+        if not head or not head.next: return True
+        
+        # 1. 寻址中点：设定快慢指针
+        slow, fast = head, head
+        while fast.next and fast.next.next:
+            slow = slow.next
+            fast = fast.next.next
+            
+        # 2. 拓扑重构：反转后半段链表
+        pre = None
+        cur = slow.next
+        while cur:
+            nxt = cur.next
+            cur.next = pre
+            pre = cur
+            cur = nxt
+            
+        # 3. 数据比对：双指针同步验证
+        p1 = head
+        p2 = pre
+        while p2:
+            if p1.val != p2.val:
+                return False
+            p1 = p1.next
+            p2 = p2.next
+            
+        return True`,
+        ts: `// TypeScript
+function isPalindrome(head: ListNode | null): boolean {
+    if (!head || !head.next) return true;
+
+    // 1. 寻址中点：快慢指针步长比例 2:1
+    let slow: ListNode = head;
+    let fast: ListNode = head;
+    while (fast.next !== null && fast.next.next !== null) {
+        slow = slow.next!;
+        fast = fast.next.next;
+    }
+
+    // 2. 拓扑重构：翻转后半区指针连通性
+    let pre: ListNode | null = null;
+    let cur: ListNode | null = slow.next;
+    while (cur !== null) {
+        const nxt: ListNode | null = cur.next;
+        cur.next = pre;
+        pre = cur;
+        cur = nxt;
+    }
+
+    // 3. 数据校验：验证内存值的镜像分布
+    let p1: ListNode | null = head;
+    let p2: ListNode | null = pre;
+    while (p2 !== null) {
+        if (p1!.val !== p2.val) return false;
+        p1 = p1!.next;
+        p2 = p2.next;
+    }
+    return true;
+}`,
+        java: `// Java
+class Solution {
+    public boolean isPalindrome(ListNode head) {
+        if (head == null || head.next == null) return true;
+
+        // 1. 定位中轴心：利用不同步距计算边界
+        ListNode slow = head;
+        ListNode fast = head;
+        while (fast.next != null && fast.next.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+
+        // 2. 改变引用指向：倒置后半部分的 next
+        ListNode pre = null;
+        ListNode cur = slow.next;
+        while (cur != null) {
+            ListNode nxt = cur.next;
+            cur.next = pre;
+            pre = cur;
+            cur = nxt;
+        }
+
+        // 3. 结果判定
+        ListNode p1 = head;
+        ListNode p2 = pre;
+        while (p2 != null) {
+            if (p1.val != p2.val) return false;
+            p1 = p1.next;
+            p2 = p2.next;
+        }
+        return true;
+    }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+    bool isPalindrome(ListNode* head) {
+        if (!head || !head->next) return true;
+
+        // 1. 内存遍历：快指针探测终点，慢指针探测中点
+        ListNode* slow = head;
+        ListNode* fast = head;
+        while (fast->next && fast->next->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+
+        // 2. 反转操作：打断原始单向连接并重建
+        ListNode* pre = nullptr;
+        ListNode* cur = slow->next;
+        while (cur) {
+            ListNode* nxt = cur->next;
+            cur->next = pre;
+            pre = cur;
+            cur = nxt;
+        }
+
+        // 3. 值级比对
+        ListNode* p1 = head;
+        ListNode* p2 = pre;
+        while (p2) {
+            if (p1->val != p2->val) return false;
+            p1 = p1->next;
+            p2 = p2->next;
+        }
+        return true;
+    }
+};`,
+        c: `// C
+bool isPalindrome(struct ListNode* head) {
+    if (head == NULL || head->next == NULL) return true;
+
+    // 1. 内存基址偏移运算
+    struct ListNode* slow = head;
+    struct ListNode* fast = head;
+    while (fast->next != NULL && fast->next->next != NULL) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+
+    // 2. 结构体重组
+    struct ListNode* pre = NULL;
+    struct ListNode* cur = slow->next;
+    while (cur != NULL) {
+        struct ListNode* nxt = cur->next;
+        cur->next = pre;
+        pre = cur;
+        cur = nxt;
+    }
+
+    // 3. 评估数据合法性
+    struct ListNode* p1 = head;
+    struct ListNode* p2 = pre;
+    while (p2 != NULL) {
+        if (p1->val != p2->val) return false;
+        p1 = p1->next;
+        p2 = p2->next;
+    }
+    return true;
+}`
+      };
+
+      let params = { speed: 1.0, n: 5, isPalindrome: true };
+      
+      const LANG_VARS = {
+        python: { s: "slow", f: "fast", pre: "pre", cur: "cur", nxt: "nxt", p1: "p1", p2: "p2" },
+        ts: { s: "slow", f: "fast", pre: "pre", cur: "cur", nxt: "nxt", p1: "p1", p2: "p2" },
+        java: { s: "slow", f: "fast", pre: "pre", cur: "cur", nxt: "nxt", p1: "p1", p2: "p2" },
+        cpp: { s: "slow", f: "fast", pre: "pre", cur: "cur", nxt: "nxt", p1: "p1", p2: "p2" },
+        c: { s: "slow", f: "fast", pre: "pre", cur: "cur", nxt: "nxt", p1: "p1", p2: "p2" }
+      };
+
+      let currentLang = "python";
+      let isDone = false, isPaused = false;
+      let p5Timer = 0;
+
+      // Logic State System
+      // Phases: 0=Find Mid, 1=Reverse, 2=Compare, 3=End
+      let phase = 0, subStep = 0;
+      let nodes = [];
+      let nullNode = { id: 'null', isNull: true, x: 0, y: 0 };
+      
+      let ptrS = 0, ptrF = 0;
+      let ptrPre = 'null', ptrCur = 'null', ptrNxt = 'null';
+      let ptrP1 = 'null', ptrP2 = 'null';
+
+      // Lerp Coordinates
+      let dSX=0, dSY=0, dFX=0, dFY=0;
+      let dPreX=0, dPreY=0, dCurX=0, dCurY=0, dNxtX=0, dNxtY=0;
+      let dP1X=0, dP1Y=0, dP2X=0, dP2Y=0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 500);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+      }
+
+      function initializeSystem() {
+        isDone = false; isPaused = false;
+        p5Timer = 0; phase = 0; subStep = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        buildData();
+        initVisualPositions();
+
+        logMsg(`✅ 系统重置完成。构建节点数：${params.n}，结构类型：${params.isPalindrome ? '严格回文' : '随机分布'}。`, true);
+      }
+
+      function buildData() {
+        nodes = [];
+        let startX = 60;
+        let spacing = (width - 160) / (params.n - 1);
+        if (spacing > 100) spacing = 100;
+        let totalW = (params.n - 1) * spacing;
+        startX = (width - totalW - 60) / 2;
+
+        nullNode.x = startX + totalW + 80;
+        nullNode.y = height / 2;
+
+        let vals = [];
+        for (let i = 0; i < params.n; i++) vals.push(Math.floor(Math.random() * 9) + 1);
+        
+        if (params.isPalindrome) {
+            for (let i = 0; i < Math.floor(params.n/2); i++) {
+                vals[params.n - 1 - i] = vals[i];
+            }
+        }
+
+        for (let i = 0; i < params.n; i++) {
+            nodes.push({
+                id: i,
+                val: vals[i],
+                x: startX + i * spacing,
+                y: height / 2,
+                pointsTo: i === params.n - 1 ? 'null' : i + 1,
+                originalPointsTo: i === params.n - 1 ? 'null' : i + 1
+            });
+        }
+
+        ptrS = 0; ptrF = 0;
+        ptrPre = 'null'; ptrCur = 'null'; ptrNxt = 'null';
+        ptrP1 = 'null'; ptrP2 = 'null';
+      }
+
+      function initVisualPositions() {
+        let p0 = getCoords(0);
+        dSX = p0.x; dSY = p0.y + 40;
+        dFX = p0.x; dFY = p0.y + 70;
+        
+        let pNull = getCoords('null');
+        dPreX = pNull.x; dPreY = pNull.y - 70;
+        dCurX = p0.x; dCurY = p0.y - 40;
+        dNxtX = p0.x; dNxtY = p0.y - 40;
+
+        dP1X = p0.x; dP1Y = p0.y + 40;
+        dP2X = pNull.x; dP2Y = pNull.y + 40;
+      }
+
+      function getCoords(id) {
+        if (id === 'null' || id === null) return { x: nullNode.x, y: nullNode.y };
+        return { x: nodes[id].x, y: nodes[id].y };
+      }
+
+      function draw() {
+        background(253, 252, 249);
+        if (!isDone && !isPaused) {
+          p5Timer += 0.012 * params.speed;
+          if (p5Timer > 1) { p5Timer = 0; performStep(); }
+        }
+        drawEdges(); drawNodes(); drawPointers();
+      }
+
+      function drawEdges() {
+        strokeWeight(2); noFill();
+        for (let i = 0; i < params.n; i++) {
+            let src = nodes[i];
+            let tgtId = src.pointsTo;
+            if (tgtId === null) continue;
+
+            let tgt = tgtId === 'null' ? nullNode : nodes[tgtId];
+            let isForward = (tgtId === 'null') || (tgtId > i);
+            
+            stroke(isForward ? "#b0aea5" : "#d97757");
+            let yOffset = isForward ? -4 : 6;
+            
+            if (!isForward && Math.abs(src.x - tgt.x) > 120) {
+                line(src.x, src.y + yOffset, tgt.x, tgt.y + yOffset);
+            } else {
+                line(src.x, src.y + yOffset, tgt.x, tgt.y + yOffset);
+            }
+            
+            push();
+            translate(tgt.x, tgt.y + yOffset);
+            let angle = isForward ? 0 : PI;
+            rotate(angle);
+            fill(isForward ? "#b0aea5" : "#d97757");
+            noStroke();
+            let xOffset = tgt.isNull ? -20 : -18;
+            triangle(xOffset, -5, xOffset, 5, xOffset + 6, 0);
+            pop();
+        }
+      }
+
+      function drawNodes() {
+        textAlign(CENTER, CENTER);
+        
+        fill(240); stroke(200); strokeWeight(1);
+        rectMode(CENTER); rect(nullNode.x, nullNode.y, 44, 26, 4);
+        fill(150); noStroke(); textSize(12); text("null", nullNode.x, nullNode.y);
+
+        for (let i = 0; i < params.n; i++) {
+            let n = nodes[i];
+            strokeWeight(2);
+            if (phase >= 1 && i <= ptrS) stroke("#6a9bcc"); else stroke("#d97757");
+            fill("#fff");
+            circle(n.x, n.y, 36);
+            fill(50); noStroke(); textSize(14);
+            text(n.val, n.x, n.y);
+            
+            textSize(10); fill(150);
+            text(`idx:${i}`, n.x, n.y - 30);
+        }
+      }
+
+      function drawPointers() {
+        let lS = 0.2 * params.speed;
+        let v = LANG_VARS[currentLang];
+        textAlign(CENTER, CENTER); textSize(12); noStroke();
+
+        if (phase === 0) {
+            let tS = getCoords(ptrS); dSX = lerp(dSX, tS.x, lS); dSY = lerp(dSY, tS.y + 45, lS);
+            let tF = getCoords(ptrF); dFX = lerp(dFX, tF.x, lS); dFY = lerp(dFY, tF.y + 70, lS);
+            fill("#6a9bcc"); text(`↑ ${v.s}`, dSX, dSY);
+            fill("#b0aea5"); text(`↑ ${v.f}`, dFX, dFY);
+        } 
+        else if (phase === 1) {
+            let tPre = getCoords(ptrPre); dPreX = lerp(dPreX, tPre.x, lS); dPreY = lerp(dPreY, tPre.y - 45, lS);
+            let tCur = getCoords(ptrCur); dCurX = lerp(dCurX, tCur.x, lS); dCurY = lerp(dCurY, tCur.y - 70, lS);
+            
+            fill("#788c5d"); text(`${v.pre} ↓`, dPreX, dPreY);
+            if (ptrCur !== 'null') { fill("#d97757"); text(`${v.cur} ↓`, dCurX, dCurY); }
+            
+            if (ptrNxt !== 'null' && subStep > 0) {
+                let tNxt = getCoords(ptrNxt); dNxtX = lerp(dNxtX, tNxt.x+20, lS); dNxtY = lerp(dNxtY, tNxt.y - 90, lS);
+                fill("#b0aea5"); text(`${v.nxt} ↓`, dNxtX, dNxtY);
+            }
+        }
+        else if (phase >= 2) {
+            let tP1 = getCoords(ptrP1); dP1X = lerp(dP1X, tP1.x, lS); dP1Y = lerp(dP1Y, tP1.y + 45, lS);
+            let tP2 = getCoords(ptrP2); dP2X = lerp(dP2X, tP2.x, lS); dP2Y = lerp(dP2Y, tP2.y + 45, lS);
+            fill("#6a9bcc"); text(`↑ ${v.p1}`, dP1X, dP1Y);
+            fill("#d97757"); text(`↑ ${v.p2}`, dP2X, dP2Y);
+        }
+    }
+
+      function performStep() {
+        let v = LANG_VARS[currentLang];
+
+        if (phase === 0) {
+            let fNxt = (ptrF !== 'null') ? nodes[ptrF].originalPointsTo : 'null';
+            let fNxtNxt = (fNxt !== 'null') ? nodes[fNxt].originalPointsTo : 'null';
+            
+            if (fNxt !== 'null' && fNxtNxt !== 'null') {
+                ptrS = nodes[ptrS].originalPointsTo;
+                ptrF = fNxtNxt;
+                logMsg(`📍 快慢指针偏移计算：${v.f} 进两步至 idx:${ptrF}，${v.s} 进一步至 idx:${ptrS}。`);
+            } else {
+                phase = 1; subStep = 0;
+                ptrPre = 'null';
+                ptrCur = nodes[ptrS].originalPointsTo;
+                logMsg(`🔹 寻址中点完成。${v.s} 定位于 idx:${ptrS}。准备初始化反转指针，截断后续拓扑结构。`, true);
+            }
+        } 
+        else if (phase === 1) {
+            if (ptrCur === 'null') {
+                phase = 2; ptrP1 = 0; ptrP2 = ptrPre;
+                logMsg(`🔹 反转操作完成。后半区段的拓扑结构已全部转置。初始化双指针 ${v.p1} 与 ${v.p2} 进行对撞验证。`, true);
+                return;
+            }
+
+            if (subStep === 0) {
+                ptrNxt = nodes[ptrCur].pointsTo;
+                logMsg(`[反转阶段] 缓存后继引用地址：${v.nxt} 指向 idx:${ptrNxt}`);
+                subStep = 1;
+            } else if (subStep === 1) {
+                nodes[ptrCur].pointsTo = ptrPre;
+                logMsg(`[反转阶段] 覆盖内存映射连通性，执行拓扑反向指向 ${ptrPre}`);
+                subStep = 2;
+            } else if (subStep === 2) {
+                ptrPre = ptrCur;
+                subStep = 3;
+            } else if (subStep === 3) {
+                ptrCur = ptrNxt;
+                subStep = 0;
+                ptrNxt = 'null';
+            }
+        } 
+        else if (phase === 2) {
+            if (ptrP2 === 'null') {
+                phase = 3; isDone = true;
+                logMsg(`✅ 验证完毕！结构完整遍历，确认为严格的回文分布结构 (返回 True)。`, true);
+                return;
+            }
+
+            let val1 = nodes[ptrP1].val;
+            let val2 = nodes[ptrP2].val;
+            
+            if (val1 !== val2) {
+                phase = 3; isDone = true;
+                logMsg(`❌ 验证阻断！节点 idx:${ptrP1} (值=${val1}) 与 idx:${ptrP2} (值=${val2}) 不匹配，非回文结构 (返回 False)。`, true);
+                return;
+            }
+
+            logMsg(`🔎 比对通过：${v.p1} 与 ${v.p2} 指向的内存值均为 ${val1}。指针后移进行下一轮检验。`);
+            ptrP1 = nodes[ptrP1].originalPointsTo; 
+            ptrP2 = nodes[ptrP2].pointsTo; 
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = (typeof params[id] === 'boolean') ? val : parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; } 
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

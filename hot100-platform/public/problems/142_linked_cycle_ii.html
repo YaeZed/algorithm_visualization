@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>环形链表 II - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css" id="hljs-theme" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root { --anthropic-dark: #141413; --anthropic-light: #faf9f5; --anthropic-mid-gray: #b0aea5; --anthropic-light-gray: #e8e6dc; --anthropic-orange: #d97757; --anthropic-blue: #6a9bcc; --anthropic-green: #788c5d; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; margin-top: 5px; }
+      .button:hover { background: #c86641; }
+      
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.5; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_ { color: #4ec9b0 !important; }
+      .hljs-variable { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-string { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>LeetCode 142. 环形链表 II</h1>
+        <div class="subtitle">图论闭环入口地址解算器</div>
+
+        <div class="control-section">
+          <h3>拓扑结构参数</h3>
+          <div class="control-group">
+            <label>链表总节点数 (N)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="5" max="15" step="1" value="9" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">9</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>闭环入口索引 (pos) <br><small style="color:#aaa">-1 代表无环 (指向 null)</small></label>
+            <div class="slider-container">
+              <input type="range" id="pos" min="-1" max="8" step="1" value="4" oninput="updatePosParam(this.value)" />
+              <span class="value-display" id="pos-value">4</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 阶段一：建立双指针相对运动模型，步长比设为 1:2。用以检测拓扑连通图中的自环结构并定位碰撞基址。</div>
+            <div class="memo-tip g">🔍 代数推导：设入环前长 $L$，入环后距碰撞点长 $x$，环长 $C$。快指针所走路程为 $2(L+x) = L+x+nC$。推演得 $L = (n-1)C + (C-x)$。</div>
+            <div class="memo-tip">💡 阶段二：上述公式表明，从链表头部至入环点的距离 $L$，严格等价于从碰撞点继续向前至入环点的距离 $(C-x)$。因此，双指针同步距推演必定于入环点重叠。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">二阶段内存偏移与对齐视图</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (Floyd 判圈算法)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">相对位移与代数等式日志</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+class Solution:
+    def detectCycle(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        if not head or not head.next:
+            return None
+            
+        slow = head
+        fast = head
+        
+        # 阶段一：建立相对运动模型探测碰撞点
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+            
+            # 检测到内存地址重叠
+            if slow == fast:
+                # 阶段二：构建等效路径推演
+                p1 = head
+                p2 = slow
+                
+                # 两指针步长均为 1，基于代数等式 L = (n-1)C + (C-x)
+                # 它们必然在入环入口处发生内存对齐
+                while p1 != p2:
+                    p1 = p1.next
+                    p2 = p2.next
+                
+                return p1  # 返回入环点的内存引用
+                
+        # 拓扑为线性结构
+        return None`,
+        ts: `// TypeScript
+function detectCycle(head: ListNode | null): ListNode | null {
+    if (!head || !head.next) return null;
+    
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
+    
+    // 阶段 1：判定拓扑闭环及探测碰撞基址
+    while (fast !== null && fast.next !== null) {
+        slow = slow.next!;
+        fast = fast.next.next;
+        
+        // 发生碰撞
+        if (slow === fast) {
+            // 阶段 2：距离等量代换推演
+            let p1: ListNode | null = head;
+            let p2: ListNode | null = slow;
+            
+            // 同步向前直至引用相等
+            while (p1 !== p2) {
+                p1 = p1!.next;
+                p2 = p2!.next;
+            }
+            
+            return p1; // 返回图论结构的切入点
+        }
+    }
+    
+    return null;
+}`,
+        java: `// Java
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        if (head == null || head.next == null) return null;
+        
+        ListNode slow = head;
+        ListNode fast = head;
+        
+        // Phase 1: 判定重叠现象
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            
+            if (slow == fast) {
+                // Phase 2: 基于模运算的入口解算
+                ListNode p1 = head;
+                ListNode p2 = slow;
+                
+                while (p1 != p2) {
+                    p1 = p1.next;
+                    p2 = p2.next;
+                }
+                
+                return p1;
+            }
+        }
+        
+        return null;
+    }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+    ListNode *detectCycle(ListNode *head) {
+        if (head == nullptr || head->next == nullptr) return nullptr;
+        
+        ListNode *slow = head;
+        ListNode *fast = head;
+        
+        // 执行非空断言与越界阻断
+        while (fast != nullptr && fast->next != nullptr) {
+            slow = slow->next;
+            fast = fast->next->next;
+            
+            // 检测到寄存器指向同一内存块
+            if (slow == fast) {
+                ListNode *p1 = head;
+                ListNode *p2 = slow;
+                
+                // 依据 L = nC - x 恒等式同步收敛
+                while (p1 != p2) {
+                    p1 = p1->next;
+                    p2 = p2->next;
+                }
+                
+                return p1;
+            }
+        }
+        
+        return nullptr;
+    }
+};`,
+        c: `// C
+struct ListNode *detectCycle(struct ListNode *head) {
+    if (head == NULL || head->next == NULL) return NULL;
+    
+    struct ListNode *slow = head;
+    struct ListNode *fast = head;
+    
+    while (fast != NULL && fast->next != NULL) {
+        slow = slow->next;
+        fast = fast->next->next;
+        
+        if (slow == fast) {
+            struct ListNode *p1 = head;
+            struct ListNode *p2 = slow;
+            
+            // 同步执行寻址偏移
+            while (p1 != p2) {
+                p1 = p1->next;
+                p2 = p2->next;
+            }
+            
+            return p1; // 返回结构体起点
+        }
+    }
+    
+    return NULL;
+}`
+      };
+
+      let params = { speed: 1.0, n: 9, pos: 4 };
+      
+      const LANG_VARS = {
+        python: { s: "slow", f: "fast", p1: "p1", p2: "p2" },
+        ts: { s: "slow", f: "fast", p1: "p1", p2: "p2" },
+        java: { s: "slow", f: "fast", p1: "p1", p2: "p2" },
+        cpp: { s: "slow", f: "fast", p1: "p1", p2: "p2" },
+        c: { s: "slow", f: "fast", p1: "p1", p2: "p2" }
+      };
+
+      let currentLang = "python";
+      let isDone = false, isPaused = false;
+      let p5Timer = 0;
+
+      // Logical State
+      let nodes = [];
+      let nullNode = { x: 0, y: 0, isNull: true };
+      
+      let phase = 0; // 0: Finding intersection, 1: Intersection logic log, 2: Sync moving to start
+      let stepsTaken = 0;
+      let ptrS = 0, ptrF = 0;
+      let ptr1 = 0, ptr2 = 0; // Pointers for Phase 2
+
+      // Render coordinates
+      let dSX = 0, dSY = 0, dFX = 0, dFY = 0;
+      let dP1X = 0, dP1Y = 0, dP2X = 0, dP2Y = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 500);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+      }
+
+      function updatePosParam(val) {
+        let p = parseInt(val);
+        if (p >= params.n) {
+            p = params.n - 1;
+            document.getElementById("pos").value = p;
+        }
+        params.pos = p;
+        document.getElementById("pos-value").textContent = p;
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        isDone = false; isPaused = false;
+        p5Timer = 0; stepsTaken = 0; phase = 0;
+
+        let posSlider = document.getElementById("pos");
+        posSlider.max = params.n - 1;
+        if (params.pos >= params.n) { params.pos = params.n - 1; posSlider.value = params.pos; document.getElementById("pos-value").textContent = params.pos; }
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        buildTopology();
+
+        logMsg(`✅ 实验拓扑构型建立完成。N = ${params.n}，环路连通点 (pos) = ${params.pos === -1 ? '无' : 'idx:' + params.pos}。`, true);
+      }
+
+      function buildTopology() {
+        nodes = [];
+        let P = params.pos;
+        let cy = height / 2;
+
+        if (P === -1) {
+            let spacing = min(80, (width - 150) / params.n);
+            let startX = (width - (params.n * spacing)) / 2;
+            for (let i = 0; i < params.n; i++) {
+                nodes.push({ id: i, val: Math.floor(Math.random()*90)+10, x: startX + i*spacing, y: cy });
+            }
+            nullNode.x = startX + params.n * spacing + 40;
+            nullNode.y = cy;
+        } else {
+            let stemSpacing = 60;
+            let loopSize = params.n - P;
+            let radius = max(50, loopSize * 15);
+            let startX = 60;
+            let cx = startX + P * stemSpacing + radius;
+
+            let totalVisualWidth = cx + radius - startX;
+            let offsetX = (width - totalVisualWidth) / 2 - 40;
+            startX += offsetX;
+            cx += offsetX;
+            
+            for (let i = 0; i < params.n; i++) {
+                if (i < P) {
+                    nodes.push({ id: i, val: Math.floor(Math.random()*90)+10, x: startX + i*stemSpacing, y: cy });
+                } else {
+                    let angle = PI - ((i - P) / loopSize) * TWO_PI;
+                    nodes.push({ id: i, val: Math.floor(Math.random()*90)+10, x: cx + radius * cos(angle), y: cy + radius * sin(angle) });
+                }
+            }
+        }
+
+        ptrS = 0; ptrF = 0; ptr1 = 0; ptr2 = 0;
+        let p0 = getCoords(0);
+        dSX = p0.x; dSY = p0.y + 40;
+        dFX = p0.x; dFY = p0.y - 45;
+        dP1X = p0.x; dP1Y = p0.y + 40;
+        dP2X = p0.x; dP2Y = p0.y - 45;
+      }
+
+      function getCoords(id) {
+        if (id === 'null' || id === null) return { x: nullNode.x, y: nullNode.y };
+        return { x: nodes[id].x, y: nodes[id].y };
+      }
+
+      function draw() {
+        background(253, 252, 249);
+        if (!isDone && !isPaused) {
+          p5Timer += 0.012 * params.speed;
+          if (p5Timer > 1) { p5Timer = 0; performStep(); }
+        }
+        drawEdges(); drawNodes(); drawPointers();
+      }
+
+      function drawEdges() {
+        strokeWeight(2); noFill();
+        for (let i = 0; i < params.n; i++) {
+            let src = nodes[i];
+            let isLast = (i === params.n - 1);
+            let tgtId = isLast ? (params.pos === -1 ? 'null' : params.pos) : i + 1;
+            let tgt = getCoords(tgtId);
+            
+            stroke("#b0aea5");
+
+            let dx = tgt.x - src.x; let dy = tgt.y - src.y;
+            let dist = sqrt(dx*dx + dy*dy);
+            
+            let r = 20; 
+            if (dist > r) {
+                let startX = src.x + (dx/dist)*r; let startY = src.y + (dy/dist)*r;
+                let endX = tgt.x - (dx/dist)*(tgtId === 'null'? 26 : r); let endY = tgt.y - (dy/dist)*(tgtId === 'null'? 15 : r);
+                
+                line(startX, startY, endX, endY);
+                
+                push();
+                translate(endX, endY);
+                rotate(atan2(dy, dx));
+                fill("#b0aea5"); noStroke();
+                triangle(-8, -4, -8, 4, 2, 0);
+                pop();
+            }
+        }
+      }
+
+      function drawNodes() {
+        textAlign(CENTER, CENTER);
+        
+        if (params.pos === -1) {
+            fill(240); stroke(200); strokeWeight(1);
+            rectMode(CENTER); rect(nullNode.x, nullNode.y, 44, 26, 4);
+            fill(150); noStroke(); textSize(12); text("null", nullNode.x, nullNode.y);
+        }
+
+        for (let i = 0; i < params.n; i++) {
+            let n = nodes[i];
+            strokeWeight(2);
+            stroke(i === params.pos ? "#788c5d" : "#6a9bcc"); 
+            fill("#fff");
+            circle(n.x, n.y, 36);
+            
+            fill(50); noStroke(); textSize(14); text(n.val, n.x, n.y);
+            textSize(10); fill(150); text(`i:${i}`, n.x, n.y + 26);
+        }
+      }
+
+      function drawPointers() {
+        let lS = 0.2 * params.speed;
+        let v = LANG_VARS[currentLang];
+        textAlign(CENTER, CENTER); textSize(12); noStroke();
+        
+        if (phase === 0 || phase === 1) {
+            let tS = getCoords(ptrS); 
+            let sOffsetX = (ptrS === ptrF && ptrS !== 'null') ? -20 : 0; 
+            dSX = lerp(dSX, tS.x + sOffsetX, lS); 
+            dSY = lerp(dSY, tS.y + 40, lS);
+
+            let tF = getCoords(ptrF); 
+            let fOffsetX = (ptrS === ptrF && ptrF !== 'null') ? 20 : 0;
+            dFX = lerp(dFX, tF.x + fOffsetX, lS); 
+            dFY = lerp(dFY, tF.y - 45, lS);
+
+            fill("#6a9bcc"); text(`↑ ${v.s}`, dSX, dSY);
+            fill("#b0aea5"); text(`${v.f} ↓`, dFX, dFY);
+        } 
+        else if (phase >= 2) {
+            // Smoothly move p1 and p2
+            let t1 = getCoords(ptr1);
+            let offset1X = (ptr1 === ptr2 && ptr1 !== 'null') ? -20 : 0;
+            dP1X = lerp(dP1X, t1.x + offset1X, lS);
+            dP1Y = lerp(dP1Y, t1.y + 40, lS);
+
+            let t2 = getCoords(ptr2);
+            let offset2X = (ptr1 === ptr2 && ptr1 !== 'null') ? 20 : 0;
+            dP2X = lerp(dP2X, t2.x + offset2X, lS);
+            dP2Y = lerp(dP2Y, t2.y - 45, lS);
+
+            fill("#d97757"); text(`↑ ${v.p1}`, dP1X, dP1Y);
+            fill("#788c5d"); text(`${v.p2} ↓`, dP2X, dP2Y);
+        }
+    }
+
+      function performStep() {
+        let v = LANG_VARS[currentLang];
+
+        if (phase === 0) {
+            if (stepsTaken > 0 && ptrS === ptrF && ptrS !== 'null') {
+                phase = 1;
+                logMsg(`📍 碰撞发生：基址检测到完全重合 (idx:${ptrS})。阶段一连通性确认完毕。`, true);
+                return;
+            }
+
+            let fNextId = (ptrF === 'null' || ptrF === params.n - 1) ? (params.pos === -1 ? 'null' : params.pos) : ptrF + 1;
+            if (ptrF === 'null') fNextId = 'null';
+
+            if (ptrF === 'null' || fNextId === 'null') {
+                isDone = true;
+                logMsg(`🏁 异常分支结束：探测到 null 终端引用。该拓扑非有向有环图结构，返回 null。`, true);
+                return;
+            }
+
+            ptrS = (ptrS === params.n - 1) ? params.pos : ptrS + 1;
+            let tempF = (ptrF === params.n - 1) ? params.pos : ptrF + 1;
+            ptrF = (tempF === params.n - 1) ? params.pos : tempF + 1;
+
+            stepsTaken++;
+            logMsg(`[阶段一] 寻址迭代：${v.s} 指向 idx:${ptrS}，${v.f} 指向 idx:${ptrF}。`);
+        }
+        else if (phase === 1) {
+            // Setup Phase 2 visually
+            ptr1 = 0;
+            ptr2 = ptrS; // Collison point
+            
+            // Immediately snap the internal coords so lerping works well
+            let t2 = getCoords(ptr2);
+            dP2X = t2.x; dP2Y = t2.y - 45;
+            let t1 = getCoords(ptr1);
+            dP1X = t1.x; dP1Y = t1.y + 40;
+
+            phase = 2;
+            logMsg(`⚙️ 阶段二初始化：依照等式推演，设置 ${v.p1} 指向首地址 (idx:0)，${v.p2} 保持在碰撞地址 (idx:${ptr2})。准备执行 1:1 步长遍历。`, true);
+        }
+        else if (phase === 2) {
+            if (ptr1 === ptr2) {
+                isDone = true;
+                logMsg(`🎯 推演完成：${v.p1} 与 ${v.p2} 内存地址相交。该节点 (idx:${ptr1}) 在拓扑学上被严格证明为环路入口点。`, true);
+                return;
+            }
+
+            ptr1 = (ptr1 === params.n - 1) ? params.pos : ptr1 + 1;
+            ptr2 = (ptr2 === params.n - 1) ? params.pos : ptr2 + 1;
+
+            logMsg(`[阶段二] 等量位移：${v.p1} 移至 idx:${ptr1}，${v.p2} 移至 idx:${ptr2}。`);
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; } 
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

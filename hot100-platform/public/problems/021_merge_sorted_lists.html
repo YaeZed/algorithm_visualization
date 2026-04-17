@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>合并两个有序链表 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        height: 100vh;
+        padding: 15px;
+        gap: 15px;
+      }
+
+      /* Left Sidebar - Controls */
+      .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto;
+        border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 {
+        font-family: "Lora", serif;
+        font-size: 18px;
+        margin-bottom: 4px;
+        color: var(--anthropic-orange);
+      }
+      .subtitle {
+        color: var(--anthropic-mid-gray);
+        font-size: 11px;
+        margin-bottom: 20px;
+      }
+      .control-section {
+        margin-bottom: 20px;
+      }
+      .control-section h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: var(--anthropic-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .control-section h3::before {
+        content: "";
+        width: 4px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 2px;
+      }
+      .control-group {
+        margin-bottom: 12px;
+      }
+      .control-group label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 4px;
+        color: #666;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      input[type="range"] {
+        flex: 1;
+        height: 4px;
+        background: var(--anthropic-light-gray);
+        border-radius: 2px;
+        appearance: none;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        min-width: 25px;
+        text-align: right;
+      }
+      .button {
+        background: var(--anthropic-orange);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        width: 100%;
+        cursor: pointer;
+        font-size: 13px;
+        transition: 0.2s;
+        font-weight: 500;
+      }
+      .button:hover {
+        background: #c86641;
+      }
+      .seed-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--anthropic-light-gray);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+
+      /* Middle - Canvas */
+      .canvas-area {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .canvas-header {
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--anthropic-light-gray);
+        font-size: 13px;
+        font-weight: 500;
+        color: #888;
+      }
+      #canvas-container {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Right Panel - Logic & Code */
+      .right-panel {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      /* Code Box (VS Code Dark+ Style) */
+      .code-box {
+        flex: 1.1;
+        background: #1e1e1e;
+        border-radius: 12px;
+        border: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .box-header {
+        padding: 8px 15px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .box-header.dark {
+        background: #282828;
+        border-bottom: 1px solid #1e1e1e;
+        padding: 10px 15px 0 15px;
+      }
+      .box-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+      }
+      .box-title.dark {
+        color: #ccc;
+        padding-bottom: 10px;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+      }
+      .tabs.dark {
+        gap: 1px;
+        align-items: flex-end;
+      }
+      .tabs.dark .tab {
+        padding: 8px 16px;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        background: #2d2d2d;
+        transition: 0.2s;
+        color: #888;
+        font-weight: 500;
+        font-size: 11px;
+        font-family: "Poppins", sans-serif;
+      }
+      .tabs.dark .tab:hover {
+        background: #3c3c3c;
+        color: #ddd;
+      }
+      .tabs.dark .tab.active {
+        background: #1e1e1e;
+        color: #4ec9b0;
+        border-top: 2px solid #007acc;
+      }
+
+      .code-content {
+        flex: 1;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        background: #1e1e1e;
+        border-radius: 0 0 12px 12px;
+      }
+      #code-viewer {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 15px;
+        line-height: 1.6;
+        display: block;
+        padding: 15px;
+        background: transparent;
+        color: #d4d4d4;
+      }
+
+      /* Highlight.js CSS Overrides */
+      .hljs {
+        background: transparent !important;
+        padding: 0 !important;
+        color: #d4d4d4 !important;
+      }
+      .hljs-keyword,
+      .hljs-literal,
+      .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type,
+      .hljs-title.class_,
+      .hljs-class .hljs-title,
+      .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable,
+      .hljs-variable.language_,
+      .hljs-property,
+      .hljs-attr,
+      .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation,
+      .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string,
+      .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_,
+      .hljs-function .hljs-title,
+      .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box {
+        flex: 0.9;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--anthropic-light-gray);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+
+      .data-viz {
+        padding: 12px;
+        background: #fffcf9;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .data-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--anthropic-orange);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .data-array {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-height: 30px;
+      }
+      .data-node {
+        width: 26px;
+        height: 26px;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: bold;
+      }
+      .data-node.dummy { background: #b0aea5; color: white; border: none; }
+      .data-node.list1 { background: #6a9bcc; color: white; border: none; }
+      .data-node.list2 { background: #788c5d; color: white; border: none; }
+
+      /* Auto-scrolling Log */
+      .log-area {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 11.5px;
+        background: #fff;
+      }
+      .log-item {
+        padding: 5px 10px;
+        border-radius: 4px;
+        background: #fcfcfc;
+        border-left: 2px solid #ddd;
+        border-bottom: 1px solid #f5f5f5;
+        line-height: 1.4;
+        color: #444;
+      }
+      .log-item.highlight {
+        border-left-color: var(--anthropic-orange);
+        background: #fff9f5;
+        font-weight: 500;
+      }
+      .log-item .time {
+        font-size: 9px;
+        color: #bbb;
+        margin-bottom: 2px;
+      }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>合并两个有序链表</h1>
+        <div class="subtitle">最优解演示工具 · 哑节点与双指针</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="12345" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机场景</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>链表 1 长度</label>
+            <div class="slider-container">
+              <input type="range" id="len1" min="1" max="7" step="1" value="5" oninput="updateParam('len1', this.value)" />
+              <span class="value-display" id="len1-value">5</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>链表 2 长度</label>
+            <div class="slider-container">
+              <input type="range" id="len2" min="1" max="7" step="1" value="4" oninput="updateParam('len2', this.value)" />
+              <span class="value-display" id="len2-value">4</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n + m)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心技巧：使用<b>哑节点(Dummy Node)</b>作为头节点，避免处理新链表初始为空的繁琐边界条件。</div>
+            <div class="memo-tip">💡 双指针比对：每次比较两链表当前节点值，把较小的挂接在 curr 后，该侧指针前进。</div>
+            <div class="memo-tip g">🔍 延伸洞察：这是“归并排序 (Merge Sort)”在链表数据结构下的经典 Merge 步骤，完全原地 O(1) 空间缝合。</div>
+            <div class="memo-tip w">⚠️ 常见误区：不要在某个链表空了之后还在循环里处理。直接把另一条还没走完的链表“整条挂接”到 curr 后面即可。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区：指针移动与节点“缝接”</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">当前已合并结果 (Merged List Values)</div>
+            <div id="data-nodes" class="data-array">
+              </div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def mergeTwoLists(list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
+    # 创建哑节点(dummy node)，作为合并后链表的伪头节点
+    # 作用是避免处理空链表的边界情况，方便直接返回合并后的头节点
+    dummy = ListNode(-1)
+    
+    # curr 指针充当“缝合工”，初始指向哑节点
+    curr = dummy
+
+    # 当 list1 和 list2 都非空时，进行比较并缝合
+    while list1 and list2:
+        # 比较两个链表当前指针所指节点的值
+        if list1.val <= list2.val:
+            # list1 的节点较小（或相等），将 curr 的 next 指向它
+            curr.next = list1
+            # list1 的游标后移一步
+            list1 = list1.next
+        else:
+            # list2 的节点更小，将 curr 的 next 指向它
+            curr.next = list2
+            # list2 的游标后移一步
+            list2 = list2.next
+            
+        # curr 缝合工也往前走一步，时刻保持在链表的最末端
+        curr = curr.next
+
+    # 循环结束时，至少有一个链表已经遍历完了（为空）
+    # 将尚未遍历完的那个非空链表的剩余部分，直接整串挂在 curr 后面即可
+    curr.next = list1 if list1 else list2
+
+    # 返回 dummy.next，这就是合并完成后真正的数据起始节点
+    return dummy.next`,
+
+        ts: `// TypeScript
+class ListNode {
+    val: number
+    next: ListNode | null
+    constructor(val?: number, next?: ListNode | null) {
+        this.val = (val===undefined ? 0 : val)
+        this.next = (next===undefined ? null : next)
+    }
+}
+
+function mergeTwoLists(list1: ListNode | null, list2: ListNode | null): ListNode | null {
+    // 实例化一个哑节点(dummy node)，值随便给，用于规避头节点 null 判断
+    const dummy = new ListNode(-1);
+    
+    // curr 是操作合并的主指针，不断向后移动将较小节点串联起来
+    let curr = dummy;
+
+    // 当两个链表均未遍历完时
+    while (list1 !== null && list2 !== null) {
+        if (list1.val <= list2.val) {
+            // 串接 list1 的当前节点
+            curr.next = list1;
+            list1 = list1.next; // 移动 list1 游标
+        } else {
+            // 串接 list2 的当前节点
+            curr.next = list2;
+            list2 = list2.next; // 移动 list2 游标
+        }
+        // 推进 curr 到新串接的节点上
+        curr = curr.next;
+    }
+
+    // 此时必有一个为空。处理剩余的尾部节点（直接一并接上）
+    curr.next = list1 !== null ? list1 : list2;
+
+    // dummy.next 才是真正的首元节点
+    return dummy.next;
+}`,
+
+        java: `// Java
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode() {}
+    ListNode(int val) { this.val = val; }
+    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+}
+
+class Solution {
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        // 哑节点：处理空指针及记录最终链表头部的利器
+        ListNode dummy = new ListNode(-1);
+        
+        // curr 指针充当缝合工
+        ListNode curr = dummy;
+
+        // 核心循环：只要都不为空，就持续比对
+        while (list1 != null && list2 != null) {
+            if (list1.val <= list2.val) {
+                curr.next = list1;  // 接上较小的节点(list1)
+                list1 = list1.next; // list1 往后挪
+            } else {
+                curr.next = list2;  // 接上较小的节点(list2)
+                list2 = list2.next; // list2 往后挪
+            }
+            curr = curr.next; // 缝合工永远保持在合并链表的最后
+        }
+
+        // 循环跳出，必有一个 list 是 null。
+        // 将尚未遍历完的剩余链表直接挂到最后，O(1) 的开销。
+        curr.next = list1 == null ? list2 : list1;
+
+        // dummy 的下一个才是数据开头
+        return dummy.next;
+    }
+}`,
+
+        cpp: `// C++
+struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode() : val(0), next(nullptr) {}
+    ListNode(int x) : val(x), next(nullptr) {}
+    ListNode(int x, ListNode *next) : val(x), next(next) {}
+};
+
+class Solution {
+public:
+    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+        // 在栈上分配哑节点，无需手动释放内存，安全且高效
+        ListNode dummy(-1);
+        
+        // curr 指针遍历合并后的链表，初始指向 dummy
+        ListNode* curr = &dummy; 
+
+        // 同步遍历两个链表
+        while (list1 != nullptr && list2 != nullptr) {
+            if (list1->val <= list2->val) {
+                curr->next = list1; // 接 list1
+                list1 = list1->next;
+            } else {
+                curr->next = list2; // 否则接 list2
+                list2 = list2->next;
+            }
+            curr = curr->next; // curr 永远指向目前新链表的最后一个节点
+        }
+
+        // 把没有消耗完的那串节点直接拼接在 curr 后面
+        curr->next = list1 ? list1 : list2;
+
+        // dummy.next 是真实起始位置
+        return dummy.next;
+    }
+};`,
+
+        c: `// C
+#include <stddef.h>
+
+struct ListNode {
+    int val;
+    struct ListNode *next;
+};
+
+struct ListNode* mergeTwoLists(struct ListNode* list1, struct ListNode* list2) {
+    // C 语言中，同样利用局部栈变量创建 dummy node
+    struct ListNode dummy;
+    dummy.val = -1;
+    dummy.next = NULL;
+    
+    // 移动指针，用于拼接节点
+    struct ListNode* curr = &dummy; 
+
+    // 比较并原地合并
+    while (list1 != NULL && list2 != NULL) {
+        if (list1->val <= list2->val) {
+            curr->next = list1;
+            list1 = list1->next;
+        } else {
+            curr->next = list2;
+            list2 = list2->next;
+        }
+        curr = curr->next;
+    }
+
+    // 将剩下的非空节点整个拼接到新链表末尾
+    curr->next = list1 ? list1 : list2;
+
+    // 返回真实头指针
+    return dummy.next;
+}`
+      };
+
+      // Configuration and State
+      let params = {
+        seed: 12345,
+        speed: 1.0,
+        len1: 5,
+        len2: 4
+      };
+
+      // State machine logic
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let algorithmState = 0; 
+      // 0: Compare heads, 1: Append remaining
+
+      // Colors
+      const COL_L1 = '#6a9bcc';
+      const COL_L2 = '#788c5d';
+      const COL_DUMMY = '#b0aea5';
+
+      // Graph Data Structures
+      let nodesL1 = [];
+      let nodesL2 = [];
+      let nodesMerged = [];
+      
+      let ptr1 = 0;
+      let ptr2 = 0;
+
+      // Smooth pointer lerp variables
+      let dispL1X = 0, dispL1Y = 0;
+      let dispL2X = 0, dispL2Y = 0;
+      let dispCurrX = 0, dispCurrY = 0;
+
+      // Node Class
+      class UINode {
+        constructor(val, sx, sy, col, source) {
+          this.val = val;
+          this.x = sx;
+          this.y = sy;
+          this.targetX = sx;
+          this.targetY = sy;
+          this.color = col;
+          this.source = source; // 'dummy', 'list1', 'list2'
+        }
+        update(speed) {
+          this.x = lerp(this.x, this.targetX, 0.1 * speed);
+          this.y = lerp(this.y, this.targetY, 0.1 * speed);
+        }
+        draw() {
+          push();
+          translate(this.x, this.y);
+          fill(this.color);
+          stroke(40);
+          strokeWeight(1.5);
+          rectMode(CENTER);
+          rect(0, 0, 36, 36, 6); // Node box
+          
+          fill(255);
+          noStroke();
+          textAlign(CENTER, CENTER);
+          textSize(15);
+          text(this.source === 'dummy' ? 'D' : this.val, 0, 0);
+          pop();
+        }
+      }
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        algorithmState = 0;
+        ptr1 = 0;
+        ptr2 = 0;
+        nodesL1 = [];
+        nodesL2 = [];
+        nodesMerged = [];
+
+        // Generate Sorted Data
+        let rawL1 = [], rawL2 = [];
+        for(let i=0; i<params.len1; i++) rawL1.push(floor(random(1, 30)));
+        for(let i=0; i<params.len2; i++) rawL2.push(floor(random(1, 30)));
+        rawL1.sort((a,b)=>a-b);
+        rawL2.sort((a,b)=>a-b);
+
+        // Calculate layout
+        const START_X = 80;
+        const SPACING = 60;
+        const L1_Y = 80;
+        const L2_Y = 180;
+        const MERGE_Y = 320;
+
+        for(let i=0; i<rawL1.length; i++){
+          nodesL1.push(new UINode(rawL1[i], START_X + i * SPACING, L1_Y, COL_L1, 'list1'));
+        }
+        for(let i=0; i<rawL2.length; i++){
+          nodesL2.push(new UINode(rawL2[i], START_X + i * SPACING, L2_Y, COL_L2, 'list2'));
+        }
+
+        // Initialize Dummy Node
+        let dummy = new UINode(-1, START_X, MERGE_Y, COL_DUMMY, 'dummy');
+        nodesMerged.push(dummy);
+
+        // Reset pointer coordinates to initial node positions
+        if(nodesL1.length > 0) { dispL1X = nodesL1[0].x; dispL1Y = nodesL1[0].y; }
+        if(nodesL2.length > 0) { dispL2X = nodesL2[0].x; dispL2Y = nodesL2[0].y; }
+        dispCurrX = dummy.x; dispCurrY = dummy.y;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateUIViz();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg("✅ 初始化完成：已创建 Dummy 节点并将 curr 指针指向它。", true);
+      }
+
+      function draw() {
+        background('#fdfcf9');
+
+        // Logic stepping
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // Update node animations
+        for(let n of nodesL1) n.update(params.speed);
+        for(let n of nodesL2) n.update(params.speed);
+        for(let n of nodesMerged) n.update(params.speed); // Handled nodes go here
+
+        // Draw static connecting lines for unmerged lists
+        drawListArrows(nodesL1, ptr1, COL_L1);
+        drawListArrows(nodesL2, ptr2, COL_L2);
+        
+        // Draw Merged connections (following curr)
+        drawListArrows(nodesMerged, 0, '#aaa', true);
+
+        // Optional: draw line from current node to next target if animating
+        // ... handled implicitly by smooth position updates
+
+        // Draw all nodes
+        for(let n of nodesL1) if(!nodesMerged.includes(n)) n.draw();
+        for(let n of nodesL2) if(!nodesMerged.includes(n)) n.draw();
+        for(let n of nodesMerged) n.draw();
+
+        // ----------------------------------------------------
+        // Pointer Visualization & Lerping
+        // ----------------------------------------------------
+        const SPACING = 60;
+        const START_X = 80;
+        
+        // Target coordinates for labels
+        let tgL1X, tgL1Y, tgL2X, tgL2Y, tgCurrX, tgCurrY;
+
+        if (ptr1 < nodesL1.length) {
+          tgL1X = nodesL1[ptr1].x; tgL1Y = nodesL1[ptr1].y - 30;
+        } else {
+          tgL1X = START_X + ptr1 * SPACING; tgL1Y = 80 - 30;
+        }
+
+        if (ptr2 < nodesL2.length) {
+          tgL2X = nodesL2[ptr2].x; tgL2Y = nodesL2[ptr2].y - 30;
+        } else {
+          tgL2X = START_X + ptr2 * SPACING; tgL2Y = 180 - 30;
+        }
+
+        let currNode = nodesMerged[nodesMerged.length - 1];
+        tgCurrX = currNode.x; tgCurrY = currNode.y + 35; // curr below the node
+
+        // Apply Lerp
+        let amt = 0.15 * params.speed;
+        dispL1X = lerp(dispL1X, tgL1X, amt); dispL1Y = lerp(dispL1Y, tgL1Y, amt);
+        dispL2X = lerp(dispL2X, tgL2X, amt); dispL2Y = lerp(dispL2Y, tgL2Y, amt);
+        dispCurrX = lerp(dispCurrX, tgCurrX, amt); dispCurrY = lerp(dispCurrY, tgCurrY, amt);
+
+        // Draw floating labels
+        drawPointer(dispL1X, dispL1Y, "list1 ↓", COL_L1, ptr1 >= nodesL1.length);
+        drawPointer(dispL2X, dispL2Y, "list2 ↓", COL_L2, ptr2 >= nodesL2.length);
+        drawPointer(dispCurrX, dispCurrY, "↑ curr", '#d97757', false);
+      }
+
+      function performStep() {
+        if (algorithmState === 0) {
+          if (ptr1 < nodesL1.length && ptr2 < nodesL2.length) {
+            let n1 = nodesL1[ptr1];
+            let n2 = nodesL2[ptr2];
+            
+            if (n1.val <= n2.val) {
+              logMsg(`⚖️ 比较: ${n1.val} (list1) <= ${n2.val} (list2)。将 <b>list1 节点</b> 挂在 curr 后。`);
+              n1.targetX = 80 + nodesMerged.length * 60;
+              n1.targetY = 320;
+              nodesMerged.push(n1);
+              ptr1++;
+            } else {
+              logMsg(`⚖️ 比较: ${n1.val} (list1) > ${n2.val} (list2)。将 <b style="color:var(--anthropic-green)">list2 节点</b> 挂在 curr 后。`);
+              n2.targetX = 80 + nodesMerged.length * 60;
+              n2.targetY = 320;
+              nodesMerged.push(n2);
+              ptr2++;
+            }
+          } else {
+            algorithmState = 1;
+          }
+        } else if (algorithmState === 1) {
+          if (ptr1 < nodesL1.length || ptr2 < nodesL2.length) {
+            let remainStr = ptr1 < nodesL1.length ? 'list1' : 'list2';
+            logMsg(`🔌 有一条链表已遍历完。将剩余的 <b>${remainStr}</b> 直接一并挂接。`, true);
+            
+            // Move remaining
+            while (ptr1 < nodesL1.length) {
+              let n1 = nodesL1[ptr1];
+              n1.targetX = 80 + nodesMerged.length * 60;
+              n1.targetY = 320;
+              nodesMerged.push(n1);
+              ptr1++;
+            }
+            while (ptr2 < nodesL2.length) {
+              let n2 = nodesL2[ptr2];
+              n2.targetX = 80 + nodesMerged.length * 60;
+              n2.targetY = 320;
+              nodesMerged.push(n2);
+              ptr2++;
+            }
+          }
+          algorithmState = 2; // Finished
+        } else {
+          if(!isDone){
+            isDone = true;
+            logMsg("🏁 合并全部完成！返回 dummy.next 即可。", true);
+          }
+        }
+        updateUIViz();
+      }
+
+      function drawListArrows(arr, startIdx, col, isMerged=false) {
+        push();
+        stroke(col);
+        strokeWeight(2);
+        for(let i = startIdx; i < arr.length - 1; i++){
+          let n1 = arr[i];
+          let n2 = arr[i+1];
+          // Distance check to avoid drawing lines across screen when nodes are actively lerping far away
+          let d = dist(n1.x, n1.y, n2.x, n2.y);
+          if(d > 20 && d < 200) { 
+             let ang = atan2(n2.y - n1.y, n2.x - n1.x);
+             let off = 18; // node radius approx
+             let sx = n1.x + cos(ang)*off;
+             let sy = n1.y + sin(ang)*off;
+             let ex = n2.x - cos(ang)*off - 4; // 4 for arrowhead
+             let ey = n2.y - sin(ang)*off;
+             line(sx, sy, ex, ey);
+
+             // Arrowhead
+             push();
+             translate(ex, ey);
+             rotate(ang);
+             fill(col);
+             noStroke();
+             triangle(0, 0, -6, -4, -6, 4);
+             pop();
+          }
+        }
+        pop();
+      }
+
+      function drawPointer(x, y, label, col, isNull) {
+        push();
+        fill(col);
+        noStroke();
+        textSize(12);
+        textAlign(CENTER, CENTER);
+        textStyle(BOLD);
+        text(label, x, y);
+        if (isNull) {
+          fill(200);
+          textSize(11);
+          text("null", x, y + (label.includes("↑") ? -16 : 16));
+        }
+        pop();
+      }
+
+      // ==========================================================
+      // FIXED UTILITY FUNCTIONS
+      // ==========================================================
+
+      function updateUIViz() {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        nodesMerged.forEach((n) => {
+          let nodeDiv = document.createElement("div");
+          nodeDiv.className = `data-node ${n.source}`;
+          nodeDiv.innerText = n.source === 'dummy' ? 'D' : n.val;
+          container.appendChild(nodeDiv);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+        logMsg("🔄 随机化生成新场景并重置执行。", true);
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

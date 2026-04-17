@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>两两交换链表中的节点 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange);
+        border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { width: 22px; height: 22px; background: var(--anthropic-blue); color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: bold; }
+      .data-node.dummy { background: #b0aea5; }
+      
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>两两交换链表中的节点</h1>
+        <div class="subtitle">最优解演示工具 · 虚拟头节点与局部翻转</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="1024" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机场景</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>链表总长度 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="len" min="3" max="8" step="1" value="5" oninput="updateParam('len', this.value)" />
+              <span class="value-display" id="len-value">5</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 只要涉及到可能会修改链表真实“头节点”的问题，永远第一反应：创建一个 Dummy 节点指向 head。</div>
+            <div class="memo-tip">💡 每次交换不仅是两个节点的互换，还要将前驱节点 (prev) 指向交换后的新起始点。一共有 3 根线需要重连。</div>
+            <div class="memo-tip g">🔍 延伸洞察：这是“K个一组翻转链表”的特例 (K=2)。通过 prev.next 推进，状态机非常清晰。</div>
+            <div class="memo-tip w">⚠️ 常见死循环陷阱：交换完两个节点后，prev 指针一定要跨过这两个已交换的节点（即 <code>prev = node1</code>），否则会在同一对节点死循环。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区：物理位置置换与指针重连</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">当前逻辑链表顺序 (Logical State)</div>
+            <div id="data-nodes" class="data-array">
+              </div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def swapPairs(head: Optional[ListNode]) -> Optional[ListNode]:
+    # 万能钥匙：Dummy 节点
+    dummy = ListNode(0, head)
+    # prev 永远指向即将交换的两个节点的前驱节点
+    prev = dummy
+    
+    # 只要后面还有成对的节点，就继续循环
+    while prev.next and prev.next.next:
+        # 提取出需要交换的两个节点
+        node1 = prev.next
+        node2 = prev.next.next
+        
+        # 核心：三根线的断开与重接
+        # 1. 前驱指向第二个节点
+        prev.next = node2
+        # 2. 第一个节点指向第三个节点(或者空)
+        node1.next = node2.next
+        # 3. 第二个节点指回第一个节点，完成翻转
+        node2.next = node1
+        
+        # 将 prev 移动到下一对的前驱位置（即现阶段的 node1）
+        prev = node1
+        
+    return dummy.next`,
+
+        ts: `// TypeScript
+class ListNode {
+    val: number
+    next: ListNode | null
+    constructor(val?: number, next?: ListNode | null) {
+        this.val = (val===undefined ? 0 : val)
+        this.next = (next===undefined ? null : next)
+    }
+}
+
+function swapPairs(head: ListNode | null): ListNode | null {
+    // 哨兵节点，规避头节点变更的特殊处理
+    let dummy = new ListNode(0, head);
+    let prev = dummy;
+
+    while (prev.next !== null && prev.next.next !== null) {
+        let node1 = prev.next;
+        let node2 = prev.next.next;
+
+        // 执行指针交换（建议纸上画图）
+        prev.next = node2;
+        node1.next = node2.next;
+        node2.next = node1;
+
+        // prev 跳过已交换的两个节点
+        prev = node1; 
+    }
+
+    return dummy.next;
+}`,
+
+        java: `// Java
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode() {}
+    ListNode(int val) { this.val = val; }
+    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+}
+
+class Solution {
+    public ListNode swapPairs(ListNode head) {
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode prev = dummy;
+
+        // 必须保证还有两个节点能凑成一对
+        while (prev.next != null && prev.next.next != null) {
+            ListNode node1 = prev.next;
+            ListNode node2 = prev.next.next;
+
+            // 1. prev -> node2
+            prev.next = node2;
+            // 2. node1 -> node3
+            node1.next = node2.next;
+            // 3. node2 -> node1
+            node2.next = node1;
+
+            // 推进 prev
+            prev = node1;
+        }
+
+        return dummy.next;
+    }
+}`,
+
+        cpp: `// C++
+struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode() : val(0), next(nullptr) {}
+    ListNode(int x) : val(x), next(nullptr) {}
+    ListNode(int x, ListNode *next) : val(x), next(next) {}
+};
+
+class Solution {
+public:
+    ListNode* swapPairs(ListNode* head) {
+        // 在栈上分配哨兵节点
+        ListNode dummy(0);
+        dummy.next = head;
+        ListNode* prev = &dummy;
+
+        while (prev->next != nullptr && prev->next->next != nullptr) {
+            ListNode* node1 = prev->next;
+            ListNode* node2 = prev->next->next;
+
+            // 更改指向
+            prev->next = node2;
+            node1->next = node2->next;
+            node2->next = node1;
+
+            // 步进到下一组
+            prev = node1;
+        }
+
+        return dummy.next;
+    }
+};`,
+
+        c: `// C
+#include <stdlib.h>
+
+struct ListNode {
+    int val;
+    struct ListNode *next;
+};
+
+struct ListNode* swapPairs(struct ListNode* head) {
+    // 虚拟头节点
+    struct ListNode dummy;
+    dummy.val = 0;
+    dummy.next = head;
+    
+    struct ListNode* prev = &dummy;
+
+    while (prev->next != NULL && prev->next->next != NULL) {
+        struct ListNode* node1 = prev->next;
+        struct ListNode* node2 = prev->next->next;
+
+        // 三步换位
+        prev->next = node2;
+        node1->next = node2->next;
+        node2->next = node1;
+
+        // 步进
+        prev = node1;
+    }
+
+    return dummy.next;
+}`
+      };
+
+      let params = {
+        seed: 1024,
+        speed: 1.0,
+        len: 5
+      };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // Algorithm State Machine
+      // 0: Check pair and lift up
+      // 1: Swap X coordinates & pointers
+      // 2: Drop down & move prev
+      let algState = 0;
+
+      let nodes = [];
+      let ptrPrev = 0; // ID of the prev node (0 is dummy)
+      let n1Id = null;
+      let n2Id = null;
+
+      const C_DUMMY = '#b0aea5';
+      const C_NODE = '#6a9bcc';
+      const C_PREV = '#d97757';
+      const C_N1 = '#788c5d';
+      const C_N2 = '#e8a838';
+
+      let dispPrevX = 0, dispPrevY = 0;
+      let dispN1X = 0, dispN1Y = 0;
+      let dispN2X = 0, dispN2Y = 0;
+
+      class UINode {
+        constructor(id, val, x, y, col, isDummy = false) {
+          this.id = id;
+          this.val = val;
+          this.x = x;
+          this.y = y;
+          this.targetX = x;
+          this.targetY = y;
+          this.color = col;
+          this.isDummy = isDummy;
+          this.nextId = null; // Represents actual pointer linkage
+        }
+        update(speed) {
+          this.x = lerp(this.x, this.targetX, 0.15 * speed);
+          this.y = lerp(this.y, this.targetY, 0.15 * speed);
+        }
+        draw() {
+          push();
+          translate(this.x, this.y);
+          fill(this.color);
+          stroke(40);
+          strokeWeight(1.5);
+          rectMode(CENTER);
+          rect(0, 0, 42, 42, 8);
+          
+          fill(255);
+          noStroke();
+          textAlign(CENTER, CENTER);
+          textSize(18);
+          text(this.isDummy ? 'D' : this.val, 0, 0);
+          pop();
+        }
+      }
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        algState = 0;
+        ptrPrev = 0;
+        n1Id = null;
+        n2Id = null;
+        nodes = [];
+        
+        const START_X = 60;
+        const SPACING = 65;
+        const Y_POS = 160;
+
+        // Dummy Node
+        let dNode = new UINode(0, 0, START_X, Y_POS, C_DUMMY, true);
+        dNode.nextId = 1; // dummy points to first node
+        nodes.push(dNode);
+        
+        // Data Nodes
+        for(let i=0; i<params.len; i++) {
+            let n = new UINode(i+1, floor(random(10, 99)), START_X + (i+1) * SPACING, Y_POS, C_NODE);
+            if (i < params.len - 1) n.nextId = i + 2;
+            nodes.push(n);
+        }
+
+        dispPrevX = nodes[0].x; dispPrevY = nodes[0].y + 45;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateDataUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg("✅ 初始化：已创建 Dummy 节点并将 prev 指针起步于此。", true);
+      }
+
+      function draw() {
+        background('#fdfcf9');
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        for (let n of nodes) n.update(params.speed);
+
+        drawConnections();
+
+        for (let n of nodes) n.draw();
+
+        // Pointers Lerp & Draw
+        let tPrevX = nodes[ptrPrev].x; let tPrevY = nodes[ptrPrev].y + 45;
+        dispPrevX = lerp(dispPrevX, tPrevX, 0.15 * params.speed);
+        dispPrevY = lerp(dispPrevY, tPrevY, 0.15 * params.speed);
+        drawPointer(dispPrevX, dispPrevY, "↑ prev", C_PREV);
+
+        if (algState > 0 && n1Id !== null && n2Id !== null) {
+            let tN1X = nodes[n1Id].x; let tN1Y = nodes[n1Id].y - 45;
+            let tN2X = nodes[n2Id].x; let tN2Y = nodes[n2Id].y - 45;
+            
+            if (algState === 1 && p5Timer < 0.1) {
+                // Instantly snap to target on step 1 init
+                dispN1X = tN1X; dispN1Y = tN1Y;
+                dispN2X = tN2X; dispN2Y = tN2Y;
+            } else {
+                dispN1X = lerp(dispN1X, tN1X, 0.2 * params.speed);
+                dispN1Y = lerp(dispN1Y, tN1Y, 0.2 * params.speed);
+                dispN2X = lerp(dispN2X, tN2X, 0.2 * params.speed);
+                dispN2Y = lerp(dispN2Y, tN2Y, 0.2 * params.speed);
+            }
+            
+            drawPointer(dispN1X, dispN1Y, "node1 ↓", C_N1);
+            drawPointer(dispN2X, dispN2Y, "node2 ↓", C_N2);
+        }
+      }
+
+      function performStep() {
+          if (algState === 0) {
+              n1Id = nodes[ptrPrev].nextId;
+              n2Id = n1Id !== null ? nodes[n1Id].nextId : null;
+
+              if (n1Id !== null && n2Id !== null) {
+                  logMsg(`🔍 锁定可交换对：node1=<b>${nodes[n1Id].val}</b>，node2=<b>${nodes[n2Id].val}</b>。准备进行物理翻转。`);
+                  // Step 1: Lift nodes to show animation clearly
+                  nodes[n1Id].targetY -= 35;
+                  nodes[n2Id].targetY += 35;
+                  algState = 1;
+              } else {
+                  isDone = true;
+                  n1Id = null; n2Id = null;
+                  logMsg("🏁 剩余节点不足一对，停止循环。合并结束！返回 dummy.next 即可。", true);
+              }
+          } else if (algState === 1) {
+              // Swap X positions physically
+              let tmpX = nodes[n1Id].targetX;
+              nodes[n1Id].targetX = nodes[n2Id].targetX;
+              nodes[n2Id].targetX = tmpX;
+
+              // Logical Pointer Swaps
+              nodes[ptrPrev].nextId = n2Id;
+              nodes[n1Id].nextId = nodes[n2Id].nextId;
+              nodes[n2Id].nextId = n1Id;
+
+              logMsg(`✂️ 调整三根指针：<br>1. prev.next 指向 node2 (<b>${nodes[n2Id].val}</b>)<br>2. node1.next 指向原 node2 的后继<br>3. node2.next 指回 node1 (<b>${nodes[n1Id].val}</b>)`, true);
+              updateDataUI(); // Visually update the logical bottom array immediately after connection
+              algState = 2;
+          } else if (algState === 2) {
+              // Restore Y and move prev
+              nodes[n1Id].targetY += 35;
+              nodes[n2Id].targetY -= 35;
+              
+              logMsg(`➡️ 将 prev 推进到已翻转对的末尾节点(即原 node1 <b>${nodes[n1Id].val}</b>)。准备下一轮。`);
+              ptrPrev = n1Id; // Node 1 is now logically the second node in the pair
+              
+              algState = 0;
+          }
+      }
+
+      function drawConnections() {
+        push();
+        // Traverse logically using nextId
+        let curr = 0;
+        while (curr !== null) {
+            let nxt = nodes[curr].nextId;
+            if (nxt !== null) {
+                let n1 = nodes[curr];
+                let n2 = nodes[nxt];
+                
+                let distY = abs(n1.y - n2.y);
+                stroke('#ccc');
+                strokeWeight(2);
+                
+                // If they are physically separated vertically (animating), draw a clean bezier
+                if (distY > 10) {
+                    noFill();
+                    let cx1 = n1.x + 25;
+                    let cy1 = n1.y;
+                    let cx2 = n2.x - 25;
+                    let cy2 = n2.y;
+                    
+                    bezier(cx1, cy1, cx1 + 30, cy1, cx2 - 30, cy2, cx2, cy2);
+                    
+                    fill('#ccc');
+                    noStroke();
+                    push();
+                    translate(cx2, cy2);
+                    let ang = atan2(cy2 - cy2, cx2 - (cx2 - 5)); // Roughly points right
+                    rotate(ang);
+                    triangle(0, 0, -6, -4, -6, 4);
+                    pop();
+                } else {
+                    // Normal straight line
+                    let startX = n1.x + 22;
+                    let endX = n2.x - 26; // Arrow head buffer
+                    
+                    if (startX < endX) { // Normal left to right
+                        line(startX, n1.y, endX, n2.y);
+                        push();
+                        translate(endX, n2.y);
+                        fill('#ccc');
+                        noStroke();
+                        triangle(0, 0, -6, -4, -6, 4);
+                        pop();
+                    } else if (startX > endX + 10) { 
+                        // Rare crossover (animating physical swap but logic has updated)
+                        line(startX, n1.y, endX, n2.y);
+                    }
+                }
+            }
+            curr = nxt;
+        }
+        pop();
+      }
+
+      function drawPointer(x, y, textLabel, col) {
+        push();
+        fill(col);
+        noStroke();
+        textSize(12);
+        textAlign(CENTER, CENTER);
+        textStyle(BOLD);
+        text(textLabel, x, y);
+        pop();
+      }
+
+      function updateDataUI() {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        
+        let curr = nodes[0].nextId; // Skip Dummy
+        while(curr !== null) {
+            let nodeDiv = document.createElement("div");
+            nodeDiv.className = `data-node`;
+            nodeDiv.innerText = nodes[curr].val;
+            container.appendChild(nodeDiv);
+            curr = nodes[curr].nextId;
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 1024;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+        logMsg("🔄 随机化生成新链表结构并重置。", true);
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>
