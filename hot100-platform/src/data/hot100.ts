@@ -2,6 +2,8 @@
 // Hot 100 完整题目元数据
 // ============================================================
 
+import { tr } from "element-plus/es/locale/index.mjs"
+
 export type Difficulty = 'Easy' | 'Medium' | 'Hard'
 
 export type Category =
@@ -71,10 +73,11 @@ export const HOT100: Problem[] = [
   { id: 2, slug: '002_add_numbers', title: '两数相加', titleEn: 'Add Two Numbers', category: '链表', difficulty: 'Medium', tags: ['链表', '递归'], hasVisualization: true },
   { id: 19, slug: '019_remove_nth', title: '删除链表的倒数第 N 个结点', titleEn: 'Remove Nth Node From End of List', category: '链表', difficulty: 'Medium', tags: ['链表', '双指针'], hasVisualization: true },
   { id: 24, slug: '024_swap_pairs', title: '两两交换链表中的节点', titleEn: 'Swap Nodes in Pairs', category: '链表', difficulty: 'Medium', tags: ['链表', '递归'], hasVisualization: true },
-  { id: 25, slug: '025_reverse_k_group', title: 'K 个一组翻转链表', titleEn: 'Reverse Nodes in k-Group', category: '链表', difficulty: 'Hard', tags: ['链表', '递归'], hasVisualization: false },
-  { id: 148, slug: '148_sort_list', title: '排序链表', titleEn: 'Sort List', category: '链表', difficulty: 'Medium', tags: ['链表', '分治', '排序'], hasVisualization: false },
-  { id: 23, slug: '023_merge_k_lists', title: '合并 K 个升序链表', titleEn: 'Merge K Sorted Lists', category: '链表', difficulty: 'Hard', tags: ['链表', '分治', '堆'], hasVisualization: false },
-  // TODO:138 随机链表的复制，146 LRU缓存
+  { id: 25, slug: '025_reverse_k_group', title: 'K 个一组翻转链表', titleEn: 'Reverse Nodes in k-Group', category: '链表', difficulty: 'Hard', tags: ['链表', '递归'], hasVisualization: true },
+  { id: 138, slug: '138_random_copy_list', title: '随机链表的复制', titleEn: 'Copy List with Random Pointer', category: '链表', difficulty: 'Medium', tags: ['链表', '哈希表'], hasVisualization: true },
+  { id: 148, slug: '148_sort_list', title: '排序链表', titleEn: 'Sort List', category: '链表', difficulty: 'Medium', tags: ['链表', '分治', '排序'], hasVisualization: true },
+  { id: 23, slug: '023_merge_k_lists', title: '合并 K 个升序链表', titleEn: 'Merge K Sorted Lists', category: '链表', difficulty: 'Hard', tags: ['链表', '分治', '堆'], hasVisualization: true },
+  { id: 146, slug: '146_lru_cache', title: 'LRU 缓存', titleEn: 'LRU Cache', category: '链表', difficulty: 'Medium', tags: ['链表', '哈希表'], hasVisualization: false },
 
   // ── 二叉树 ──────────────────────────────────────────────────
   { id: 94, slug: '094_inorder_traversal', title: '二叉树的中序遍历', titleEn: 'Binary Tree Inorder Traversal', category: '二叉树', difficulty: 'Easy', tags: ['栈', '树', '深度优先'], hasVisualization: false },

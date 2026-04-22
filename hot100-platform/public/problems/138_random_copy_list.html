@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>复制带随机指针的链表 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange);
+        border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>复制带随机指针的链表</h1>
+        <div class="subtitle">最优解演示工具 · 节点缝合与剥离 (O(1)空间)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="138" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机场景</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>节点数量 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="len" min="3" max="6" step="1" value="4" oninput="updateParam('len', this.value)" />
+              <span class="value-display" id="len-value">4</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心思想：不用哈希表存映射关系，而是让新克隆的节点直接做原节点的“跟屁虫”（插入在原节点之后）。</div>
+            <div class="memo-tip">💡 第一步：节点复制并交织缝合 `A -> A' -> B -> B'`。</div>
+            <div class="memo-tip">💡 第二步：由于跟屁虫机制，`A'.random` 一定等于 `A.random.next` (即原随机节点的新分身)。</div>
+            <div class="memo-tip w">⚠️ 绝命陷阱：第三步分离链表时，切记要**原样恢复原始链表的 next 指针**！否则会修改输入数据，导致判题平台报错（或在工程中引发诡异 Bug）。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区：深克隆三步曲</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+class Node:
+    def __init__(self, x: int, next: 'Node' = None, random: 'Node' = None):
+        self.val = int(x)
+        self.next = next
+        self.random = random
+
+def copyRandomList(head: 'Optional[Node]') -> 'Optional[Node]':
+    if not head: return None
+
+    # 第一步：克隆节点，并将克隆节点插在原节点后面
+    # 例如 A -> B 变成 A -> A' -> B -> B'
+    curr = head
+    while curr:
+        clone = Node(curr.val, curr.next)
+        curr.next = clone
+        curr = clone.next
+        
+    # 第二步：更新克隆节点的 random 指针
+    # 因为 A' 是 A.next，所以 A'.random 应该是 A.random.next
+    curr = head
+    while curr:
+        if curr.random:
+            curr.next.random = curr.random.next
+        curr = curr.next.next
+        
+    # 第三步：将链表拆分成原链表和克隆链表
+    # 必须恢复原链表，否则破坏入参结构
+    curr = head
+    clone_head = head.next
+    while curr:
+        clone = curr.next
+        curr.next = clone.next
+        clone.next = clone.next.next if clone.next else None
+        curr = curr.next
+        
+    return clone_head`,
+
+        ts: `// TypeScript
+class _Node {
+    val: number
+    next: _Node | null
+    random: _Node | null
+    constructor(val?: number, next?: _Node, random?: _Node) {
+        this.val = (val===undefined ? 0 : val)
+        this.next = (next===undefined ? null : next)
+        this.random = (random===undefined ? null : random)
+    }
+}
+
+function copyRandomList(head: _Node | null): _Node | null {
+    if (!head) return null;
+
+    // 1. 交织缝合：创建分身并跟在本体之后
+    let curr: _Node | null = head;
+    while (curr) {
+        let clone = new _Node(curr.val, curr.next);
+        curr.next = clone;
+        curr = clone.next;
+    }
+
+    // 2. 指派随机指针
+    curr = head;
+    while (curr) {
+        if (curr.random) {
+            // 本体的 random 的分身，必然跟在本体 random 的后面
+            curr.next!.random = curr.random.next; 
+        }
+        curr = curr.next!.next;
+    }
+
+    // 3. 完美剥离：拆分本体与分身
+    curr = head;
+    let cloneHead = head.next;
+    while (curr) {
+        let clone = curr.next!;
+        curr.next = clone.next;
+        clone.next = clone.next ? clone.next.next : null;
+        curr = curr.next;
+    }
+
+    return cloneHead;
+}`,
+
+        java: `// Java
+class Node {
+    int val;
+    Node next;
+    Node random;
+    public Node(int val) {
+        this.val = val;
+        this.next = null;
+        this.random = null;
+    }
+}
+
+class Solution {
+    public Node copyRandomList(Node head) {
+        if (head == null) return null;
+
+        // Phase 1: 将克隆节点插在原节点背后
+        Node curr = head;
+        while (curr != null) {
+            Node clone = new Node(curr.val);
+            clone.next = curr.next;
+            curr.next = clone;
+            curr = clone.next;
+        }
+
+        // Phase 2: 赋予克隆节点对应的 random 指针
+        curr = head;
+        while (curr != null) {
+            if (curr.random != null) {
+                // A'.random = A.random.next
+                curr.next.random = curr.random.next;
+            }
+            curr = curr.next.next;
+        }
+
+        // Phase 3: 断开交织，提取克隆链表，并恢复原链表
+        curr = head;
+        Node cloneHead = head.next;
+        while (curr != null) {
+            Node clone = curr.next;
+            curr.next = clone.next;
+            if (clone.next != null) {
+                clone.next = clone.next.next;
+            }
+            curr = curr.next;
+        }
+
+        return cloneHead;
+    }
+}`,
+
+        cpp: `// C++
+class Node {
+public:
+    int val;
+    Node* next;
+    Node* random;
+    Node(int _val) {
+        val = _val;
+        next = NULL;
+        random = NULL;
+    }
+};
+
+class Solution {
+public:
+    Node* copyRandomList(Node* head) {
+        if (!head) return nullptr;
+
+        // 步骤 1：复制每一个节点并插在原节点后面
+        Node* curr = head;
+        while (curr) {
+            Node* clone = new Node(curr->val);
+            clone->next = curr->next;
+            curr->next = clone;
+            curr = clone->next;
+        }
+
+        // 步骤 2：为克隆节点设置 random 指针
+        curr = head;
+        while (curr) {
+            if (curr->random) {
+                curr->next->random = curr->random->next;
+            }
+            curr = curr->next->next;
+        }
+
+        // 步骤 3：解除绑定，分成两个链表
+        curr = head;
+        Node* cloneHead = head->next;
+        while (curr) {
+            Node* clone = curr->next;
+            curr->next = clone->next;
+            if (clone->next) {
+                clone->next = clone->next->next;
+            }
+            curr = curr->next; // 继续向后步进
+        }
+
+        return cloneHead;
+    }
+};`,
+
+        c: `// C
+#include <stdlib.h>
+
+struct Node {
+    int val;
+    struct Node *next;
+    struct Node *random;
+};
+
+struct Node* copyRandomList(struct Node* head) {
+    if (!head) return NULL;
+
+    // 1. 克隆节点交替连接
+    struct Node* curr = head;
+    while (curr) {
+        struct Node* clone = (struct Node*)malloc(sizeof(struct Node));
+        clone->val = curr->val;
+        clone->random = NULL;
+        clone->next = curr->next;
+        curr->next = clone;
+        curr = clone->next;
+    }
+
+    // 2. 指向克隆的随机节点
+    curr = head;
+    while (curr) {
+        if (curr->random) {
+            curr->next->random = curr->random->next;
+        }
+        curr = curr->next->next;
+    }
+
+    // 3. 还原主链表，摘取分身链表
+    curr = head;
+    struct Node* cloneHead = head->next;
+    while (curr) {
+        struct Node* clone = curr->next;
+        curr->next = clone->next;
+        if (clone->next) {
+            clone->next = clone->next->next;
+        }
+        curr = curr->next;
+    }
+
+    return cloneHead;
+}`
+      };
+
+      let params = {
+        seed: 138,
+        speed: 1.0,
+        len: 4
+      };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // Machine States
+      // 0: Initial
+      // 1: Interweaving (insert copies)
+      // 2: Copying Randoms
+      // 3: Splitting
+      let algPhase = 1;
+      let ptr = 0; 
+      
+      let nodes = []; 
+      
+      const C_ORIG = '#6a9bcc'; // Anthropic Blue
+      const C_COPY = '#d97757'; // Anthropic Orange
+      const C_CURR = '#788c5d'; // Green for current pointer
+
+      let dispCurrX = 0, dispCurrY = 0;
+      
+      class UINode {
+        constructor(id, val, isCopy, x, y) {
+          this.id = id;
+          this.val = val;
+          this.isCopy = isCopy;
+          this.x = x;
+          this.y = y;
+          this.targetX = x;
+          this.targetY = y;
+          this.randomTargetId = null; 
+        }
+        update(speed) {
+          this.x = lerp(this.x, this.targetX, 0.15 * speed);
+          this.y = lerp(this.y, this.targetY, 0.15 * speed);
+        }
+        draw() {
+          push();
+          translate(this.x, this.y);
+          fill(this.isCopy ? C_COPY : C_ORIG);
+          stroke(40);
+          strokeWeight(1.5);
+          rectMode(CENTER);
+          rect(0, 0, 38, 38, 8);
+          
+          fill(255);
+          noStroke();
+          textAlign(CENTER, CENTER);
+          textSize(15);
+          text(this.val + (this.isCopy ? "'" : ""), 0, 0);
+          pop();
+        }
+      }
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        algPhase = 1;
+        ptr = 0;
+        nodes = [];
+        
+        const START_X = 60;
+        // initial spacing wide enough so we can insert copies later
+        const SPACING = 120; 
+        const Y_POS = 150;
+
+        for(let i=0; i<params.len; i++) {
+            let n = new UINode(i, floor(random(10, 99)), false, START_X + i * SPACING, Y_POS);
+            nodes.push(n);
+        }
+        
+        // Setup random pointers for original list
+        for(let i=0; i<params.len; i++) {
+            if (random() > 0.2) { // 80% chance to have a random pointer
+                nodes[i].randomTargetId = floor(random(0, params.len));
+            }
+        }
+
+        dispCurrX = nodes[0].x; dispCurrY = nodes[0].y + 45;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        document.getElementById("log-container").innerHTML = "";
+        logMsg("✅ 初始化原始链表。存在蓝色的 `next` 和曲线 `random` 指针。", true);
+        logMsg("========== 阶段 1：交织缝合 ==========", false);
+      }
+
+      function draw() {
+        background('#fdfcf9');
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        for (let n of nodes) n.update(params.speed);
+
+        drawRandomConnections();
+        drawNextConnections();
+
+        for (let n of nodes) n.draw();
+
+        // Pointers Lerp & Draw
+        if (!isDone && ptr < nodes.length) {
+            let targetNode = nodes[ptr];
+            dispCurrX = lerp(dispCurrX, targetNode.x, 0.15 * params.speed);
+            dispCurrY = lerp(dispCurrY, targetNode.y + 45, 0.15 * params.speed);
+            drawPointer(dispCurrX, dispCurrY, "↑ curr", C_CURR);
+        }
+      }
+
+      function performStep() {
+          if (algPhase === 1) {
+              // Interweave Phase
+              if (ptr < nodes.length) {
+                  let origNode = nodes[ptr];
+                  
+                  // Shift all subsequent nodes right to make room
+                  for (let i = ptr + 1; i < nodes.length; i++) {
+                      nodes[i].targetX += 60; 
+                  }
+                  
+                  // Insert Clone
+                  let clone = new UINode(nodes.length, origNode.val, true, origNode.targetX, origNode.targetY - 50); // drop in from top
+                  clone.targetX = origNode.targetX + 60;
+                  clone.targetY = origNode.targetY;
+                  
+                  // Splice logic in array (A, B, C -> A, A', B, C)
+                  nodes.splice(ptr + 1, 0, clone);
+                  
+                  logMsg(`🧵 缝合克隆：创建 <b style="color:var(--anthropic-orange)">节点 ${clone.val}'</b>，紧跟在原节点 ${origNode.val} 之后。`);
+                  
+                  ptr += 2; // Jump over the newly inserted clone
+              } else {
+                  algPhase = 2;
+                  ptr = 0;
+                  logMsg("========== 阶段 2：拷贝随机指针 ==========", true);
+              }
+          } else if (algPhase === 2) {
+              if (ptr < nodes.length) {
+                  let origNode = nodes[ptr];
+                  let cloneNode = nodes[ptr+1];
+                  
+                  if (origNode.randomTargetId !== null) {
+                      // Find the actual object reference in the new interweaved array
+                      // The original random target is another blue node.
+                      // Its clone is immediately after it (+1 index).
+                      // However, finding the index in the CURRENT spliced array requires scanning or mapping.
+                      let targetIndexInCurrentArray = -1;
+                      for(let i=0; i<nodes.length; i+=2) {
+                          if (nodes[i].id === origNode.randomTargetId) {
+                              targetIndexInCurrentArray = i;
+                              break;
+                          }
+                      }
+                      
+                      if (targetIndexInCurrentArray !== -1) {
+                          cloneNode.randomTargetId = nodes[targetIndexInCurrentArray + 1].id;
+                          logMsg(`🔀 拷贝 Random：节点 ${origNode.val} 指向原 ${nodes[targetIndexInCurrentArray].val}。因此 <b style="color:var(--anthropic-orange)">${cloneNode.val}'</b> 指向新 <b style="color:var(--anthropic-orange)">${nodes[targetIndexInCurrentArray+1].val}'</b>。`);
+                      }
+                  } else {
+                      logMsg(`⏭️ 节点 ${origNode.val} 的 Random 为空，跳过。`);
+                  }
+                  
+                  ptr += 2;
+              } else {
+                  algPhase = 3;
+                  ptr = 0;
+                  logMsg("========== 阶段 3：剥离还原 ==========", true);
+              }
+          } else if (algPhase === 3) {
+              if (ptr < nodes.length) {
+                  // In phase 3, we visually move clones down to form a separate list
+                  let origNode = nodes[ptr];
+                  let cloneNode = nodes[ptr+1];
+                  
+                  cloneNode.targetY += 120; // Drop down
+                  
+                  logMsg(`✂️ 提取分离：剥离 <b style="color:var(--anthropic-orange)">节点 ${cloneNode.val}'</b>，恢复原节点 ${origNode.val} 的 next 指针。`);
+                  ptr += 2;
+              } else {
+                  // After all are dropped, we can optionally align them horizontally.
+                  // For a cleaner look, just finish.
+                  isDone = true;
+                  logMsg("🏁 深克隆彻底完成！成功分离出独立的新链表，原链表无损。", true);
+              }
+          }
+      }
+
+      function drawNextConnections() {
+        push();
+        stroke('#ccc');
+        strokeWeight(2);
+        
+        if (algPhase === 1 || algPhase === 2) {
+            // Draw interweaved connections
+            for(let i=0; i<nodes.length-1; i++) {
+                drawStraightArrow(nodes[i], nodes[i+1]);
+            }
+        } else if (algPhase === 3) {
+            // During and after phase 3, we logic-wise have two lists
+            // Original: 0 -> 2 -> 4 -> 6...
+            // Clone: 1 -> 3 -> 5 -> 7...
+            for(let i=0; i<nodes.length; i+=2) {
+                if (i+2 < nodes.length) {
+                    drawStraightArrow(nodes[i], nodes[i+2]); // Original to Original
+                    drawStraightArrow(nodes[i+1], nodes[i+3]); // Clone to Clone
+                }
+            }
+        }
+        pop();
+      }
+      
+      function drawStraightArrow(n1, n2) {
+          // Only draw if they are somewhat stable in Y (don't draw messy crossed lines during split)
+          if (abs(n1.y - n2.y) < 20 && abs(n1.x - n2.x) > 30) {
+              let startX = n1.x + 20;
+              let endX = n2.x - 24; 
+              line(startX, n1.y, endX, n2.y);
+              push();
+              translate(endX, n2.y);
+              fill('#ccc');
+              noStroke();
+              triangle(0, 0, -6, -4, -6, 4);
+              pop();
+          }
+      }
+
+      function drawRandomConnections() {
+        push();
+        strokeWeight(1.5);
+        noFill();
+        
+        for(let i=0; i<nodes.length; i++) {
+            let n1 = nodes[i];
+            if (n1.randomTargetId !== null) {
+                // Find n2
+                let n2 = nodes.find(n => n.id === n1.randomTargetId);
+                if (!n2) continue;
+                
+                let isOrig = !n1.isCopy;
+                stroke(isOrig ? C_ORIG : C_COPY);
+                
+                // Opacity logic: if we are in phase 3, fade original randoms to emphasize split? 
+                // Let's just draw them.
+                
+                // Draw bezier
+                let dir = isOrig ? -1 : 1; // Orig curves up, Copy curves down
+                if (algPhase === 3 && n1.isCopy) {
+                    // if split, curve down from the lower list
+                    dir = 1; 
+                }
+
+                if (n1 === n2) {
+                    // Self loop
+                    bezier(n1.x + 10, n1.y + dir*20, n1.x + 30, n1.y + dir*60, n1.x - 30, n1.y + dir*60, n1.x - 10, n1.y + dir*20);
+                    // Arrow head
+                    push();
+                    fill(isOrig ? C_ORIG : C_COPY);
+                    noStroke();
+                    translate(n1.x - 10, n1.y + dir*20);
+                    let ang = atan2(-dir*20 - (-dir*60), -10 - (-30));
+                    rotate(ang);
+                    triangle(0, 0, -5, dir*5, -5, -dir*5);
+                    pop();
+                } else {
+                    let cx1 = n1.x;
+                    let cy1 = n1.y + dir*20;
+                    let cx2 = n2.x;
+                    let cy2 = n2.y + dir*20;
+                    
+                    let dist = abs(cx1 - cx2);
+                    let heightOff = dir * min(80, dist / 2 + 20);
+                    
+                    bezier(cx1, cy1, cx1, cy1 + heightOff, cx2, cy2 + heightOff, cx2, cy2);
+                    
+                    // Arrow head
+                    push();
+                    fill(isOrig ? C_ORIG : C_COPY);
+                    noStroke();
+                    translate(cx2, cy2);
+                    // Rough tangent calculation
+                    let ang = atan2(cy2 - (cy2 + heightOff), cx2 - cx2); 
+                    rotate(ang);
+                    if (dir < 0) { // UP
+                        triangle(0, 0, -4, 6, 4, 6);
+                    } else { // DOWN
+                        triangle(0, 0, -4, -6, 4, -6);
+                    }
+                    pop();
+                }
+            }
+        }
+        pop();
+      }
+
+      function drawPointer(x, y, textLabel, col) {
+        push();
+        fill(col);
+        stroke(col);
+        strokeWeight(2);
+        
+        let isUp = textLabel.includes("↑");
+        let isDown = textLabel.includes("↓");
+        let cleanText = textLabel.replace("↑", "").replace("↓", "").trim();
+        
+        if (isUp) {
+            line(x, y - 4, x, y - 16);
+            push();
+            translate(x, y - 16);
+            noStroke();
+            triangle(0, 0, -4, 5, 4, 5);
+            pop();
+            noStroke();
+            textSize(12);
+            textAlign(CENTER, CENTER);
+            textStyle(BOLD);
+            text(cleanText, x, y + 6);
+        } else if (isDown) {
+            line(x, y + 4, x, y + 16);
+            push();
+            translate(x, y + 16);
+            noStroke();
+            triangle(0, 0, -4, -5, 4, -5);
+            pop();
+            noStroke();
+            textSize(12);
+            textAlign(CENTER, CENTER);
+            textStyle(BOLD);
+            text(cleanText, x, y - 6);
+        } else {
+            noStroke();
+            textSize(12);
+            textAlign(CENTER, CENTER);
+            textStyle(BOLD);
+            text(textLabel, x, y);
+        }
+        pop();
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 138;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

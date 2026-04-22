@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>K 个一组翻转链表 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange);
+        border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { width: 22px; height: 22px; background: var(--anthropic-blue); color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: bold; }
+      .data-node.dummy { background: #b0aea5; }
+      
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>K 个一组翻转链表</h1>
+        <div class="subtitle">最优解演示工具 · 探路探测与组内逆序</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="999" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机场景</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>分组大小 (K)</label>
+            <div class="slider-container">
+              <input type="range" id="kVal" min="2" max="5" step="1" value="3" oninput="updateParam('kVal', this.value)" />
+              <span class="value-display" id="kVal-value">3</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>链表总长度 (L)</label>
+            <div class="slider-container">
+              <input type="range" id="len" min="4" max="12" step="1" value="8" oninput="updateParam('len', this.value)" />
+              <span class="value-display" id="len-value">8</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心流：探测K个节点 → 确认足够 → 断开并组内翻转 → 接入主链表 → 移动前驱指针。</div>
+            <div class="memo-tip">💡 依然必须使用 Dummy 节点，因为如果 K >= 2，原始的首节点一定会发生变化。</div>
+            <div class="memo-tip g">🔍 组内翻转逻辑就是基础的“反转链表”，只需限定反转次数为 K 次即可。</div>
+            <div class="memo-tip w">⚠️ 绝命陷阱：翻转完成后，原先组内的“头节点”变成了“尾节点”。必须将前驱(prevGroup)连接到新的头，将新的尾连接到下一组的头！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区：滑动窗口探路与区块倒置</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">当前逻辑链表顺序 (Logical State)</div>
+            <div id="data-nodes" class="data-array">
+              </div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def reverseKGroup(head: Optional[ListNode], k: int) -> Optional[ListNode]:
+    dummy = ListNode(0, head)
+    prevGroup = dummy # 始终指向上一组翻转后的最后一个节点
+    
+    while True:
+        # 1. 探路指针(kth)出发，检查剩余节点是否满足 k 个
+        kth = prevGroup
+        for _ in range(k):
+            kth = kth.next
+            if not kth: break
+            
+        # 如果不满 k 个，直接跳出循环，剩余部分不翻转
+        if not kth:
+            break
+            
+        # 2. 准备翻转组内链表
+        nextGroupHead = kth.next # 暂存下一组的开头
+        
+        # 标准链表翻转模板 (仅翻转 k 次)
+        prev = nextGroupHead
+        curr = prevGroup.next
+        for _ in range(k):
+            nxt = curr.next
+            curr.next = prev
+            prev = curr
+            curr = nxt
+            
+        # 3. 重新缝合翻转后的组与主链表
+        # 注意：此时 prevGroup.next 仍指向原组的头（即翻转后的尾）
+        oldStart = prevGroup.next 
+        # 将上一组的尾巴，接上翻转后的新头（即 kth）
+        prevGroup.next = kth 
+        
+        # 4. 将 prevGroup 推进到当前组的尾部，为下一轮做准备
+        prevGroup = oldStart
+        
+    return dummy.next`,
+
+        ts: `// TypeScript
+class ListNode {
+    val: number
+    next: ListNode | null
+    constructor(val?: number, next?: ListNode | null) {
+        this.val = (val===undefined ? 0 : val)
+        this.next = (next===undefined ? null : next)
+    }
+}
+
+function reverseKGroup(head: ListNode | null, k: number): ListNode | null {
+    let dummy = new ListNode(0, head);
+    let prevGroup = dummy;
+
+    while (true) {
+        // 探路，看是否有 k 个节点
+        let kth: ListNode | null = prevGroup;
+        for (let i = 0; i < k; i++) {
+            kth = kth.next;
+            if (kth === null) break;
+        }
+        if (kth === null) break; // 不足 k 个，结束
+
+        let nextGroupHead = kth.next; // 记录断点
+        
+        // 组内翻转
+        let prev: ListNode | null = nextGroupHead;
+        let curr: ListNode | null = prevGroup.next;
+        for (let i = 0; i < k; i++) {
+            let nxt = curr!.next;
+            curr!.next = prev;
+            prev = curr;
+            curr = nxt;
+        }
+
+        // 拼接断点
+        let oldStart = prevGroup.next;
+        prevGroup.next = kth; // kth 是翻转后的新头部
+        prevGroup = oldStart!; // 移动到下一组的 prev 位置
+    }
+
+    return dummy.next;
+}`,
+
+        java: `// Java
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode() {}
+    ListNode(int val) { this.val = val; }
+    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+}
+
+class Solution {
+    public ListNode reverseKGroup(ListNode head, int k) {
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode prevGroup = dummy;
+
+        while (true) {
+            // 检查凑够 k 个没
+            ListNode kth = prevGroup;
+            for (int i = 0; i < k && kth != null; i++) {
+                kth = kth.next;
+            }
+            if (kth == null) break;
+
+            ListNode nextGroupHead = kth.next;
+            
+            // 组内局部反转
+            ListNode prev = nextGroupHead;
+            ListNode curr = prevGroup.next;
+            for (int i = 0; i < k; i++) {
+                ListNode nxt = curr.next;
+                curr.next = prev;
+                prev = curr;
+                curr = nxt;
+            }
+
+            // 更新外部连接
+            ListNode oldStart = prevGroup.next;
+            prevGroup.next = kth;
+            prevGroup = oldStart;
+        }
+
+        return dummy.next;
+    }
+}`,
+
+        cpp: `// C++
+struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode() : val(0), next(nullptr) {}
+    ListNode(int x) : val(x), next(nullptr) {}
+    ListNode(int x, ListNode *next) : val(x), next(next) {}
+};
+
+class Solution {
+public:
+    ListNode* reverseKGroup(ListNode* head, int k) {
+        ListNode dummy(0);
+        dummy.next = head;
+        ListNode* prevGroup = &dummy;
+
+        while (true) {
+            ListNode* kth = prevGroup;
+            for (int i = 0; i < k && kth != nullptr; ++i) {
+                kth = kth->next;
+            }
+            if (kth == nullptr) break;
+
+            ListNode* nextGroupHead = kth->next;
+            
+            ListNode* prev = nextGroupHead;
+            ListNode* curr = prevGroup->next;
+            
+            for (int i = 0; i < k; ++i) {
+                ListNode* nxt = curr->next;
+                curr->next = prev;
+                prev = curr;
+                curr = nxt;
+            }
+
+            ListNode* oldStart = prevGroup->next;
+            prevGroup->next = kth;
+            prevGroup = oldStart;
+        }
+
+        return dummy.next;
+    }
+};`,
+
+        c: `// C
+#include <stdlib.h>
+
+struct ListNode {
+    int val;
+    struct ListNode *next;
+};
+
+struct ListNode* reverseKGroup(struct ListNode* head, int k) {
+    struct ListNode dummy;
+    dummy.val = 0;
+    dummy.next = head;
+    struct ListNode* prevGroup = &dummy;
+
+    while (1) {
+        struct ListNode* kth = prevGroup;
+        for (int i = 0; i < k && kth != NULL; ++i) {
+            kth = kth->next;
+        }
+        if (kth == NULL) break;
+
+        struct ListNode* nextGroupHead = kth->next;
+        
+        struct ListNode* prev = nextGroupHead;
+        struct ListNode* curr = prevGroup->next;
+        
+        for (int i = 0; i < k; ++i) {
+            struct ListNode* nxt = curr->next;
+            curr->next = prev;
+            prev = curr;
+            curr = nxt;
+        }
+
+        struct ListNode* oldStart = prevGroup->next;
+        prevGroup->next = kth;
+        prevGroup = oldStart;
+    }
+
+    return dummy.next;
+}`
+      };
+
+      let params = {
+        seed: 999,
+        speed: 1.0,
+        kVal: 3,
+        len: 8
+      };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // Machine States
+      let algState = 0;
+
+      let nodes = [];
+      let ptrPrevGroup = 0; 
+      let currProbe = null; 
+      let probeCount = 0;
+      let groupNodes = []; 
+
+      const C_DUMMY = '#b0aea5';
+      const C_NODE = '#6a9bcc';
+      const C_PREV = '#d97757'; 
+      const C_PROBE = '#788c5d'; 
+
+      let dispPrevX = 0, dispPrevY = 0;
+      let dispProbeX = 0, dispProbeY = 0;
+
+      class UINode {
+        constructor(id, val, x, y, col, isDummy = false) {
+          this.id = id;
+          this.val = val;
+          this.x = x;
+          this.y = y;
+          this.targetX = x;
+          this.targetY = y;
+          this.color = col;
+          this.isDummy = isDummy;
+          this.nextId = null;
+        }
+        update(speed) {
+          this.x = lerp(this.x, this.targetX, 0.15 * speed);
+          this.y = lerp(this.y, this.targetY, 0.15 * speed);
+        }
+        draw() {
+          push();
+          translate(this.x, this.y);
+          fill(this.color);
+          stroke(40);
+          strokeWeight(1.5);
+          rectMode(CENTER);
+          rect(0, 0, 38, 38, 6);
+          
+          fill(255);
+          noStroke();
+          textAlign(CENTER, CENTER);
+          textSize(15);
+          text(this.isDummy ? 'D' : this.val, 0, 0);
+          pop();
+        }
+      }
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        algState = 0;
+        
+        nodes = [];
+        ptrPrevGroup = 0;
+        probeCount = 0;
+        groupNodes = [];
+        
+        // Layout Config (dynamically scaled for up to 12 nodes)
+        const START_X = 50;
+        const SPACING = min(55, (width - 100) / params.len); 
+        const Y_POS = 160;
+
+        // Dummy Node
+        let dNode = new UINode(0, 0, START_X, Y_POS, C_DUMMY, true);
+        dNode.nextId = 1;
+        nodes.push(dNode);
+        
+        // Data Nodes
+        for(let i=0; i<params.len; i++) {
+            let n = new UINode(i+1, floor(random(10, 99)), START_X + (i+1) * SPACING, Y_POS, C_NODE);
+            if (i < params.len - 1) n.nextId = i + 2;
+            nodes.push(n);
+        }
+
+        currProbe = nodes[0].nextId;
+
+        dispPrevX = nodes[0].x; dispPrevY = nodes[0].y + 40;
+        if(currProbe !== null) {
+            dispProbeX = nodes[currProbe].x; dispProbeY = nodes[currProbe].y - 40;
+        }
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateDataUI();
+        document.getElementById("log-container").innerHTML = "";
+        logMsg("✅ 初始化完成：已创建 Dummy 节点并重置环境。", true);
+      }
+
+      function draw() {
+        background('#fdfcf9');
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        for (let n of nodes) n.update(params.speed);
+
+        // Highlight Group Box
+        if (groupNodes.length > 0 && !isDone) {
+            push();
+            let firstN = nodes[groupNodes[0]];
+            let lastN = nodes[groupNodes[groupNodes.length-1]];
+            let boxX = (firstN.x + lastN.x) / 2;
+            let boxW = abs(lastN.x - firstN.x) + 50;
+            
+            fill(120, 140, 93, 30); // Anthropic Green Alpha
+            stroke(120, 140, 93, 100);
+            strokeWeight(2);
+            rectMode(CENTER);
+            rect(boxX, firstN.y, boxW, 55, 10);
+            pop();
+        }
+
+        drawConnections();
+
+        for (let n of nodes) n.draw();
+
+        // Pointers Lerp & Draw
+        let tPrevX = nodes[ptrPrevGroup].x; let tPrevY = nodes[ptrPrevGroup].y + 40;
+        dispPrevX = lerp(dispPrevX, tPrevX, 0.15 * params.speed);
+        dispPrevY = lerp(dispPrevY, tPrevY, 0.15 * params.speed);
+        drawPointer(dispPrevX, dispPrevY, "↑ prevGroup", C_PREV);
+
+        if (currProbe !== null && algState === 0) {
+            let tProbeX = nodes[currProbe].x; let tProbeY = nodes[currProbe].y - 40;
+            dispProbeX = lerp(dispProbeX, tProbeX, 0.2 * params.speed);
+            dispProbeY = lerp(dispProbeY, tProbeY, 0.2 * params.speed);
+            drawPointer(dispProbeX, dispProbeY, "probe ↓", C_PROBE);
+        }
+      }
+
+      function performStep() {
+          if (algState === 0) {
+              if (currProbe !== null && probeCount < params.kVal) {
+                  groupNodes.push(currProbe);
+                  probeCount++;
+                  logMsg(`🔍 探路指针(kth)寻找第 ${probeCount} 个节点: <b>${nodes[groupNodes[groupNodes.length-1]].val}</b>`);
+                  currProbe = nodes[currProbe].nextId;
+              } else if (probeCount === params.kVal) {
+                  logMsg(`✨ 凑齐 <b>${params.kVal}</b> 个节点，准备进行组内物理翻转！`, true);
+                  algState = 1;
+              } else {
+                  logMsg(`🛑 剩余节点数 (${probeCount}) 不足 <b>${params.kVal}</b>，保持原状。合并结束！`, true);
+                  isDone = true;
+                  groupNodes = [];
+              }
+          } else if (algState === 1) {
+              for(let id of groupNodes) nodes[id].targetY -= 40;
+              logMsg(`⬆️ 提取区块，准备置换...`);
+              algState = 2;
+          } else if (algState === 2) {
+              // 1. Physically reverse X coordinates
+              let xCoords = groupNodes.map(id => nodes[id].targetX);
+              xCoords.reverse();
+              for(let i=0; i<groupNodes.length; i++) {
+                  nodes[groupNodes[i]].targetX = xCoords[i];
+              }
+              
+              // 2. Logically reverse nextId
+              let startNode = groupNodes[0];
+              let endNode = groupNodes[groupNodes.length - 1];
+              let nextGroupHead = nodes[endNode].nextId;
+              
+              nodes[ptrPrevGroup].nextId = endNode;
+              
+              for(let i = groupNodes.length - 1; i > 0; i--) {
+                  nodes[groupNodes[i]].nextId = groupNodes[i-1];
+              }
+              
+              nodes[startNode].nextId = nextGroupHead;
+              
+              logMsg(`✂️ 内部指针完全逆置，并重新缝合入主链表：<br>1. prevGroup 指向原块尾 <b>${nodes[endNode].val}</b><br>2. 原块首 <b>${nodes[startNode].val}</b> 指向后续链表`, true);
+              updateDataUI();
+              algState = 3;
+          } else if (algState === 3) {
+              for(let id of groupNodes) nodes[id].targetY += 40;
+              
+              ptrPrevGroup = groupNodes[0]; 
+              groupNodes = [];
+              probeCount = 0;
+              
+              logMsg(`➡️ 翻转组落位。将 prevGroup 移动到当前翻转组的尾部(节点 <b>${nodes[ptrPrevGroup].val}</b>)。开始下一轮探测。`);
+              algState = 0;
+          }
+      }
+
+      function drawConnections() {
+        push();
+        let curr = 0;
+        while (curr !== null) {
+            let nxt = nodes[curr].nextId;
+            if (nxt !== null) {
+                let n1 = nodes[curr];
+                let n2 = nodes[nxt];
+                
+                let distY = abs(n1.y - n2.y);
+                stroke('#ccc');
+                strokeWeight(2);
+                
+                if (distY > 10 || abs(n1.x - n2.x) > 100) {
+                    noFill();
+                    let cx1 = n1.x + 20;
+                    let cy1 = n1.y;
+                    let cx2 = n2.x - 20;
+                    let cy2 = n2.y;
+                    
+                    let ctrlOff = max(40, abs(cx1 - cx2) / 2);
+                    bezier(cx1, cy1, cx1 + ctrlOff, cy1, cx2 - ctrlOff, cy2, cx2, cy2);
+                    
+                    fill('#ccc');
+                    noStroke();
+                    push();
+                    translate(cx2, cy2);
+                    let ang = atan2(cy2 - cy2, cx2 - (cx2 - 5)); 
+                    rotate(ang);
+                    triangle(0, 0, -6, -4, -6, 4);
+                    pop();
+                } else {
+                    let startX = n1.x + 20;
+                    let endX = n2.x - 24; 
+                    
+                    if (startX < endX) { 
+                        line(startX, n1.y, endX, n2.y);
+                        push();
+                        translate(endX, n2.y);
+                        fill('#ccc');
+                        noStroke();
+                        triangle(0, 0, -6, -4, -6, 4);
+                        pop();
+                    } else if (startX > endX + 10) { 
+                        line(startX, n1.y, endX, n2.y);
+                    }
+                }
+            }
+            curr = nxt;
+        }
+        pop();
+      }
+
+      // ✅ 全新升级的精准几何指针绘制逻辑
+      function drawPointer(x, y, textLabel, col) {
+        push();
+        fill(col);
+        stroke(col);
+        strokeWeight(2);
+        
+        let isUp = textLabel.includes("↑");
+        let isDown = textLabel.includes("↓");
+        // 去除原文本中作为标识的箭头符号及多余空格
+        let cleanText = textLabel.replace("↑", "").replace("↓", "").trim();
+        
+        if (isUp) {
+            // 绘制向上的纯几何箭头
+            line(x, y - 4, x, y - 16);
+            push();
+            translate(x, y - 16);
+            noStroke();
+            triangle(0, 0, -4, 5, 4, 5);
+            pop();
+            
+            // 绘制独立居中的文本
+            noStroke();
+            textSize(12);
+            textAlign(CENTER, CENTER);
+            textStyle(BOLD);
+            text(cleanText, x, y + 6);
+        } else if (isDown) {
+            // 绘制向下的纯几何箭头
+            line(x, y + 4, x, y + 16);
+            push();
+            translate(x, y + 16);
+            noStroke();
+            triangle(0, 0, -4, -5, 4, -5);
+            pop();
+            
+            // 绘制独立居中的文本
+            noStroke();
+            textSize(12);
+            textAlign(CENTER, CENTER);
+            textStyle(BOLD);
+            text(cleanText, x, y - 6);
+        } else {
+            // 没有方向指示时默认居中绘制（兜底逻辑）
+            noStroke();
+            textSize(12);
+            textAlign(CENTER, CENTER);
+            textStyle(BOLD);
+            text(textLabel, x, y);
+        }
+        pop();
+      }
+
+      function updateDataUI() {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        
+        let curr = nodes[0].nextId; // Skip Dummy
+        while(curr !== null) {
+            let nodeDiv = document.createElement("div");
+            nodeDiv.className = `data-node`;
+            nodeDiv.innerText = nodes[curr].val;
+            container.appendChild(nodeDiv);
+            curr = nodes[curr].nextId;
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 999;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+        logMsg("🔄 随机化生成新链表结构并重置。", true);
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

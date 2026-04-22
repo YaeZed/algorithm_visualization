@@ -1,0 +1,1114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>链表归并排序全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        height: 100vh;
+        padding: 15px;
+        gap: 15px;
+      }
+
+      /* Left Sidebar - Controls */
+      .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto;
+        border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 {
+        font-family: "Lora", serif;
+        font-size: 18px;
+        margin-bottom: 4px;
+        color: var(--anthropic-orange);
+      }
+      .subtitle {
+        color: var(--anthropic-mid-gray);
+        font-size: 11px;
+        margin-bottom: 20px;
+      }
+      .control-section {
+        margin-bottom: 20px;
+      }
+      .control-section h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: var(--anthropic-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .control-section h3::before {
+        content: "";
+        width: 4px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 2px;
+      }
+      .control-group {
+        margin-bottom: 12px;
+      }
+      .control-group label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 4px;
+        color: #666;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      input[type="range"] {
+        flex: 1;
+        height: 4px;
+        background: var(--anthropic-light-gray);
+        border-radius: 2px;
+        appearance: none;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        min-width: 25px;
+        text-align: right;
+      }
+      .button {
+        background: var(--anthropic-orange);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        width: 100%;
+        cursor: pointer;
+        font-size: 13px;
+        transition: 0.2s;
+        font-weight: 500;
+      }
+      .button:hover {
+        background: #c86641;
+      }
+      .seed-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--anthropic-light-gray);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+
+      /* Middle - Canvas */
+      .canvas-area {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .canvas-header {
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--anthropic-light-gray);
+        font-size: 13px;
+        font-weight: 500;
+        color: #888;
+      }
+      #canvas-container {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Right Panel - Logic & Code */
+      .right-panel {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      /* Code Box (VS Code Dark+ Style) */
+      .code-box {
+        flex: 1.1;
+        background: #1e1e1e;
+        border-radius: 12px;
+        border: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .box-header {
+        padding: 8px 15px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .box-header.dark {
+        background: #282828;
+        border-bottom: 1px solid #1e1e1e;
+        padding: 10px 15px 0 15px;
+      }
+      .box-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+      }
+      .box-title.dark {
+        color: #ccc;
+        padding-bottom: 10px;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+      }
+      .tabs.dark {
+        gap: 1px;
+        align-items: flex-end;
+      }
+      .tabs.dark .tab {
+        padding: 8px 16px;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        background: #2d2d2d;
+        transition: 0.2s;
+        color: #888;
+        font-weight: 500;
+        font-size: 11px;
+        font-family: "Poppins", sans-serif;
+      }
+      .tabs.dark .tab:hover {
+        background: #3c3c3c;
+        color: #ddd;
+      }
+      .tabs.dark .tab.active {
+        background: #1e1e1e;
+        color: #4ec9b0;
+        border-top: 2px solid #007acc;
+      }
+
+      .code-content {
+        flex: 1;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        background: #1e1e1e;
+        border-radius: 0 0 12px 12px;
+      }
+      #code-viewer {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 15px;
+        line-height: 1.6;
+        display: block;
+        padding: 15px;
+        background: transparent;
+        color: #d4d4d4;
+      }
+
+      /* Highlight.js CSS Overrides */
+      .hljs {
+        background: transparent !important;
+        padding: 0 !important;
+        color: #d4d4d4 !important;
+      }
+      .hljs-keyword,
+      .hljs-literal,
+      .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type,
+      .hljs-title.class_,
+      .hljs-class .hljs-title,
+      .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable,
+      .hljs-variable.language_,
+      .hljs-property,
+      .hljs-attr,
+      .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation,
+      .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string,
+      .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_,
+      .hljs-function .hljs-title,
+      .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box {
+        flex: 0.9;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--anthropic-light-gray);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+
+      .data-viz {
+        padding: 12px;
+        background: #fffcf9;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .data-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--anthropic-orange);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .data-array {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-height: 30px;
+      }
+      .data-node {
+        width: 22px;
+        height: 22px;
+        background: var(--anthropic-orange);
+        color: white;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: bold;
+      }
+
+      /* Auto-scrolling Log */
+      .log-area {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 11.5px;
+        background: #fff;
+      }
+      .log-item {
+        padding: 5px 10px;
+        border-radius: 4px;
+        background: #fcfcfc;
+        border-left: 2px solid #ddd;
+        border-bottom: 1px solid #f5f5f5;
+        line-height: 1.4;
+        color: #444;
+      }
+      .log-item.highlight {
+        border-left-color: var(--anthropic-orange);
+        background: #fff9f5;
+        font-weight: 500;
+      }
+      .log-item .time {
+        font-size: 9px;
+        color: #bbb;
+        margin-bottom: 2px;
+      }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>排序链表 (Sort List)</h1>
+        <div class="subtitle">链表归并排序 递归全解析</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input
+            type="number"
+            id="seed-input"
+            class="seed-input"
+            value="12345"
+            onchange="updateSeed()"
+          />
+          <button class="button" onclick="randomSeedAndUpdate()">
+            生成新随机链表
+          </button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="speed"
+                min="0.1"
+                max="2.5"
+                step="0.1"
+                value="1.0"
+                oninput="updateParam('speed', this.value)"
+              />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>链表长度 (N)</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="n"
+                min="4"
+                max="10"
+                step="1"
+                value="8"
+                oninput="updateParam('n', this.value)"
+              />
+              <span class="value-display" id="n-value">8</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">
+            ⏸ 暂停
+          </button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">
+            🔄 重新运行
+          </button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n log n)</span>
+            <span class="memo-badge space">□ O(log n) 栈空间</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **分：**利用快慢指针 `fast/slow` 寻找中点，断开链表，向左右子区间递归。</div>
+            <div class="memo-tip">💡 **合：**使用 `curr` 指针，将两个有序子链表按值比较、串联。</div>
+            <div class="memo-tip g">🔍 如果追求极限的 $O(1)$ 空间，则需要使用**迭代法**的自底向上归并排序，避免递归栈开销。</div>
+            <div class="memo-tip w">⚠️ 寻找中点时，`fast` 初始化必须为 `head.next` 而非 `head`，否则偶数长度时会陷入死循环。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">链表形态与指针动态可视化</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">归并排序 - 自顶向下递归版</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">当前物理链表顺序</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+class Solution:
+    def sortList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        # 0. 递归基：单个节点或空节点自然有序
+        if not head or not head.next: return head
+        
+        # 1. 快慢指针找中点
+        # 注意 fast 初始化为 head.next 避免死循环
+        slow, fast = head, head.next
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+            
+        mid = slow.next
+        slow.next = None # 在中点处物理断开链表
+        
+        # 2. 对左右两半进行递归排序
+        left = self.sortList(head)
+        right = self.sortList(mid)
+        
+        # 3. 合并两个有序的链表段
+        dummy = ListNode(0)
+        curr = dummy
+        while left and right:
+            if left.val < right.val:
+                curr.next = left
+                left = left.next
+            else:
+                curr.next = right
+                right = right.next
+            curr = curr.next
+            
+        # 将有剩余的子链表直接挂载到末尾
+        curr.next = left if left else right
+        return dummy.next`,
+        ts: `// TypeScript
+function sortList(head: ListNode | null): ListNode | null {
+    // 0. 递归基
+    if (!head || !head.next) return head;
+    
+    // 1. 快慢指针找中点，断开链表
+    let slow: ListNode = head;
+    let fast: ListNode | null = head.next;
+    while (fast && fast.next) {
+        slow = slow.next!;
+        fast = fast.next.next;
+    }
+    let mid = slow.next;
+    slow.next = null; // 切断联系
+    
+    // 2. 递归深入，分治求解
+    let left = sortList(head);
+    let right = sortList(mid);
+    
+    // 3. 穿针引线，合并有序链表
+    let dummy = new ListNode(0);
+    let curr = dummy;
+    while (left && right) {
+        if (left.val < right.val) {
+            curr.next = left;
+            left = left.next;
+        } else {
+            curr.next = right;
+            right = right.next;
+        }
+        curr = curr.next;
+    }
+    curr.next = left ? left : right;
+    
+    return dummy.next;
+}`,
+        java: `// Java
+class Solution {
+    public ListNode sortList(ListNode head) {
+        // 0. 递归基：只剩一个节点时直接返回
+        if (head == null || head.next == null) return head;
+        
+        // 1. 寻找中点
+        ListNode slow = head, fast = head.next;
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        ListNode mid = slow.next;
+        slow.next = null; // 切分出左右两段
+        
+        // 2. 递归下探
+        ListNode left = sortList(head);
+        ListNode right = sortList(mid);
+        
+        // 3. 归并合并
+        ListNode dummy = new ListNode(0);
+        ListNode curr = dummy;
+        while (left != null && right != null) {
+            if (left.val < right.val) {
+                curr.next = left;
+                left = left.next;
+            } else {
+                curr.next = right;
+                right = right.next;
+            }
+            curr = curr.next;
+        }
+        curr.next = left != null ? left : right;
+        return dummy.next;
+    }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+    ListNode* sortList(ListNode* head) {
+        // 0. 递归终止条件
+        if (!head || !head->next) return head;
+        
+        // 1. 快慢指针找寻链表中点
+        ListNode *slow = head, *fast = head->next;
+        while (fast && fast->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        ListNode* mid = slow->next;
+        slow->next = nullptr; // 从中点断开
+        
+        // 2. 递归处理左右子链表
+        ListNode* left = sortList(head);
+        ListNode* right = sortList(mid);
+        
+        // 3. 合并有序序列
+        ListNode dummy(0);
+        ListNode* curr = &dummy;
+        while (left && right) {
+            if (left->val < right->val) {
+                curr->next = left;
+                left = left->next;
+            } else {
+                curr->next = right;
+                right = right->next;
+            }
+            curr = curr->next;
+        }
+        curr->next = left ? left : right;
+        return dummy.next;
+    }
+};`,
+        c: `// C
+struct ListNode* sortList(struct ListNode* head) {
+    if (!head || !head->next) return head;
+    
+    // 1. 快慢指针定位中间节点
+    struct ListNode *slow = head, *fast = head->next;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    struct ListNode* mid = slow->next;
+    slow->next = NULL; // 物理隔离左右两部分
+    
+    // 2. 开始向下一层递归
+    struct ListNode* left = sortList(head);
+    struct ListNode* right = sortList(mid);
+    
+    // 3. 准备虚拟头节点开始合并
+    struct ListNode dummy;
+    dummy.next = NULL;
+    struct ListNode* curr = &dummy;
+    
+    while (left && right) {
+        if (left->val < right->val) {
+            curr->next = left;
+            left = left->next;
+        } else {
+            curr->next = right;
+            right = right->next;
+        }
+        curr = curr->next;
+    }
+    curr->next = left ? left : right;
+    
+    return dummy.next;
+}`
+      };
+
+      let params = { seed: 12345, speed: 1.0, n: 8 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // 核心绘图状态
+      let nodes = [];
+      let steps = [];
+      let stepIndex = 0;
+      
+      // 全局指针跟踪器
+      let globalSlowId = null, globalFastId = null, globalCurrId = null;
+      let trackSlowX = null, trackSlowY = null;
+      let trackFastX = null, trackFastY = null;
+      let trackCurrX = null, trackCurrY = null;
+
+      let nodeW = 44, nodeH = 30;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        stepIndex = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+        document.getElementById("log-container").innerHTML = "";
+
+        // 1. 初始化随机数组并构建 Node 对象
+        let arr = [];
+        for(let i=0; i<params.n; i++) {
+            arr.push({ 
+                id: i, 
+                val: floor(random(1, 99)),
+                targetIdx: i,
+                targetDepth: 0
+            });
+        }
+        
+        let cvsW = width || 500;
+        let startX = cvsW/2 - (params.n * 55) / 2;
+        
+        nodes = arr.map(a => ({
+            ...a,
+            x: startX + a.targetIdx * 55,
+            y: 60 + a.targetDepth * 90,
+            nextId: null,
+            state: 'normal' // normal, compare, picked
+        }));
+
+        // 2. 引擎核心：静态生成全量执行步骤
+        steps = planAnimation(arr);
+        
+        globalSlowId = null; globalFastId = null; globalCurrId = null;
+        trackSlowX = null; trackSlowY = null;
+        trackFastX = null; trackFastY = null;
+        trackCurrX = null; trackCurrY = null;
+
+        updateDataUI(nodes.map(n=>n.val));
+        logMsg("✅ 演示环境准备就绪。原始乱序链表构建完毕。", true);
+      }
+
+      function planAnimation(arr) {
+          let s = [];
+          
+          // 初始连线
+          let initialLinks = [];
+          for(let i=0; i<arr.length-1; i++) initialLinks.push({from: arr[i].id, to: arr[i+1].id});
+          s.push({ type: 'INIT', links: initialLinks });
+
+          function mSort(start, end, depth) {
+              if (start === end) return [arr[start]];
+              
+              s.push({ type: 'LOG', log: `▼ 拆解子链表范围 [下标 ${start}..${end}]，深度 ${depth}` });
+              
+              let slow = start;
+              let fast = start + 1;
+              s.push({ type: 'POINTERS', slowId: arr[slow].id, fastId: arr[fast].id, log: '初始化 fast 和 slow 指针' });
+              
+              // 寻找中点
+              while (fast <= end) {
+                  if (fast + 1 <= end) {
+                      slow++;
+                      fast += 2;
+                      s.push({ type: 'POINTERS', slowId: arr[slow].id, fastId: arr[fast].id });
+                  } else {
+                      break;
+                  }
+              }
+              let mid = slow;
+              s.push({ type: 'POINTERS', slowId: arr[mid].id, fastId: null, log: `🚩 慢指针确定中点为 [${arr[mid].val}]` });
+              
+              s.push({ type: 'BREAK_LINK', id: arr[mid].id, log: '物理断开 mid.next，将其分割为左右两条独立链表' });
+              
+              let leftArr = arr.slice(start, mid + 1);
+              s.push({ type: 'MOVE_CHUNK', ids: leftArr.map(n=>n.id), depth: depth + 1, log: `下潜：对左半部分递归排序` });
+              let left = mSort(start, mid, depth + 1);
+              
+              let rightArr = arr.slice(mid + 1, end + 1);
+              s.push({ type: 'MOVE_CHUNK', ids: rightArr.map(n=>n.id), depth: depth + 1, log: `下潜：对右半部分递归排序` });
+              let right = mSort(mid + 1, end, depth + 1);
+              
+              s.push({ type: 'START_MERGE', log: `▲ 准备归并合并两个有序链表段` });
+              
+              let merged = [];
+              let i = 0, j = 0;
+              
+              while (i < left.length && j < right.length) {
+                  s.push({ type: 'COMPARE', id1: left[i].id, id2: right[j].id });
+                  if (left[i].val <= right[j].val) {
+                      merged.push(left[i]);
+                      s.push({ type: 'PICK', id: left[i].id, idx: start + merged.length - 1, depth: depth, currId: left[i].id, log: `接入较小值 ${left[i].val}` });
+                      i++;
+                  } else {
+                      merged.push(right[j]);
+                      s.push({ type: 'PICK', id: right[j].id, idx: start + merged.length - 1, depth: depth, currId: right[j].id, log: `接入较小值 ${right[j].val}` });
+                      j++;
+                  }
+                  if (merged.length > 1) {
+                      s.push({ type: 'LINK_ONE', from: merged[merged.length-2].id, to: merged[merged.length-1].id });
+                  }
+              }
+              while (i < left.length) {
+                  merged.push(left[i]);
+                  s.push({ type: 'PICK', id: left[i].id, idx: start + merged.length - 1, depth: depth, currId: left[i].id, log: `剩余 ${left[i].val} 直接追加` });
+                  if (merged.length > 1) s.push({ type: 'LINK_ONE', from: merged[merged.length-2].id, to: merged[merged.length-1].id });
+                  i++;
+              }
+              while (j < right.length) {
+                  merged.push(right[j]);
+                  s.push({ type: 'PICK', id: right[j].id, idx: start + merged.length - 1, depth: depth, currId: right[j].id, log: `剩余 ${right[j].val} 直接追加` });
+                  if (merged.length > 1) s.push({ type: 'LINK_ONE', from: merged[merged.length-2].id, to: merged[merged.length-1].id });
+                  j++;
+              }
+              
+              s.push({ type: 'CLEAR_CURR' });
+              return merged;
+          }
+          
+          let sorted = mSort(0, arr.length - 1, 0);
+          s.push({ type: 'DONE', lastId: sorted[sorted.length-1].id, log: `🏁 链表排序全流程闭环！时间 O(N log N)。` });
+          return s;
+      }
+
+      function draw() {
+        background(255);
+
+        // Frame execution trigger
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let cvsW = width || 500;
+        let startX = cvsW/2 - (params.n * 55) / 2;
+
+        // 1. 更新节点的平滑插值坐标
+        nodes.forEach(node => {
+            let tx = startX + node.targetIdx * 55;
+            let ty = 60 + node.targetDepth * 90;
+            node.x = lerp(node.x, tx, 0.12 * params.speed);
+            node.y = lerp(node.y, ty, 0.12 * params.speed);
+        });
+
+        // 2. 绘制链表指针连线 (置于下层)
+        nodes.forEach(node => {
+            if (node.nextId !== null) {
+                let nextNode = nodes.find(n => n.id === node.nextId);
+                if (nextNode) {
+                    let sX = node.x + 36;
+                    let sY = node.y + nodeH/2;
+                    let eX = nextNode.x;
+                    let eY = nextNode.y + nodeH/2;
+                    drawArrow(sX, sY, eX, eY);
+                }
+            }
+        });
+
+        // 3. 绘制节点实体
+        nodes.forEach(node => {
+            stroke(80); strokeWeight(1.5);
+            // 颜色高亮状态反馈
+            if (node.state === 'compare') fill('#ffe0b2');
+            else if (node.state === 'picked') fill('#d4edda');
+            else fill('#fff');
+            
+            rect(node.x, node.y, nodeW, nodeH, 4);
+            
+            // 数据域与指针域分割线
+            line(node.x + 28, node.y, node.x + 28, node.y + nodeH);
+            
+            noStroke(); fill(20); textAlign(CENTER, CENTER); textSize(12);
+            text(node.val, node.x + 14, node.y + nodeH/2);
+            
+            // next指针的原点圆
+            fill(80);
+            circle(node.x + 36, node.y + nodeH/2, 4);
+        });
+
+        // 4. 更新与绘制全局漂浮标签 (slow, fast, curr)
+        let st = updateTracker(globalSlowId, trackSlowX, trackSlowY); trackSlowX = st.x; trackSlowY = st.y;
+        if (trackSlowX !== null) drawLabel('slow', trackSlowX + nodeW/2, trackSlowY - 18, '#6a9bcc');
+        
+        let ft = updateTracker(globalFastId, trackFastX, trackFastY); trackFastX = ft.x; trackFastY = ft.y;
+        if (trackFastX !== null) drawLabel('fast', trackFastX + nodeW/2, trackFastY + nodeH + 18, '#d97757');
+        
+        let ct = updateTracker(globalCurrId, trackCurrX, trackCurrY); trackCurrX = ct.x; trackCurrY = ct.y;
+        if (trackCurrX !== null) drawLabel('curr', trackCurrX + nodeW/2, trackCurrY - 18, '#788c5d');
+      }
+
+      // 执行核心步进
+      function performStep() {
+        if (stepIndex >= steps.length) {
+            isDone = true;
+            return;
+        }
+        let step = steps[stepIndex++];
+        
+        // 状态清零
+        nodes.forEach(n => n.state = 'normal');
+        if (step.log) logMsg(step.log, step.type === 'DONE' || step.type === 'BREAK_LINK' || step.type === 'START_MERGE');
+        
+        switch(step.type) {
+            case 'INIT':
+                step.links.forEach(l => {
+                    let fn = nodes.find(n => n.id === l.from);
+                    if(fn) fn.nextId = l.to;
+                });
+                break;
+            case 'POINTERS':
+                globalSlowId = step.slowId;
+                globalFastId = step.fastId;
+                break;
+            case 'BREAK_LINK':
+                let bn = nodes.find(x => x.id === step.id);
+                if(bn) bn.nextId = null;
+                globalSlowId = null;
+                globalFastId = null;
+                break;
+            case 'MOVE_CHUNK':
+                step.ids.forEach(id => {
+                    let cn = nodes.find(x => x.id === id);
+                    if(cn) cn.targetDepth = step.depth;
+                });
+                break;
+            case 'COMPARE':
+                let c1 = nodes.find(x => x.id === step.id1);
+                let c2 = nodes.find(x => x.id === step.id2);
+                if(c1) c1.state = 'compare';
+                if(c2) c2.state = 'compare';
+                break;
+            case 'PICK':
+                let p = nodes.find(x => x.id === step.id);
+                if(p) {
+                    p.targetIdx = step.idx;
+                    p.targetDepth = step.depth;
+                    p.state = 'picked';
+                }
+                globalCurrId = step.currId;
+                break;
+            case 'LINK_ONE':
+                let fn = nodes.find(x => x.id === step.from);
+                if(fn) fn.nextId = step.to;
+                break;
+            case 'CLEAR_CURR':
+                globalCurrId = null;
+                break;
+            case 'DONE':
+                let lastNode = nodes.find(x => x.id === step.lastId);
+                if(lastNode) lastNode.nextId = null;
+                globalCurrId = null;
+                break;
+        }
+
+        // 刷新右侧状态栏
+        let currentArray = nodes.slice().sort((a,b) => {
+            if (a.targetDepth === b.targetDepth) return a.targetIdx - b.targetIdx;
+            return a.targetDepth - b.targetDepth;
+        }).filter(n => n.targetDepth === 0).map(n => n.val);
+        updateDataUI(currentArray);
+      }
+
+      // UI Utils
+      function drawArrow(x1, y1, x2, y2) {
+          let d = dist(x1, y1, x2, y2);
+          stroke('#d97757'); strokeWeight(2); noFill();
+          if (abs(y1 - y2) < 5 && d < 90) {
+              // 水平相邻短距离，直线
+              line(x1, y1, x2 - 6, y2);
+              drawArrowHead(x2 - 6, y2, atan2(y2 - y1, x2 - x1));
+          } else {
+              // 跨层级或跨节点的贝塞尔曲线
+              bezier(x1, y1, x1 + 30, y1, x2 - 30, y2, x2 - 6, y2);
+              let tx = bezierTangent(x1, x1+30, x2-30, x2-6, 1);
+              let ty = bezierTangent(y1, y1, y2, y2, 1);
+              drawArrowHead(x2 - 6, y2, atan2(ty, tx));
+          }
+      }
+
+      function drawArrowHead(x, y, theta) {
+          push();
+          translate(x, y);
+          rotate(theta);
+          fill('#d97757'); noStroke();
+          triangle(0, 0, -8, 4, -8, -4);
+          pop();
+      }
+
+      function drawLabel(txt, x, y, col) {
+          push();
+          fill(col); noStroke(); rectMode(CENTER);
+          rect(x, y, txt.length * 7 + 14, 18, 4);
+          fill(255); textAlign(CENTER, CENTER); textSize(10);
+          text(txt + (y < height/2 || txt === 'slow' || txt === 'curr' ? " ↓" : " ↑"), x, y);
+          pop();
+      }
+
+      function updateTracker(id, curX, curY) {
+          if (id === null) return { x: null, y: null };
+          let target = nodes.find(n => n.id === id);
+          if (!target) return { x: null, y: null };
+          let nx = curX === null ? target.x : lerp(curX, target.x, 0.25 * params.speed);
+          let ny = curY === null ? target.y : lerp(curY, target.y, 0.25 * params.speed);
+          return { x: nx, y: ny };
+      }
+
+      function updateDataUI(arr) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        arr.forEach(v => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          node.innerText = v;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+        logMsg("🔄 随机化生成全新打乱链表。", true);
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

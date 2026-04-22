@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>合并K个升序链表 全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; position: relative; }
+
+      /* Right Panel */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14.5px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+      
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { width: 22px; height: 22px; background: var(--anthropic-orange); color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: bold; }
+      
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* Memo Card */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>合并K个升序链表</h1>
+        <div class="subtitle">优先队列 (最小堆) 全解析</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="1024" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机生成链表群</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>链表数量 (k)</label>
+            <div class="slider-container">
+              <input type="range" id="kLists" min="2" max="5" step="1" value="3" oninput="updateParam('kLists', this.value)" />
+              <span class="value-display" id="kLists-value">3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N log K)</span>
+            <span class="memo-badge space">□ O(K) 堆空间</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **核心思路**：维护一个容量为 $K$ 的最小堆，存储每条链表当前未处理的头节点。</div>
+            <div class="memo-tip">💡 **循环接力**：每次弹出堆顶最小节点接在结果链表后。若该节点有 `next`，则将其 `next` 压入堆中。</div>
+            <div class="memo-tip g">🔍 **延伸洞察**：本题亦可用“分治法两两归并”解决，时间复杂度相同，且空间仅需 $O(\log K)$ 递归栈空间。</div>
+            <div class="memo-tip w">⚠️ **常见误区**：在 Python 的 `heapq` 中存入 `(val, node)` 元组时，若 `val` 相同会继续比较 `node` 对象而报错。需加入一个唯一下标 `(val, idx, node)`。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">多路归并执行动画区</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">基于最小堆 (Priority Queue) 的最优解</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">当前优先队列 (堆内元素)</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+import heapq
+
+class Solution:
+    def mergeKLists(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+        # 定义一个最小堆
+        heap = []
+        
+        # 1. 初始化：将所有非空链表的头节点放入堆中
+        # 存入元组 (节点值, 索引i, node对象)
+        # 引入索引是为了防止值相同时 heapq 比较对象报错
+        for i, node in enumerate(lists):
+            if node:
+                heapq.heappush(heap, (node.val, i, node))
+        
+        # 准备虚拟头节点，便于拼接结果
+        dummy = ListNode(0)
+        curr = dummy
+        
+        # 2. 只要堆不为空，就不断弹出堆顶的最小节点
+        while heap:
+            val, i, min_node = heapq.heappop(heap)
+            
+            # 穿针引线：将最小节点接到结果链表后
+            curr.next = min_node 
+            curr = curr.next
+            
+            # 3. 补充兵力：如果弹出的节点还有后续节点
+            # 就将其压入堆中，代表该链表的下一个备选
+            if min_node.next:
+                heapq.heappush(heap, (min_node.next.val, i, min_node.next))
+                
+        return dummy.next`,
+        ts: `// TypeScript
+// 演示代码为了便于理解核心机制，使用数组模拟堆操作
+// 在严谨的工程或LeetCode答题中，请实现完整的 MinHeap 类或引入库
+function mergeKLists(lists: Array<ListNode | null>): ListNode | null {
+    let heap: ListNode[] = [];
+    
+    // 1. 初始化，将所有非空头节点加入堆候选池
+    for (let node of lists) {
+        if (node) heap.push(node);
+    }
+    
+    let dummy = new ListNode(0);
+    let curr = dummy;
+    
+    // 只要候选池还有元素就继续归并
+    while (heap.length > 0) {
+        // 模拟最小堆的 poll 操作 (O(K log K)，若用真实 PQ 则是 O(log K))
+        heap.sort((a, b) => a.val - b.val);
+        let minNode = heap.shift()!; // 弹出当前 k 个节点中的最小值
+        
+        // 挂载到结果链表
+        curr.next = minNode;
+        curr = curr.next;
+        
+        // 核心：多路归并的“接力”
+        // 把被弹出节点的下一个相邻节点压入堆，参与下一轮的全局比较
+        if (minNode.next) {
+            heap.push(minNode.next);
+        }
+    }
+    
+    return dummy.next;
+}`,
+        java: `// Java
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        if (lists == null || lists.length == 0) return null;
+        
+        // 定义优先队列（最小堆），按照节点的值从小到大排序
+        PriorityQueue<ListNode> pq = new PriorityQueue<>(
+            lists.length, 
+            (a, b) -> a.val - b.val
+        );
+        
+        // 1. 将所有K个链表的头节点压入堆中
+        for (ListNode node : lists) {
+            if (node != null) {
+                pq.add(node);
+            }
+        }
+        
+        ListNode dummy = new ListNode(0);
+        ListNode curr = dummy;
+        
+        // 2. 多路归并主循环
+        while (!pq.isEmpty()) {
+            // 获取堆顶元素（当前所有剩余头部节点中的最小值）
+            ListNode minNode = pq.poll();
+            curr.next = minNode; // 将其接入最终结果链表
+            curr = curr.next;
+            
+            // 3. 将刚刚摘除节点的下一个节点送入优先队列
+            if (minNode.next != null) {
+                pq.add(minNode.next);
+            }
+        }
+        
+        return dummy.next;
+    }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+    // 自定义比较函数
+    // 注意：C++ STL 的 priority_queue 默认是最大堆
+    // 为了实现最小堆，这里的逻辑要写 > 
+    struct cmp {
+        bool operator()(ListNode* a, ListNode* b) {
+            return a->val > b->val;
+        }
+    };
+    
+    ListNode* mergeKLists(vector<ListNode*>& lists) {
+        priority_queue<ListNode*, vector<ListNode*>, cmp> pq;
+        
+        // 1. 将所有链表的头节点推入堆中
+        for (auto node : lists) {
+            if (node) pq.push(node);
+        }
+        
+        ListNode dummy(0);
+        ListNode* curr = &dummy;
+        
+        // 2. 主循环
+        while (!pq.empty()) {
+            // 弹出堆顶最小元素
+            ListNode* minNode = pq.top();
+            pq.pop();
+            
+            // 接入到结果中
+            curr->next = minNode;
+            curr = curr->next;
+            
+            // 3. 补充该链表的下一个节点进入候选池
+            if (minNode->next) {
+                pq.push(minNode->next);
+            }
+        }
+        return dummy.next;
+    }
+};`,
+        c: `// C
+// C 语言没有内置的 Priority Queue，通常需要手写最小堆
+// 以下展示核心逻辑流程，省略 Heapify 等通用辅助函数
+
+struct ListNode* mergeKLists(struct ListNode** lists, int listsSize) {
+    if (listsSize == 0) return NULL;
+    
+    // 假设我们实现了一个名为 minHeap 的结构和相关 API
+    MinHeap* heap = createMinHeap(listsSize);
+    
+    // 1. 压入各链表头节点
+    for (int i = 0; i < listsSize; i++) {
+        if (lists[i] != NULL) {
+            pushHeap(heap, lists[i]);
+        }
+    }
+    
+    struct ListNode dummy;
+    dummy.next = NULL;
+    struct ListNode* curr = &dummy;
+    
+    // 2. 当堆不空时，持续拉取最小值
+    while (!isHeapEmpty(heap)) {
+        struct ListNode* minNode = popHeap(heap);
+        
+        // 拼接节点
+        curr->next = minNode;
+        curr = curr->next;
+        
+        // 3. 当前链表指针后移，将新节点加入堆中
+        if (minNode->next != NULL) {
+            pushHeap(heap, minNode->next);
+        }
+    }
+    
+    freeHeap(heap);
+    return dummy.next;
+}`
+      };
+
+      let params = { seed: 1024, speed: 1.0, kLists: 3 };
+      
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // 可视化系统状态
+      let nodes = [];
+      let steps = [];
+      let stepIndex = 0;
+      let dummyNode = null;
+      let currPtrId = null;
+      let currTrackX = null, currTrackY = null;
+
+      // 视觉常数
+      let nodeW = 38, nodeH = 26;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        stepIndex = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+        document.getElementById("log-container").innerHTML = "";
+
+        // 生成 K 个有序链表
+        nodes = [];
+        let idCounter = 1;
+        let originalLists = [];
+        let k = params.kLists;
+        
+        for (let i = 0; i < k; i++) {
+            let len = floor(random(2, 5)); // 2到4个节点
+            let listNodes = [];
+            let currentVal = floor(random(1, 15));
+            for(let j=0; j<len; j++) {
+                listNodes.push({
+                    id: idCounter++,
+                    val: currentVal,
+                    listIdx: i,
+                    listPos: j,
+                    state: 'original', // original, heap, merged
+                    nextId: null
+                });
+                currentVal += floor(random(1, 10)); // 保证升序
+            }
+            // 建立初始 next 指针
+            for(let j=0; j<len-1; j++) {
+                listNodes[j].nextId = listNodes[j+1].id;
+            }
+            nodes = nodes.concat(listNodes);
+            originalLists.push(listNodes);
+        }
+
+        dummyNode = { id: 0, val: 'D', state: 'merged', nextId: null };
+        nodes.push(dummyNode);
+
+        steps = planMergeAnimation(originalLists);
+        
+        currPtrId = dummyNode.id;
+        currTrackX = null; currTrackY = null;
+
+        updatePQDataUI([]);
+        logMsg("✅ 场景生成完毕。K条升序链表等待合并。", true);
+      }
+
+      function planMergeAnimation(lists) {
+          let s = [];
+          let heap = [];
+          let mergedSeq = [];
+          let mergedCount = 0;
+          
+          s.push({ type: 'LOG', msg: `▼ 开始合并 ${lists.length} 个链表。准备 Dummy 虚拟头节点。` });
+
+          // 1. Init Heap
+          for (let i = 0; i < lists.length; i++) {
+              if (lists[i].length > 0) {
+                  let n = lists[i][0];
+                  heap.push(n);
+                  s.push({ 
+                      type: 'PUSH_HEAP', 
+                      id: n.id, 
+                      heapState: heap.map(x=>x.id),
+                      msg: `初始化：将链表 ${i} 的头部节点 [${n.val}] 压入优先队列` 
+                  });
+              }
+          }
+
+          // 2. Main Loop
+          let lastMergedId = 0; // dummy
+          
+          while (heap.length > 0) {
+              // 找到最小值
+              heap.sort((a,b) => a.val - b.val);
+              let minNode = heap[0];
+              
+              s.push({ type: 'HIGHLIGHT_MIN', id: minNode.id, msg: `🔍 优先队列首位(最小值)为 [${minNode.val}]` });
+              
+              heap.shift(); // pop
+              mergedSeq.push(minNode);
+              
+              s.push({ 
+                  type: 'MERGE_NODE', 
+                  id: minNode.id, 
+                  mergedIdx: mergedCount++,
+                  prevId: lastMergedId,
+                  heapState: heap.map(x=>x.id),
+                  msg: `🚀 将 [${minNode.val}] 接入结果链表末尾` 
+              });
+              
+              lastMergedId = minNode.id;
+              
+              // 补充兵力
+              let nxt = nodes.find(x => x.id === minNode.nextId && x.state !== 'dummy');
+              if (nxt) {
+                  heap.push(nxt);
+                  s.push({ 
+                      type: 'PUSH_HEAP', 
+                      id: nxt.id, 
+                      heapState: heap.map(x=>x.id),
+                      msg: `补充后继：[${minNode.val}] 存在下一个节点 [${nxt.val}]，将其压入优先队列等待比较` 
+                  });
+              }
+          }
+          
+          s.push({ type: 'DONE', msg: '🏁 优先队列为空，所有链表合并完成！', highlight: true });
+          return s;
+      }
+
+      function draw() {
+        background(255);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        let cvsW = width || 500;
+        let k = params.kLists;
+        
+        let startX = 60;
+        let listStartY = 40;
+        let rowGap = 45;
+        let pqAreaY = listStartY + k * rowGap + 30;
+        let mergedAreaY = pqAreaY + 110;
+
+        // Draw Background Areas
+        fill(250); noStroke(); rect(20, pqAreaY - 20, cvsW - 40, 80, 8);
+        fill(100); textSize(11); textAlign(LEFT, TOP);
+        text("Priority Queue (Min-Heap) 候选区", 30, pqAreaY - 12);
+        
+        fill(250); noStroke(); rect(20, mergedAreaY - 30, cvsW - 40, 90, 8);
+        fill(100); textSize(11); textAlign(LEFT, TOP);
+        text("Merged Result 最终结果", 30, mergedAreaY - 22);
+
+        // Calculate Targets
+        let heapArr = nodes.filter(n => n.state === 'heap').sort((a,b) => a.val - b.val);
+        
+        nodes.forEach(node => {
+            let tx, ty;
+            if (node.id === 0) { // dummy
+                tx = 40; ty = mergedAreaY + 10;
+            } else if (node.state === 'original') {
+                tx = startX + node.listPos * 50;
+                ty = listStartY + node.listIdx * rowGap;
+            } else if (node.state === 'heap') {
+                let idxInHeap = heapArr.findIndex(x => x.id === node.id);
+                tx = cvsW/2 - (heapArr.length * 45)/2 + idxInHeap * 45;
+                ty = pqAreaY + 20;
+            } else if (node.state === 'merged') {
+                tx = 40 + (node.mergedIdx + 1) * 50; // +1 for dummy
+                ty = mergedAreaY + 10;
+                // 折行处理 (如果过长)
+                if (tx > cvsW - 50) {
+                    let wrapCount = Math.floor((node.mergedIdx + 1) / Math.floor((cvsW-50)/50));
+                    tx = 40 + ((node.mergedIdx + 1) % Math.floor((cvsW-50)/50)) * 50;
+                    ty += wrapCount * 40;
+                }
+            }
+
+            if (node.x === undefined) { node.x = tx; node.y = ty; }
+            else {
+                node.x = lerp(node.x, tx, 0.15 * params.speed);
+                node.y = lerp(node.y, ty, 0.15 * params.speed);
+            }
+        });
+
+        // Draw Links
+        nodes.forEach(node => {
+            if (node.nextId !== null) {
+                let nextNode = nodes.find(n => n.id === node.nextId);
+                // 不画断开的或跨区的长难看线，只画有逻辑连接的
+                if (nextNode && node.state === nextNode.state) {
+                    let sX = node.x + 30; let sY = node.y + nodeH/2;
+                    let eX = nextNode.x; let eY = nextNode.y + nodeH/2;
+                    drawArrow(sX, sY, eX, eY);
+                }
+            }
+        });
+
+        // Draw Nodes
+        nodes.forEach(node => {
+            stroke(node.id === 0 ? '#aaa' : 80); strokeWeight(1.5);
+            if (node.isHighlighted) fill('#ffe0b2');
+            else if (node.state === 'merged') fill('#d4edda');
+            else if (node.state === 'heap') fill('#e3f2fd');
+            else fill('#fff');
+            
+            rect(node.x, node.y, nodeW, nodeH, 4);
+            line(node.x + 22, node.y, node.x + 22, node.y + nodeH);
+            
+            noStroke(); 
+            fill(node.id === 0 ? 150 : 20); 
+            textAlign(CENTER, CENTER); textSize(11);
+            text(node.val, node.x + 11, node.y + nodeH/2);
+            
+            fill(80); circle(node.x + 30, node.y + nodeH/2, 3);
+        });
+
+        // Curr Pointer Tracker
+        let targetCurr = nodes.find(n => n.id === currPtrId);
+        if (targetCurr) {
+            currTrackX = currTrackX === null ? targetCurr.x : lerp(currTrackX, targetCurr.x, 0.25 * params.speed);
+            currTrackY = currTrackY === null ? targetCurr.y : lerp(currTrackY, targetCurr.y, 0.25 * params.speed);
+            drawLabel('curr', currTrackX + nodeW/2, currTrackY - 16, '#788c5d');
+        }
+      }
+
+      function performStep() {
+        if (stepIndex >= steps.length) {
+            isDone = true; return;
+        }
+        let step = steps[stepIndex++];
+        
+        nodes.forEach(n => n.isHighlighted = false);
+        
+        if (step.msg) logMsg(step.msg, step.highlight || step.type === 'HIGHLIGHT_MIN');
+
+        switch(step.type) {
+            case 'PUSH_HEAP':
+                let pn = nodes.find(n => n.id === step.id);
+                if(pn) pn.state = 'heap';
+                updatePQDataUI(step.heapState.map(id => nodes.find(x=>x.id===id).val).sort((a,b)=>a-b));
+                break;
+            case 'HIGHLIGHT_MIN':
+                let hn = nodes.find(n => n.id === step.id);
+                if(hn) hn.isHighlighted = true;
+                break;
+            case 'MERGE_NODE':
+                let mn = nodes.find(n => n.id === step.id);
+                let prevn = nodes.find(n => n.id === step.prevId);
+                if(mn) {
+                    mn.state = 'merged';
+                    mn.mergedIdx = step.mergedIdx;
+                    currPtrId = mn.id;
+                }
+                if(prevn && mn) {
+                    prevn.nextId = mn.id; // re-link in merged context
+                }
+                updatePQDataUI(step.heapState.map(id => nodes.find(x=>x.id===id).val).sort((a,b)=>a-b));
+                break;
+            case 'DONE':
+                currPtrId = null;
+                nodes.forEach(n => {
+                    // 断开未被引用的原始连接
+                    if (n.state === 'original') n.nextId = null; 
+                });
+                break;
+        }
+      }
+
+      function drawArrow(x1, y1, x2, y2) {
+          stroke('#d97757'); strokeWeight(1.5); noFill();
+          let d = dist(x1, y1, x2, y2);
+          if (abs(y1 - y2) < 5 && d < 100) {
+              line(x1, y1, x2 - 5, y2);
+              push(); translate(x2-5, y2); fill('#d97757'); noStroke(); triangle(0,0, -6,3, -6,-3); pop();
+          } else {
+              bezier(x1, y1, x1 + 20, y1, x2 - 20, y2, x2 - 5, y2);
+              let tx = bezierTangent(x1, x1+20, x2-20, x2-5, 1);
+              let ty = bezierTangent(y1, y1, y2, y2, 1);
+              push(); translate(x2-5, y2); rotate(atan2(ty,tx)); fill('#d97757'); noStroke(); triangle(0,0, -6,3, -6,-3); pop();
+          }
+      }
+
+      function drawLabel(txt, x, y, col) {
+          push();
+          fill(col); noStroke(); rectMode(CENTER);
+          rect(x, y, 38, 16, 4);
+          fill(255); textAlign(CENTER, CENTER); textSize(9);
+          text(txt + " ↓", x, y);
+          pop();
+      }
+
+      function updatePQDataUI(vals) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        vals.forEach((v, idx) => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          if(idx===0) node.style.background = '#e8a838'; // highlight min
+          node.innerText = v;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 1024;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+        logMsg("🔄 重新发牌，生成新的多路链表组。", true);
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>
