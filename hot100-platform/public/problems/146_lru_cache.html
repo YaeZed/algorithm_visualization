@@ -1,0 +1,1371 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LRU 缓存可视化 - LeetCode 146</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        height: 100vh;
+        padding: 15px;
+        gap: 15px;
+      }
+
+      /* Left Sidebar - Controls */
+      .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto;
+        border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 {
+        font-family: "Lora", serif;
+        font-size: 18px;
+        margin-bottom: 4px;
+        color: var(--anthropic-orange);
+      }
+      .subtitle {
+        color: var(--anthropic-mid-gray);
+        font-size: 11px;
+        margin-bottom: 20px;
+      }
+      .control-section {
+        margin-bottom: 20px;
+      }
+      .control-section h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: var(--anthropic-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .control-section h3::before {
+        content: "";
+        width: 4px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 2px;
+      }
+      .control-group {
+        margin-bottom: 12px;
+      }
+      .control-group label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 4px;
+        color: #666;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      input[type="range"] {
+        flex: 1;
+        height: 4px;
+        background: var(--anthropic-light-gray);
+        border-radius: 2px;
+        appearance: none;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        min-width: 25px;
+        text-align: right;
+      }
+      .button {
+        background: var(--anthropic-orange);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        width: 100%;
+        cursor: pointer;
+        font-size: 13px;
+        transition: 0.2s;
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+      .button:hover {
+        background: #c86641;
+      }
+      .seed-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--anthropic-light-gray);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+
+      /* Middle - Canvas */
+      .canvas-area {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .canvas-header {
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--anthropic-light-gray);
+        font-size: 13px;
+        font-weight: 500;
+        color: #888;
+        display: flex;
+        justify-content: space-between;
+      }
+      #canvas-container {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Right Panel - Logic & Code */
+      .right-panel {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      /* Code Box (VS Code Dark+ Style) */
+      .code-box {
+        flex: 1.3;
+        background: #1e1e1e;
+        border-radius: 12px;
+        border: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .box-header {
+        padding: 8px 15px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .box-header.dark {
+        background: #282828;
+        border-bottom: 1px solid #1e1e1e;
+        padding: 10px 15px 0 15px;
+      }
+      .box-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+      }
+      .box-title.dark {
+        color: #ccc;
+        padding-bottom: 10px;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+      }
+      .tabs.dark {
+        gap: 1px;
+        align-items: flex-end;
+      }
+      .tabs.dark .tab {
+        padding: 8px 16px;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        background: #2d2d2d;
+        transition: 0.2s;
+        color: #888;
+        font-weight: 500;
+        font-size: 11px;
+        font-family: "Poppins", sans-serif;
+      }
+      .tabs.dark .tab:hover {
+        background: #3c3c3c;
+        color: #ddd;
+      }
+      .tabs.dark .tab.active {
+        background: #1e1e1e;
+        color: #4ec9b0;
+        border-top: 2px solid #007acc;
+      }
+
+      .code-content {
+        flex: 1;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        background: #1e1e1e;
+        border-radius: 0 0 12px 12px;
+      }
+      #code-viewer {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 13.5px;
+        line-height: 1.6;
+        display: block;
+        padding: 15px;
+        background: transparent;
+        color: #d4d4d4;
+      }
+
+      /* Highlight.js CSS Overrides for precise Dark+ accuracy */
+      .hljs {
+        background: transparent !important;
+        padding: 0 !important;
+        color: #d4d4d4 !important;
+      }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box {
+        flex: 0.7;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--anthropic-light-gray);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+
+      /* Auto-scrolling Log */
+      .log-area {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 11.5px;
+        background: #fff;
+      }
+      .log-item {
+        padding: 6px 10px;
+        border-radius: 4px;
+        background: #fcfcfc;
+        border-left: 2px solid #ddd;
+        border-bottom: 1px solid #f5f5f5;
+        line-height: 1.4;
+        color: #444;
+      }
+      .log-item.highlight {
+        border-left-color: var(--anthropic-orange);
+        background: #fff9f5;
+        font-weight: 500;
+      }
+      .log-item.highlight-blue {
+        border-left-color: var(--anthropic-blue);
+        background: #f0f7ff;
+        font-weight: 500;
+      }
+      .log-item .time {
+        font-size: 9px;
+        color: #bbb;
+        margin-bottom: 2px;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* Memo Card */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #f6fbf4; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>LRU 缓存 (LRU Cache)</h1>
+        <div class="subtitle">哈希表 + 双向链表 O(1) 物理模型</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="1024" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机生成测试用例</button>
+        </div>
+
+        <div class="control-section">
+          <h3>结构控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>缓存容量 (Capacity)</label>
+            <div class="slider-container">
+              <input type="range" id="capacity" min="2" max="6" step="1" value="3" oninput="updateParam('capacity', this.value)" />
+              <span class="value-display" id="capacity-value">3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px; margin-bottom: 0;">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(1) 操作</span>
+            <span class="memo-badge space">□ O(C) 空间</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 <b>组合结构：</b>哈希表提供 O(1) 的节点寻址，双向链表提供 O(1) 的物理移动和删除。</div>
+            <div class="memo-tip g">🔍 <b>为什么必须是双向链表？</b>因为哈希表寻址到目标节点后，单向链表无法在 O(1) 内获取其前驱节点（用于拼接删除）。</div>
+            <div class="memo-tip w">⚠️ <b>避坑指南：</b>链表节点内部必须同时存储 key 和 value。淘汰尾部节点时，必须依赖它存的 key 去哈希表中将其记录删除。</div>
+            <div class="memo-tip">💡 <b>伪头尾节点 (Dummy Node)：</b>在链表首尾增加空节点，可以彻底免去处理头尾指针为空的边界判断 (if null) 逻辑。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+          <span>内存布局与指针重定向视图</span>
+          <span id="op-counter" style="color: var(--anthropic-orange); font-weight: 600;">操作: 0/0</span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行日志</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTILINGUAL OPTIMAL CODE SNIPPETS
+      // Using highly descriptive Chinese comments explaining the physical logic
+      // ==========================================================
+      const SNIPPETS = {
+        ts: `// TypeScript
+// 1. 定义双向链表节点结构
+class DLinkedNode {
+    key: number;
+    value: number;
+    prev: DLinkedNode | null;
+    next: DLinkedNode | null;
+    
+    constructor(key: number = 0, value: number = 0) {
+        this.key = key;
+        this.value = value;
+        this.prev = null;
+        this.next = null;
+    }
+}
+
+class LRUCache {
+    private capacity: number;
+    private size: number;
+    private cache: Map<number, DLinkedNode>;
+    // 伪头部和伪尾部节点，免去 null 判断的边界问题
+    private head: DLinkedNode;
+    private tail: DLinkedNode;
+
+    constructor(capacity: number) {
+        this.capacity = capacity;
+        this.size = 0;
+        this.cache = new Map();
+        
+        // 初始化双向链表：head <-> tail
+        this.head = new DLinkedNode();
+        this.tail = new DLinkedNode();
+        this.head.next = this.tail;
+        this.tail.prev = this.head;
+    }
+
+    get(key: number): number {
+        const node = this.cache.get(key);
+        if (!node) return -1; // 缓存未命中
+        
+        // 如果键存在，先通过哈希表定位，再将其移动到双向链表的头部
+        this.moveToHead(node);
+        return node.value;
+    }
+
+    put(key: number, value: number): void {
+        const node = this.cache.get(key);
+        if (!node) {
+            // 新节点：如果不存在，创建一个新的节点
+            const newNode = new DLinkedNode(key, value);
+            this.cache.set(key, newNode); // 添加进哈希表
+            this.addToHead(newNode);      // 添加至双向链表头部
+            this.size++;
+            
+            // 判断是否超载
+            if (this.size > this.capacity) {
+                // 如果超出容量，删除双向链表的尾部节点
+                const tailNode = this.removeTail();
+                // ⚠️ 关键点：这就是为什么节点里面需要存 key！
+                // 拿到被淘汰节点的 key，才能去哈希表中删除对应的索引
+                this.cache.delete(tailNode.key);
+                this.size--;
+            }
+        } else {
+            // 如果 key 存在，直接覆盖 value，并移动到头部
+            node.value = value;
+            this.moveToHead(node);
+        }
+    }
+
+    // --- 以下是纯粹的指针重定向操作 ---
+
+    private addToHead(node: DLinkedNode): void {
+        node.prev = this.head;
+        node.next = this.head.next;
+        this.head.next!.prev = node;
+        this.head.next = node;
+    }
+
+    private removeNode(node: DLinkedNode): void {
+        node.prev!.next = node.next;
+        node.next!.prev = node.prev;
+    }
+
+    private moveToHead(node: DLinkedNode): void {
+        this.removeNode(node);
+        this.addToHead(node);
+    }
+
+    private removeTail(): DLinkedNode {
+        const res = this.tail.prev!;
+        this.removeNode(res);
+        return res;
+    }
+}`,
+        python: `# Python
+class DLinkedNode:
+    def __init__(self, key=0, value=0):
+        self.key = key
+        self.value = value
+        self.prev = None
+        self.next = None
+
+class LRUCache:
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        # 哈希表：key -> DLinkedNode 内存地址
+        self.cache = {}
+        # 伪头节点和伪尾节点，避免指针越界判断
+        self.head = DLinkedNode()
+        self.tail = DLinkedNode()
+        self.head.next = self.tail
+        self.tail.prev = self.head
+
+    def get(self, key: int) -> int:
+        if key not in self.cache:
+            return -1
+        # 如果 key 存在，先通过哈希表在 O(1) 内获取节点对象
+        node = self.cache[key]
+        # 将被访问的节点提升为"最近使用"，即移动到链表头部
+        self.moveToHead(node)
+        return node.value
+
+    def put(self, key: int, value: int) -> None:
+        if key not in self.cache:
+            # 新元素，创建节点
+            node = DLinkedNode(key, value)
+            self.cache[key] = node     # 存入哈希表
+            self.addToHead(node)       # 插入链表物理头部
+            
+            # 判断容量是否溢出
+            if len(self.cache) > self.capacity:
+                # 溢出则淘汰最末尾节点 (LRU机制核心)
+                removed = self.removeTail()
+                # ⚠️ 必须根据淘汰节点的 key 删除哈希表中的映射记录
+                self.cache.pop(removed.key)
+        else:
+            # 已经存在的 key，更新 value 并移动到头部
+            node = self.cache[key]
+            node.value = value
+            self.moveToHead(node)
+
+    # --- 底层链表指针操作 ---
+    def addToHead(self, node: DLinkedNode):
+        node.prev = self.head
+        node.next = self.head.next
+        self.head.next.prev = node
+        self.head.next = node
+
+    def removeNode(self, node: DLinkedNode):
+        node.prev.next = node.next
+        node.next.prev = node.prev
+
+    def moveToHead(self, node: DLinkedNode):
+        self.removeNode(node)
+        self.addToHead(node)
+
+    def removeTail(self):
+        node = self.tail.prev
+        self.removeNode(node)
+        return node`,
+        java: `// Java
+import java.util.HashMap;
+import java.util.Map;
+
+class LRUCache {
+    class DLinkedNode {
+        int key;
+        int value;
+        DLinkedNode prev;
+        DLinkedNode next;
+        public DLinkedNode() {}
+        public DLinkedNode(int _key, int _value) {key = _key; value = _value;}
+    }
+
+    private Map<Integer, DLinkedNode> cache = new HashMap<>();
+    private int size;
+    private int capacity;
+    private DLinkedNode head, tail;
+
+    public LRUCache(int capacity) {
+        this.size = 0;
+        this.capacity = capacity;
+        // 使用伪头部和伪尾部节点
+        head = new DLinkedNode();
+        tail = new DLinkedNode();
+        head.next = tail;
+        tail.prev = head;
+    }
+
+    public int get(int key) {
+        DLinkedNode node = cache.get(key);
+        if (node == null) {
+            return -1;
+        }
+        // 如果 key 存在，先通过哈希表定位，再移到头部
+        moveToHead(node);
+        return node.value;
+    }
+
+    public void put(int key, int value) {
+        DLinkedNode node = cache.get(key);
+        if (node == null) {
+            // 如果 key 不存在，创建一个新的节点
+            DLinkedNode newNode = new DLinkedNode(key, value);
+            cache.put(key, newNode);
+            addToHead(newNode); // 物理插入头部
+            ++size;
+            
+            if (size > capacity) {
+                // 如果超出容量，删除双向链表的尾部节点
+                DLinkedNode tail = removeTail();
+                // 根据尾部节点中存的 key 删除哈希表操作
+                cache.remove(tail.key);
+                --size;
+            }
+        } else {
+            // 如果 key 存在，先通过哈希表定位，再修改 value，并移到头部
+            node.value = value;
+            moveToHead(node);
+        }
+    }
+
+    private void addToHead(DLinkedNode node) {
+        node.prev = head;
+        node.next = head.next;
+        head.next.prev = node;
+        head.next = node;
+    }
+
+    private void removeNode(DLinkedNode node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+    }
+
+    private void moveToHead(DLinkedNode node) {
+        removeNode(node);
+        addToHead(node);
+    }
+
+    private DLinkedNode removeTail() {
+        DLinkedNode res = tail.prev;
+        removeNode(res);
+        return res;
+    }
+}`,
+        cpp: `// C++
+#include <unordered_map>
+using namespace std;
+
+struct DLinkedNode {
+    int key, value;
+    DLinkedNode* prev;
+    DLinkedNode* next;
+    DLinkedNode(): key(0), value(0), prev(nullptr), next(nullptr) {}
+    DLinkedNode(int _key, int _value): key(_key), value(_value), prev(nullptr), next(nullptr) {}
+};
+
+class LRUCache {
+private:
+    unordered_map<int, DLinkedNode*> cache;
+    DLinkedNode* head;
+    DLinkedNode* tail;
+    int size;
+    int capacity;
+
+public:
+    LRUCache(int _capacity): capacity(_capacity), size(0) {
+        // 创建保护节点(Dummy Head/Tail)
+        head = new DLinkedNode();
+        tail = new DLinkedNode();
+        head->next = tail;
+        tail->prev = head;
+    }
+    
+    int get(int key) {
+        if (!cache.count(key)) {
+            return -1;
+        }
+        // 如果命中，则将对应节点从当前位置切除，插入到头节点之后
+        DLinkedNode* node = cache[key];
+        moveToHead(node);
+        return node->value;
+    }
+    
+    void put(int key, int value) {
+        if (!cache.count(key)) {
+            // 如果不存在则新建节点
+            DLinkedNode* node = new DLinkedNode(key, value);
+            cache[key] = node;
+            addToHead(node);
+            ++size;
+            
+            // 检查容量
+            if (size > capacity) {
+                DLinkedNode* removed = removeTail();
+                // ⚠️ 物理清理：不仅要在哈希表 erase，还要 delete 释放内存 (C++特性)
+                cache.erase(removed->key);
+                delete removed;
+                --size;
+            }
+        } else {
+            // 若存在则更新并提前
+            DLinkedNode* node = cache[key];
+            node->value = value;
+            moveToHead(node);
+        }
+    }
+
+    // --- 双向链表常规物理操作 ---
+    void addToHead(DLinkedNode* node) {
+        node->prev = head;
+        node->next = head->next;
+        head->next->prev = node;
+        head->next = node;
+    }
+    
+    void removeNode(DLinkedNode* node) {
+        node->prev->next = node->next;
+        node->next->prev = node->prev;
+    }
+
+    void moveToHead(DLinkedNode* node) {
+        removeNode(node);
+        addToHead(node);
+    }
+
+    DLinkedNode* removeTail() {
+        DLinkedNode* node = tail->prev;
+        removeNode(node);
+        return node;
+    }
+};`,
+        c: `// C
+#include <stdlib.h>
+
+// 1. 定义双向链表物理节点
+typedef struct DLinkedNode {
+    int key;
+    int value;
+    struct DLinkedNode* prev;
+    struct DLinkedNode* next;
+} DLinkedNode;
+
+// 2. 利用数组模拟简易哈希表 (假设 key 最大范围已知，或采用 uthash)
+// 这里为了纯粹展示底层机制，采用直接寻址数组模拟哈希映射
+typedef struct {
+    int capacity;
+    int size;
+    DLinkedNode* head;
+    DLinkedNode* tail;
+    DLinkedNode** cache; // 哈希表指针数组: key -> Node*
+} LRUCache;
+
+// --- 链表物理断链与连链操作 ---
+void addToHead(LRUCache* obj, DLinkedNode* node) {
+    node->prev = obj->head;
+    node->next = obj->head->next;
+    obj->head->next->prev = node;
+    obj->head->next = node;
+}
+
+void removeNode(DLinkedNode* node) {
+    node->prev->next = node->next;
+    node->next->prev = node->prev;
+}
+
+void moveToHead(LRUCache* obj, DLinkedNode* node) {
+    removeNode(node);
+    addToHead(obj, node);
+}
+
+DLinkedNode* removeTail(LRUCache* obj) {
+    DLinkedNode* node = obj->tail->prev;
+    removeNode(node);
+    return node;
+}
+
+// --- LRU核心逻辑 ---
+LRUCache* lRUCacheCreate(int capacity) {
+    LRUCache* obj = (LRUCache*)malloc(sizeof(LRUCache));
+    obj->capacity = capacity;
+    obj->size = 0;
+    obj->head = (DLinkedNode*)malloc(sizeof(DLinkedNode));
+    obj->tail = (DLinkedNode*)malloc(sizeof(DLinkedNode));
+    obj->head->next = obj->tail;
+    obj->tail->prev = obj->head;
+    
+    // 分配哈希表内存（假定 key 的范围不超过 10000）
+    obj->cache = (DLinkedNode**)calloc(10001, sizeof(DLinkedNode*));
+    return obj;
+}
+
+int lRUCacheGet(LRUCache* obj, int key) {
+    DLinkedNode* node = obj->cache[key];
+    if (node == NULL) return -1;
+    
+    moveToHead(obj, node);
+    return node->value;
+}
+
+void lRUCachePut(LRUCache* obj, int key, int value) {
+    DLinkedNode* node = obj->cache[key];
+    if (node == NULL) {
+        DLinkedNode* newNode = (DLinkedNode*)malloc(sizeof(DLinkedNode));
+        newNode->key = key;
+        newNode->value = value;
+        obj->cache[key] = newNode;
+        addToHead(obj, newNode);
+        obj->size++;
+        
+        if (obj->size > obj->capacity) {
+            DLinkedNode* tailNode = removeTail(obj);
+            obj->cache[tailNode->key] = NULL; // 从哈希表中移除
+            free(tailNode); // C语言必须手动释放内存
+            obj->size--;
+        }
+    } else {
+        node->value = value;
+        moveToHead(obj, node);
+    }
+}
+
+void lRUCacheFree(LRUCache* obj) {
+    // 省略：遍历并 free 所有节点与 cache 数组
+    free(obj);
+}`
+      };
+
+      // ==========================================================
+      // SIMULATION LOGIC & VISUALIZATION (p5.js)
+      // ==========================================================
+      let params = {
+        seed: 1024,
+        speed: 1.0,
+        capacity: 3,
+      };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // LRU State Machine
+      let cacheOps = [];
+      let currentOpIndex = 0;
+      let stepPhase = 0; // 0: Read Intent, 1: Logical Move, 2: Done Wait
+      
+      // Data Structures for Rendering
+      let dummyHead, dummyTail;
+      let listNodes = []; // Logical order [dummyHead, node1, node2, ..., dummyTail]
+      let hashMap = new Map(); // visual hash map key -> node
+      let floatingLabel = null; // Used to highlight current accessed node
+
+      // Coordinate Layouts
+      const LIST_START_Y = 120;
+      const HASH_START_X = 50;
+      const HASH_START_Y = 280;
+
+      class VisualNode {
+        constructor(key, value, isDummy=false, dummyName="") {
+          this.id = Math.random().toString(36).substr(2, 9);
+          this.key = key;
+          this.value = value;
+          this.isDummy = isDummy;
+          this.dummyName = dummyName;
+          this.targetX = 0;
+          this.targetY = LIST_START_Y;
+          this.x = isDummy ? 0 : 300; 
+          this.y = isDummy ? LIST_START_Y : LIST_START_Y + 100;
+          this.opacity = isDummy ? 255 : 0;
+          this.isNewlyAdded = true;
+          this.highlightTimer = 0;
+        }
+
+        update() {
+          let s = 0.15 * params.speed;
+          this.x = lerp(this.x, this.targetX, s);
+          this.y = lerp(this.y, this.targetY, s);
+          this.opacity = lerp(this.opacity, 255, s);
+          if (this.highlightTimer > 0) this.highlightTimer -= 0.02 * params.speed;
+        }
+
+        draw(p) {
+          p.push();
+          p.translate(this.x, this.y);
+          
+          if (this.isDummy) {
+            p.fill(240, this.opacity);
+            p.stroke(180, this.opacity);
+            p.strokeWeight(2);
+            p.rectMode(p.CENTER);
+            p.rect(0, 0, 70, 50, 8);
+            p.fill(100, this.opacity);
+            p.noStroke();
+            p.textAlign(p.CENTER, p.CENTER);
+            p.textSize(12);
+            p.text(this.dummyName, 0, 0);
+          } else {
+            // Node background
+            let bgCol = p.color(255);
+            if (this.highlightTimer > 0) {
+               bgCol = p.lerpColor(p.color(255, 240, 230), p.color(255), 1 - this.highlightTimer);
+            }
+            p.fill(bgCol);
+            p.stroke(this.highlightTimer > 0 ? p.color(217, 119, 87) : p.color(180));
+            p.strokeWeight(this.highlightTimer > 0 ? 3 : 2);
+            p.rectMode(p.CENTER);
+            p.rect(0, 0, 80, 50, 8);
+
+            // Divider
+            p.stroke(220);
+            p.strokeWeight(1);
+            p.line(0, -25, 0, 25);
+
+            // Text
+            p.fill(60);
+            p.noStroke();
+            p.textAlign(p.CENTER, p.CENTER);
+            p.textSize(10);
+            p.text("K", -20, -12);
+            p.text("V", 20, -12);
+            p.textSize(16);
+            p.text(this.key, -20, 8);
+            p.text(this.value, 20, 8);
+          }
+          p.pop();
+        }
+      }
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 500);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("ts");
+        initializeSystem();
+      }
+
+      function generateOperations() {
+        randomSeed(params.seed);
+        let ops = [];
+        let curKeys = []; // Track keys roughly to create realistic hit rates
+        
+        let totalOps = 15;
+        for (let i = 0; i < totalOps; i++) {
+            let typeProb = random();
+            // More puts early, then mix
+            let opType = (i < 3 || typeProb > 0.4) ? 'put' : 'get';
+            
+            if (opType === 'put') {
+                let k;
+                // 30% chance to overwrite existing
+                if (curKeys.length > 0 && random() < 0.3) {
+                    k = random(curKeys);
+                } else {
+                    k = floor(random(1, 15));
+                    if (!curKeys.includes(k)) curKeys.push(k);
+                }
+                let v = k * 10 + floor(random(1, 9));
+                ops.push({ type: 'put', key: k, val: v });
+            } else {
+                let k;
+                // 60% chance to request existing
+                if (curKeys.length > 0 && random() < 0.6) {
+                    k = random(curKeys);
+                } else {
+                    k = floor(random(1, 15));
+                }
+                ops.push({ type: 'get', key: k });
+            }
+        }
+        return ops;
+      }
+
+      function initializeSystem() {
+        // Reset Variables
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        currentOpIndex = 0;
+        stepPhase = 0;
+        hashMap.clear();
+        floatingLabel = null;
+
+        // Init UI
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+        document.getElementById("log-container").innerHTML = "";
+        
+        logMsg(`🔄 系统初始化: 容量(Capacity) = ${params.capacity}`, true);
+
+        // Generate Data
+        cacheOps = generateOperations();
+        document.getElementById("op-counter").innerText = `操作: 0/${cacheOps.length}`;
+
+        // Create initial Dummy Nodes
+        dummyHead = new VisualNode(null, null, true, "Dummy\nHead");
+        dummyTail = new VisualNode(null, null, true, "Dummy\nTail");
+        listNodes = [dummyHead, dummyTail];
+        recalcTargetPositions();
+      }
+
+      function recalcTargetPositions() {
+        // Distribute nodes evenly
+        let w = width;
+        let startX = 80;
+        let endX = w - 80;
+        let count = listNodes.length;
+        let spacing = (endX - startX) / (count - 1 || 1);
+
+        for (let i = 0; i < count; i++) {
+          listNodes[i].targetX = startX + i * spacing;
+          listNodes[i].targetY = LIST_START_Y;
+        }
+      }
+
+      function draw() {
+        background(253, 252, 249);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // 1. Draw Links (Edges) between nodes
+        for (let i = 0; i < listNodes.length - 1; i++) {
+          let n1 = listNodes[i];
+          let n2 = listNodes[i+1];
+          drawDoubleArrow(n1.x, n1.y, n2.x, n2.y, n1.opacity * (n2.opacity/255));
+        }
+
+        // 2. Draw Nodes
+        for (let node of listNodes) {
+          node.update();
+          node.draw(window);
+        }
+
+        // 3. Draw Hash Map Representation
+        drawHashMap();
+
+        // 4. Draw Floating Status Label
+        if (floatingLabel) {
+            floatingLabel.x = lerp(floatingLabel.x, floatingLabel.tx, 0.15 * params.speed);
+            floatingLabel.y = lerp(floatingLabel.y, floatingLabel.ty, 0.15 * params.speed);
+            push();
+            fill(floatingLabel.col);
+            noStroke();
+            rectMode(CENTER);
+            rect(floatingLabel.x, floatingLabel.y, 80, 26, 4);
+            fill(255);
+            textSize(12);
+            textAlign(CENTER, CENTER);
+            text(floatingLabel.txt, floatingLabel.x, floatingLabel.y);
+            pop();
+        }
+      }
+
+      function drawDoubleArrow(x1, y1, x2, y2, opacity) {
+        if (opacity <= 0) return;
+        let dist = dist2D(x1, y1, x2, y2);
+        if (dist < 80) return; // Too close
+
+        // Offset from center to border
+        let startX = x1 + (x2 - x1) * (45/dist);
+        let startY = y1 + (y2 - y1) * (45/dist);
+        let endX = x2 - (x2 - x1) * (45/dist);
+        let endY = y2 - (y2 - y1) * (45/dist);
+
+        push();
+        stroke(200, opacity);
+        strokeWeight(3);
+        line(startX, startY, endX, endY);
+        
+        // Arrow heads
+        let angle = atan2(endY - startY, endX - startX);
+        push();
+        translate(endX, endY);
+        rotate(angle);
+        fill(200, opacity);
+        noStroke();
+        triangle(0, 0, -8, -5, -8, 5);
+        pop();
+
+        push();
+        translate(startX, startY);
+        rotate(angle + PI);
+        fill(200, opacity);
+        noStroke();
+        triangle(0, 0, -8, -5, -8, 5);
+        pop();
+
+        pop();
+      }
+
+      function drawHashMap() {
+        push();
+        translate(HASH_START_X, HASH_START_Y);
+        fill(245);
+        stroke(220);
+        strokeWeight(2);
+        rect(0, 0, 240, 180, 8);
+
+        fill(100);
+        noStroke();
+        textSize(13);
+        text("Hash Map (Key -> Node Address)", 15, 25);
+
+        stroke(220);
+        line(10, 35, 230, 35);
+
+        let keys = Array.from(hashMap.keys());
+        for (let i = 0; i < keys.length; i++) {
+            let k = keys[i];
+            let y = 55 + i * 25;
+            
+            fill(80);
+            noStroke();
+            textAlign(LEFT, CENTER);
+            text(`Key: ${k}`, 20, y);
+            
+            fill(180);
+            text("------>", 80, y);
+
+            let memAddr = "0x" + hashMap.get(k).id.substring(0, 4).toUpperCase();
+            fill(106, 155, 204); // Blueish
+            text(`Node (${memAddr})`, 130, y);
+        }
+        pop();
+      }
+
+      function dist2D(x1, y1, x2, y2) {
+        return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+      }
+
+      function performStep() {
+        if (currentOpIndex >= cacheOps.length) {
+          isDone = true;
+          logMsg("🏁 所有操作执行完毕。", true);
+          floatingLabel = null;
+          return;
+        }
+
+        let op = cacheOps[currentOpIndex];
+        
+        if (stepPhase === 0) {
+            document.getElementById("op-counter").innerText = `操作: ${currentOpIndex+1}/${cacheOps.length}`;
+            if (op.type === 'put') {
+                logMsg(`▶ [请求] PUT Key=${op.key}, Value=${op.val}`);
+                floatingLabel = { txt: `PUT(${op.key}, ${op.val})`, x: width/2, y: 30, tx: width/2, ty: 30, col: '#d97757' };
+            } else {
+                logMsg(`▶ [请求] GET Key=${op.key}`);
+                floatingLabel = { txt: `GET(${op.key})`, x: width/2, y: 30, tx: width/2, ty: 30, col: '#6a9bcc' };
+            }
+            stepPhase = 1;
+
+        } else if (stepPhase === 1) {
+            // Execution
+            if (op.type === 'get') {
+                if (hashMap.has(op.key)) {
+                    let node = hashMap.get(op.key);
+                    logMsg(`✅ [命中] 哈希表 O(1) 寻址成功，返回值 ${node.value}，并将其移动至链表头部`, true);
+                    node.highlightTimer = 1.0;
+                    floatingLabel.tx = node.targetX;
+                    floatingLabel.ty = node.targetY - 50;
+                    moveToHead(node);
+                } else {
+                    logMsg(`❌ [未命中] 缓存中不存在 Key=${op.key}，返回 -1`);
+                }
+            } else if (op.type === 'put') {
+                if (hashMap.has(op.key)) {
+                    let node = hashMap.get(op.key);
+                    logMsg(`✏️ [更新] Key=${op.key} 已存在，更新值 ${node.value} -> ${op.val}，移动至链表头部`, true);
+                    node.value = op.val;
+                    node.highlightTimer = 1.0;
+                    floatingLabel.tx = node.targetX;
+                    floatingLabel.ty = node.targetY - 50;
+                    moveToHead(node);
+                } else {
+                    logMsg(`➕ [插入] 新建节点插入链表物理头部，并在哈希表建立映射`);
+                    let newNode = new VisualNode(op.key, op.val);
+                    newNode.highlightTimer = 1.0;
+                    hashMap.set(op.key, newNode);
+                    addToHead(newNode);
+
+                    floatingLabel.tx = newNode.targetX;
+                    floatingLabel.ty = newNode.targetY - 50;
+
+                    // Check Capacity
+                    let currentSize = listNodes.length - 2; // exclude dummies
+                    if (currentSize > params.capacity) {
+                        let evictedNode = removeTail();
+                        hashMap.delete(evictedNode.key);
+                        logMsg(`⚠️ [容量溢出] (${currentSize} > ${params.capacity})，淘汰链表最末端节点 (Key=${evictedNode.key})`, false, true);
+                    }
+                }
+            }
+            stepPhase = 2;
+
+        } else if (stepPhase === 2) {
+            // Wait visually
+            floatingLabel = null;
+            currentOpIndex++;
+            stepPhase = 0;
+        }
+      }
+
+      function addToHead(node) {
+        // logical insert between index 0 (DummyHead) and 1
+        listNodes.splice(1, 0, node);
+        recalcTargetPositions();
+      }
+
+      function moveToHead(node) {
+        // Remove from current pos
+        let idx = listNodes.indexOf(node);
+        if (idx > -1) {
+            listNodes.splice(idx, 1);
+        }
+        // Insert right after DummyHead
+        listNodes.splice(1, 0, node);
+        recalcTargetPositions();
+      }
+
+      function removeTail() {
+        // Node before DummyTail
+        let idx = listNodes.length - 2;
+        let node = listNodes[idx];
+        listNodes.splice(idx, 1);
+        
+        // Let it fall visually
+        node.targetY += 150;
+        node.opacity = 0; // will fade out
+        recalcTargetPositions();
+        return node;
+      }
+
+      // ==========================================================
+      // UTILITY FUNCTIONS
+      // ==========================================================
+      function logMsg(msg, isHighlight = false, isWarn = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item";
+        if (isWarn) {
+             item.style.borderLeftColor = "#e8a838";
+             item.style.background = "#fffdf2";
+             item.style.fontWeight = "500";
+        } else if (isHighlight) {
+             item.className += " highlight-blue";
+        }
+
+        let time = new Date().toLocaleTimeString("zh-CN", {hour12: false, hour: "2-digit", minute:"2-digit", second:"2-digit"});
+        item.innerHTML = `<div class="time">[${time}]</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      let currentLang = "ts";
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c"
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id === 'capacity') {
+            initializeSystem();
+        }
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 1024;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

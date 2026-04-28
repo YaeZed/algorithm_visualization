@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>二叉树的直径可视化 - LeetCode 543</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; margin-bottom: 8px; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between;}
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box */
+      .code-box { flex: 1.2; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.8; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.highlight-blue { border-left-color: var(--anthropic-blue); background: #f0f7ff; font-weight: 500; }
+      .log-item.highlight-green { border-left-color: var(--anthropic-green); background: #f5fbf4; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; font-family: "JetBrains Mono", monospace; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* Memo Card */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #f6fbf4; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>二叉树的直径</h1>
+        <div class="subtitle">后序 DFS 与全局极值记录 (Post-order)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="543" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成随机树形结构</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>节点数量 (N)</label>
+            <div class="slider-container">
+              <input type="range" id="nodesCount" min="5" max="20" step="1" value="12" oninput="updateParam('nodesCount', this.value)" />
+              <span class="value-display" id="nodesCount-value">12</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px; margin-bottom: 0;">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新执行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n) 时间</span>
+            <span class="memo-badge space">□ O(h) 栈空间</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 <b>函数职责解耦：</b>递归函数 `depth()` 的返回值是当前节点的<b>最大深度</b>，而不是直径。直径是通过维护一个全局变量 `maxDiameter` 来附带记录的。</div>
+            <div class="memo-tip">💡 <b>自底向上 (Bottom-Up)：</b>必须采用后序遍历（先算完左右子树深度，再处理当前节点），这样每个节点在计算时，其子树深度已是确定的已知状态。</div>
+            <div class="memo-tip g">🔍 <b>直径的物理定义：</b>经过某节点的路径长度 = 其左子树最大深度 + 右子树最大深度。</div>
+            <div class="memo-tip w">⚠️ <b>全局状态污染：</b>LeetCode 类的解法中，若将 `maxDiameter` 作为类的成员变量，每次调用前务必重置为 0，否则会遗留上次测试用例的脏数据。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+          <span>物理递归栈回溯与全局直径计算视图</span>
+          <span id="global-max" style="font-weight: 600; color: var(--anthropic-orange);">全局最大直径: 0</span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优后序 DFS)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行流日志 (Execution Trace)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTILINGUAL POST-ORDER DFS CODE SNIPPETS
+      // ==========================================================
+      const SNIPPETS = {
+        ts: `// TypeScript
+class TreeNode {
+    val: number
+    left: TreeNode | null
+    right: TreeNode | null
+    constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) {
+        this.val = (val===undefined ? 0 : val)
+        this.left = (left===undefined ? null : left)
+        this.right = (right===undefined ? null : right)
+    }
+}
+
+function diameterOfBinaryTree(root: TreeNode | null): number {
+    let maxDiameter = 0; // 维护在外部作用域的全局变量
+
+    // 递归函数：计算以该节点为根的子树最大深度
+    function depth(node: TreeNode | null): number {
+        if (node === null) return 0;
+        
+        // 1. 递归探测左子树和右子树的物理深度
+        const leftDepth = depth(node.left);
+        const rightDepth = depth(node.right);
+        
+        // 2. 【后序操作】此时左右深度已知，计算经过当前节点的局部直径
+        // 如果局部直径大于全局直径，则更新
+        maxDiameter = Math.max(maxDiameter, leftDepth + rightDepth);
+        
+        // 3. 向上层调用栈返回当前节点的最大深度
+        // +1 是加上当前节点自身的物理占用
+        return Math.max(leftDepth, rightDepth) + 1;
+    }
+
+    depth(root);
+    return maxDiameter;
+}`,
+        python: `# Python
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class Solution:
+    def diameterOfBinaryTree(self, root: TreeNode) -> int:
+        self.max_diameter = 0
+        
+        def depth(node: TreeNode) -> int:
+            if not node:
+                return 0
+                
+            # 自底向上获取左右子树的深度
+            left_depth = depth(node.left)
+            right_depth = depth(node.right)
+            
+            # 当前节点作为"拱门顶点"时的路径长度
+            # 尝试挑战全局最高纪录
+            self.max_diameter = max(self.max_diameter, left_depth + right_depth)
+            
+            # 向父节点汇报自己这边的最大物理深度
+            return max(left_depth, right_depth) + 1
+            
+        depth(root)
+        return self.max_diameter`,
+        java: `// Java
+class Solution {
+    // 类的成员变量，用作跨栈帧状态共享
+    private int maxDiameter;
+
+    public int diameterOfBinaryTree(TreeNode root) {
+        maxDiameter = 0; // 每次执行务必清空，防止测试用例污染
+        depth(root);
+        return maxDiameter;
+    }
+
+    private int depth(TreeNode node) {
+        if (node == null) return 0;
+        
+        int leftDepth = depth(node.left);
+        int rightDepth = depth(node.right);
+        
+        // 后序遍历：在左右状态都拿到后，更新全局直径
+        maxDiameter = Math.max(maxDiameter, leftDepth + rightDepth);
+        
+        // 向上一层栈帧返回当前节点的最大深度
+        return Math.max(leftDepth, rightDepth) + 1;
+    }
+}`,
+        cpp: `// C++
+#include <algorithm>
+using namespace std;
+
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+class Solution {
+public:
+    int diameterOfBinaryTree(TreeNode* root) {
+        int maxDiameter = 0;
+        depth(root, maxDiameter);
+        return maxDiameter;
+    }
+
+private:
+    // C++ 中通常通过传递引用 & 来修改全局状态
+    int depth(TreeNode* node, int& maxDiameter) {
+        if (node == nullptr) return 0;
+        
+        int leftDepth = depth(node->left, maxDiameter);
+        int rightDepth = depth(node->right, maxDiameter);
+        
+        maxDiameter = max(maxDiameter, leftDepth + rightDepth);
+        
+        return max(leftDepth, rightDepth) + 1;
+    }
+};`,
+        c: `// C
+#include <stddef.h>
+
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+// 辅助宏函数
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+// 传入指针以修改外部的全局状态
+int depth(struct TreeNode* node, int* maxDiameter) {
+    if (node == NULL) return 0;
+    
+    int leftDepth = depth(node->left, maxDiameter);
+    int rightDepth = depth(node->right, maxDiameter);
+    
+    int currentDiameter = leftDepth + rightDepth;
+    if (currentDiameter > *maxDiameter) {
+        *maxDiameter = currentDiameter;
+    }
+    
+    return MAX(leftDepth, rightDepth) + 1;
+}
+
+int diameterOfBinaryTree(struct TreeNode* root) {
+    int maxDiameter = 0;
+    depth(root, &maxDiameter);
+    return maxDiameter;
+}`
+      };
+
+      // ==========================================================
+      // SIMULATION LOGIC & VISUALIZATION (p5.js)
+      // ==========================================================
+      let params = { seed: 543, speed: 1.0, nodesCount: 12 };
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // Tree Data
+      class VisualTreeNode {
+        constructor(val) {
+          this.id = Math.random().toString(36).substr(2, 9);
+          this.val = val;
+          this.left = null;
+          this.right = null;
+          // Coordinates
+          this.x = 0;
+          this.y = 0;
+          
+          // Execution States
+          this.state = 'DEFAULT'; // DEFAULT, PUSHED, EVAL_L, EVAL_R, DONE
+          this.leftDepth = '?';
+          this.rightDepth = '?';
+          this.returnedDepth = null; // what it passes to parent
+          this.inDiameterPath = false;
+        }
+      }
+
+      let rootNode = null;
+      
+      // Explicit Call Stack for state machine
+      // Frame struct: { node, phase (0:goLeft, 1:goRight, 2:calc) }
+      let callStack = []; 
+      let maxDiameter = 0;
+      let globalMaxPathNodes = new Set(); // store nodes forming max diameter
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 500);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("ts");
+        initializeSystem();
+      }
+
+      // Build a random asymmetrical tree to make diameter interesting
+      function buildRandomAsymmetricTree(n) {
+          let root = new VisualTreeNode(floor(random(1, 99)));
+          let nodes = [root];
+          
+          for (let i = 1; i < n; i++) {
+              let parent = random(nodes);
+              let child = new VisualTreeNode(floor(random(1, 99)));
+              // Bias towards left or right randomly to create deep branches
+              if (parent.left && parent.right) {
+                  // Both full, find another parent
+                  i--;
+                  continue;
+              }
+              
+              if (!parent.left && !parent.right) {
+                  if (random() > 0.5) parent.left = child; else parent.right = child;
+              } else if (!parent.left) {
+                  parent.left = child;
+              } else {
+                  parent.right = child;
+              }
+              nodes.push(child);
+          }
+          return root;
+      }
+
+      function layoutTree(node, minX, maxX, depth) {
+        if (!node) return;
+        node.x = (minX + maxX) / 2;
+        node.y = 50 + depth * 60;
+        layoutTree(node.left, minX, node.x, depth + 1);
+        layoutTree(node.right, node.x, maxX, depth + 1);
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        rootNode = buildRandomAsymmetricTree(params.nodesCount);
+        layoutTree(rootNode, 30, width - 150, 0); // Leave space for stack UI
+
+        callStack = [];
+        maxDiameter = 0;
+        globalMaxPathNodes.clear();
+        
+        document.getElementById("global-max").innerText = `全局最大直径: 0`;
+        document.getElementById("log-container").innerHTML = "";
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        
+        logMsg("✅ 树结构创建完毕，启动深度优先搜索 (DFS)...", true);
+        
+        if (rootNode) {
+            callStack.push({ node: rootNode, phase: 0 });
+            rootNode.state = 'PUSHED';
+        } else {
+            isDone = true;
+        }
+      }
+
+      function draw() {
+        background(253, 252, 249);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        drawEdges(rootNode);
+        drawNodes(rootNode);
+        drawCallStack();
+      }
+
+      function checkInPath(node) {
+          return globalMaxPathNodes.has(node);
+      }
+
+      function drawEdges(node) {
+        if (!node) return;
+        
+        if (node.left) {
+            let inPath = checkInPath(node) && checkInPath(node.left);
+            stroke(inPath ? color(217, 119, 87) : color(200));
+            strokeWeight(inPath ? 4 : 2);
+            line(node.x, node.y, node.left.x, node.left.y);
+            drawEdges(node.left);
+        }
+        if (node.right) {
+            let inPath = checkInPath(node) && checkInPath(node.right);
+            stroke(inPath ? color(217, 119, 87) : color(200));
+            strokeWeight(inPath ? 4 : 2);
+            line(node.x, node.y, node.right.x, node.right.y);
+            drawEdges(node.right);
+        }
+      }
+
+      function drawNodes(node) {
+        if (!node) return;
+        
+        push();
+        let fillCol = color(255);
+        let borderCol = color(180);
+        let textCol = color(60);
+        let weight = 2;
+
+        if (checkInPath(node)) {
+            fillCol = color(255, 243, 238);
+            borderCol = color(217, 119, 87);
+            weight = 3;
+        } else if (node.state === 'PUSHED' || node.state === 'EVAL_L' || node.state === 'EVAL_R') {
+            fillCol = color(240, 247, 255);
+            borderCol = color(106, 155, 204);
+            weight = 3;
+        } else if (node.state === 'DONE') {
+            fillCol = color(245, 251, 244);
+            borderCol = color(120, 140, 93);
+        }
+
+        fill(fillCol);
+        stroke(borderCol);
+        strokeWeight(weight);
+        circle(node.x, node.y, 32);
+
+        // Core value
+        noStroke();
+        fill(textCol);
+        textAlign(CENTER, CENTER);
+        textSize(13);
+        textFont("JetBrains Mono");
+        text(node.val, node.x, node.y);
+        
+        // Depth tags
+        if (node.leftDepth !== '?') {
+            fill(106, 155, 204); // Blue
+            textSize(10);
+            text(`L:${node.leftDepth}`, node.x - 22, node.y + 18);
+        }
+        if (node.rightDepth !== '?') {
+            fill(120, 140, 93); // Green
+            textSize(10);
+            text(`R:${node.rightDepth}`, node.x + 22, node.y + 18);
+        }
+        
+        // Returned total depth to parent
+        if (node.returnedDepth !== null) {
+            fill(150);
+            textSize(10);
+            text(`↑${node.returnedDepth}`, node.x, node.y - 20);
+        }
+
+        pop();
+
+        drawNodes(node.left);
+        drawNodes(node.right);
+      }
+
+      function drawCallStack() {
+        push();
+        let sx = width - 70;
+        let sy = height - 50; 
+        let sw = 90;
+        let sh = 25;
+
+        fill(150);
+        noStroke();
+        textSize(12);
+        textAlign(CENTER, BOTTOM);
+        text("DFS 递归栈", sx, height - 10);
+
+        stroke(200);
+        strokeWeight(2);
+        line(sx - sw/2, sy + sh/2, sx - sw/2, 50);
+        line(sx + sw/2, sy + sh/2, sx + sw/2, 50);
+        line(sx - sw/2, sy + sh/2, sx + sw/2, sy + sh/2);
+
+        for (let i = 0; i < callStack.length; i++) {
+            let frame = callStack[i];
+            let yPos = sy - i * (sh + 5);
+            
+            fill(250);
+            stroke(106, 155, 204);
+            rectMode(CENTER);
+            rect(sx, yPos, sw - 8, sh, 4);
+            
+            fill(60);
+            noStroke();
+            textAlign(CENTER, CENTER);
+            textFont("JetBrains Mono");
+            
+            let pStr = frame.phase === 0 ? "go L" : (frame.phase === 1 ? "go R" : "Calc");
+            text(`${frame.node.val} | ${pStr}`, sx, yPos);
+        }
+        pop();
+      }
+
+      function collectLongestPath(node) {
+          let path = new Set();
+          
+          function gather(n, targetDepth) {
+              if (!n) return;
+              path.add(n);
+              if (targetDepth <= 1) return;
+              
+              if (n.leftDepth === targetDepth - 1) {
+                  gather(n.left, n.leftDepth);
+              } else if (n.rightDepth === targetDepth - 1) {
+                  gather(n.right, n.rightDepth);
+              }
+          }
+          
+          path.add(node);
+          gather(node.left, node.leftDepth);
+          gather(node.right, node.rightDepth);
+          return path;
+      }
+
+      function performStep() {
+          if (callStack.length === 0) {
+              isDone = true;
+              logMsg(`🏁 DFS 遍历完成。全局最大直径最终锁定为 <b>${maxDiameter}</b>`, false, true);
+              return;
+          }
+
+          let frame = callStack[callStack.length - 1];
+          let node = frame.node;
+
+          if (frame.phase === 0) {
+              // 准备探底左侧
+              node.state = 'EVAL_L';
+              frame.phase = 1;
+              if (node.left) {
+                  logMsg(`🔽 指针下探：访问节点 <b>${node.val}</b> 的左子节点`);
+                  node.left.state = 'PUSHED';
+                  callStack.push({ node: node.left, phase: 0 });
+              } else {
+                  node.leftDepth = 0;
+              }
+          } else if (frame.phase === 1) {
+              // 左侧探底完成，记录返回的值
+              if (node.left) {
+                  node.leftDepth = node.left.returnedDepth;
+              }
+              
+              // 准备探底右侧
+              node.state = 'EVAL_R';
+              frame.phase = 2;
+              if (node.right) {
+                  logMsg(`🔽 指针下探：访问节点 <b>${node.val}</b> 的右子节点`);
+                  node.right.state = 'PUSHED';
+                  callStack.push({ node: node.right, phase: 0 });
+              } else {
+                  node.rightDepth = 0;
+              }
+          } else if (frame.phase === 2) {
+              // 右侧探底完成，后序操作开始：计算直径并返回深度
+              if (node.right) {
+                  node.rightDepth = node.right.returnedDepth;
+              }
+              
+              let localDiameter = node.leftDepth + node.rightDepth;
+              let isNewMax = localDiameter > maxDiameter;
+              
+              if (isNewMax) {
+                  maxDiameter = localDiameter;
+                  document.getElementById("global-max").innerText = `全局最大直径: ${maxDiameter}`;
+                  globalMaxPathNodes = collectLongestPath(node);
+                  logMsg(`🌟 <b>发现新极值！</b>节点 <b>${node.val}</b> 局部直径(${node.leftDepth} + ${node.rightDepth} = ${localDiameter}) > 历史最大值。更新全局状态！`, true);
+              } else {
+                  logMsg(`🔙 节点 <b>${node.val}</b> 局部直径 = ${localDiameter}，未超越全局最大直径。计算返回深度并出栈。`);
+              }
+
+              node.returnedDepth = Math.max(node.leftDepth, node.rightDepth) + 1;
+              node.state = 'DONE';
+              callStack.pop();
+          }
+      }
+
+      function logMsg(msg, isHighlight = false, isWarn = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item";
+        if (isWarn) {
+             item.style.borderLeftColor = "#e8a838";
+             item.style.background = "#fffdf2";
+             item.style.fontWeight = "500";
+        } else if (isHighlight) {
+             item.className += " highlight-green";
+        }
+
+        let time = new Date().toLocaleTimeString("zh-CN", {hour12: false, hour: "2-digit", minute:"2-digit", second:"2-digit"});
+        item.innerHTML = `<div class="time">[${time}]</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      let currentLang = "ts";
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c"
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== 'speed') {
+            initializeSystem();
+        }
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 543;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

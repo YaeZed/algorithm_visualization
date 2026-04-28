@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>对称二叉树可视化 - LeetCode 101</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; margin-bottom: 8px; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between;}
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box */
+      .code-box { flex: 1.2; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.8; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.highlight-blue { border-left-color: var(--anthropic-blue); background: #f0f7ff; font-weight: 500; }
+      .log-item.highlight-green { border-left-color: var(--anthropic-green); background: #f5fbf4; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; font-family: "JetBrains Mono", monospace; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* Memo Card */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #f6fbf4; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>对称二叉树</h1>
+        <div class="subtitle">双指针同步深度优先遍历 (Dual-DFS)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="101" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成随机验证用例</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>树的深度层级</label>
+            <div class="slider-container">
+              <input type="range" id="depthLimit" min="2" max="4" step="1" value="3" oninput="updateParam('depthLimit', this.value)" />
+              <span class="value-display" id="depthLimit-value">3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px; margin-bottom: 0;">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新执行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n) 时间</span>
+            <span class="memo-badge space">□ O(h) 栈空间</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 <b>双指针并行：</b>单指针 DFS 无法解决对称问题，必须设计一个接收两个节点参数 `(p, q)` 的辅助函数，让两棵子树同步向下探测。</div>
+            <div class="memo-tip">💡 <b>反向寻址路径：</b>当 `p` 移动到 `p.left` 时，`q` 必须严格移动到 `q.right`。这是一种物理坐标的镜像映射。</div>
+            <div class="memo-tip g">🔍 <b>空指针对比：</b>如果左右节点都为 null，这是合法的对称终端；如果只有一个为 null，立刻触发短路返回 (False)。</div>
+            <div class="memo-tip w">⚠️ <b>避坑指南：</b>别试图去翻转右子树再和左子树用 `==` 对比（遍历序列化）。直接在一次并行递归中进行值比对，时间和空间常数最小。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+          <span>内存对比调用栈与双指针寻址视图</span>
+          <span id="result-status" style="font-weight: 600;">状态: 等待运行...</span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优双指针 DFS 递归)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行流日志 (Execution Trace)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTILINGUAL DUAL-DFS CODE SNIPPETS
+      // ==========================================================
+      const SNIPPETS = {
+        ts: `// TypeScript
+class TreeNode {
+    val: number
+    left: TreeNode | null
+    right: TreeNode | null
+    constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) {
+        this.val = (val===undefined ? 0 : val)
+        this.left = (left===undefined ? null : left)
+        this.right = (right===undefined ? null : right)
+    }
+}
+
+function isSymmetric(root: TreeNode | null): boolean {
+    if (root === null) return true;
+    // 启动物理对比：左子节点与右子节点同步进入递归栈
+    return check(root.left, root.right);
+}
+
+// 辅助函数：双指针同步对比
+function check(p: TreeNode | null, q: TreeNode | null): boolean {
+    // 1. 递归终止条件(合法)：两边同时到达物理尽头 (null)
+    if (p === null && q === null) {
+        return true;
+    }
+    
+    // 2. 结构不对称(熔断)：只有一个指针为 null
+    if (p === null || q === null) {
+        return false;
+    }
+    
+    // 3. 值不对称(熔断)：内存存在，但值不相等
+    if (p.val !== q.val) {
+        return false;
+    }
+    
+    // 4. 并行推入下一层调用栈 (核心：反向寻址)
+    // p的左指针 对齐 q的右指针
+    // p的右指针 对齐 q的左指针
+    return check(p.left, q.right) && check(p.right, q.left);
+}`,
+        python: `# Python
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class Solution:
+    def isSymmetric(self, root: TreeNode) -> bool:
+        if not root:
+            return True
+        return self.check(root.left, root.right)
+
+    def check(self, p: TreeNode, q: TreeNode) -> bool:
+        # 两个指针均指向 null，属于完美镜像的空节点，合法
+        if not p and not q:
+            return True
+            
+        # 结构不对称：只有一个为 null
+        if not p or not q:
+            return False
+            
+        # 内存值比对失败
+        if p.val != q.val:
+            return False
+            
+        # 并发进行镜像方向的递归测定
+        return self.check(p.left, q.right) and self.check(p.right, q.left)`,
+        java: `// Java
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        if (root == null) return true;
+        // 分离双指针，进入并行对比状态
+        return check(root.left, root.right);
+    }
+
+    private boolean check(TreeNode p, TreeNode q) {
+        // 1. 两个指针同时到达物理内存边界 (null)
+        if (p == null && q == null) {
+            return true;
+        }
+        
+        // 2. 只有一个到达边界，结构产生破坏
+        if (p == null || q == null) {
+            return false;
+        }
+        
+        // 3. 内存值比对失败
+        if (p.val != q.val) {
+            return false;
+        }
+        
+        // 4. 将镜像组合压入调用栈
+        return check(p.left, q.right) && check(p.right, q.left);
+    }
+}`,
+        cpp: `// C++
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+class Solution {
+public:
+    bool isSymmetric(TreeNode* root) {
+        if (root == nullptr) return true;
+        return check(root->left, root->right);
+    }
+
+private:
+    bool check(TreeNode* p, TreeNode* q) {
+        // C++ 中指针的空校验极为关键
+        if (p == nullptr && q == nullptr) return true;
+        if (p == nullptr || q == nullptr) return false;
+        
+        // 校验值是否一致
+        if (p->val != q->val) return false;
+        
+        // 反向探索：外侧对应外侧，内侧对应内侧
+        return check(p->left, q->right) && check(p->right, q->left);
+    }
+};`,
+        c: `// C
+#include <stdbool.h>
+#include <stddef.h>
+
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+// 剥离出的纯逻辑比对函数
+bool check(struct TreeNode* p, struct TreeNode* q) {
+    if (p == NULL && q == NULL) {
+        return true;
+    }
+    if (p == NULL || q == NULL) {
+        return false;
+    }
+    if (p->val != q->val) {
+        return false;
+    }
+    
+    // C语言没有短路闭包，需利用逻辑与 &&
+    return check(p->left, q->right) && check(p->right, q->left);
+}
+
+bool isSymmetric(struct TreeNode* root) {
+    if (root == NULL) return true;
+    return check(root->left, root->right);
+}`
+      };
+
+      // ==========================================================
+      // SIMULATION LOGIC & VISUALIZATION (p5.js)
+      // ==========================================================
+      let params = { seed: 101, speed: 1.0, depthLimit: 3 };
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      class VisualTreeNode {
+        constructor(val, isNull = false) {
+          this.id = Math.random().toString(36).substr(2, 9);
+          this.val = val;
+          this.left = null;
+          this.right = null;
+          this.isNull = isNull; // For explicitly visualizing the null boundary checks
+          this.x = 0;
+          this.y = 0;
+          this.state = 'DEFAULT'; // DEFAULT, ACTIVE_P, ACTIVE_Q, MATCHED, ERROR
+        }
+      }
+
+      let rootNode = null;
+      let callStack = []; // Explicit queue/stack to store pairs [p, q]
+      let currentPair = null; 
+      let algoPhase = 'START'; // START, POP_PAIR, EVALUATE, RESULT
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 500);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("ts");
+        initializeSystem();
+      }
+
+      // Generates a tree that has a ~70% chance to be perfectly symmetric
+      function generateTestTree(maxDepth) {
+          let isPerfectlySymmetric = random() > 0.3;
+          let root = new VisualTreeNode(1);
+          
+          function buildSymmetricSubtrees(depth) {
+              if (depth >= maxDepth) return { l: null, r: null };
+              
+              let hasNodes = random() > (0.1 * depth);
+              if (!hasNodes) return { l: null, r: null };
+              
+              let val = floor(random(2, 20));
+              let leftNode = new VisualTreeNode(val);
+              let rightNode = new VisualTreeNode(val);
+              
+              let children = buildSymmetricSubtrees(depth + 1);
+              leftNode.left = children.l;
+              rightNode.right = children.r;
+              
+              let childrenInner = buildSymmetricSubtrees(depth + 1);
+              leftNode.right = childrenInner.l;
+              rightNode.left = childrenInner.r;
+
+              return { l: leftNode, r: rightNode };
+          }
+
+          let topLevel = buildSymmetricSubtrees(1);
+          root.left = topLevel.l;
+          root.right = topLevel.r;
+
+          // Introduce a flaw if not symmetric
+          if (!isPerfectlySymmetric && root.left) {
+              let flawType = floor(random(0, 3));
+              if (flawType === 0) {
+                  // Value mismatch
+                  root.left.val = 99;
+              } else if (flawType === 1) {
+                  // Structure mismatch (missing right side equivalent)
+                  if(root.right) root.right.right = null;
+                  root.left.left = new VisualTreeNode(floor(random(2, 20)));
+              } else {
+                  // Structure mismatch entirely
+                  root.right = null;
+              }
+          }
+          return root;
+      }
+
+      function injectExplicitNulls(node) {
+          if (!node || node.isNull) return;
+          // We only inject explicit nulls for leaves or partial branches
+          // to visualize the (null, null) or (null, node) checks
+          if (!node.left && (node.right || node.layer >= params.depthLimit-1)) {
+              node.left = new VisualTreeNode(null, true);
+          }
+          if (!node.right && (node.left || node.layer >= params.depthLimit-1)) {
+              node.right = new VisualTreeNode(null, true);
+          }
+          
+          if (node.left && !node.left.isNull) injectExplicitNulls(node.left);
+          if (node.right && !node.right.isNull) injectExplicitNulls(node.right);
+      }
+
+      function assignLayers(node, layer) {
+          if(!node) return;
+          node.layer = layer;
+          assignLayers(node.left, layer + 1);
+          assignLayers(node.right, layer + 1);
+      }
+
+      function layoutTree(node, minX, maxX, depth) {
+        if (!node) return;
+        node.x = (minX + maxX) / 2;
+        node.y = 50 + depth * 70;
+        layoutTree(node.left, minX, node.x, depth + 1);
+        layoutTree(node.right, node.x, maxX, depth + 1);
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        rootNode = generateTestTree(params.depthLimit);
+        assignLayers(rootNode, 0);
+        injectExplicitNulls(rootNode); // make boundary checks visible
+        layoutTree(rootNode, 20, width - 20, 0);
+
+        callStack = [];
+        currentPair = null;
+        
+        let statusEl = document.getElementById("result-status");
+        statusEl.innerText = "状态: 运行中";
+        statusEl.style.color = "var(--anthropic-blue)";
+        
+        document.getElementById("log-container").innerHTML = "";
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        
+        logMsg("✅ 构建二叉树，根节点自动合法，准备将 <b>root.left</b> 和 <b>root.right</b> 压入比对调用栈", true);
+        
+        if (rootNode) {
+            rootNode.state = 'MATCHED';
+            callStack.push({ p: rootNode.left, q: rootNode.right });
+        }
+        
+        algoPhase = 'POP_PAIR';
+      }
+
+      function draw() {
+        background(253, 252, 249);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        drawEdges(rootNode);
+        drawNodes(rootNode);
+        drawCallStack();
+      }
+
+      function drawEdges(node) {
+        if (!node) return;
+        
+        if (node.left) {
+            stroke(200);
+            if (node.left.isNull) {
+                drawingContext.setLineDash([4, 4]);
+                stroke(220);
+            }
+            strokeWeight(2);
+            line(node.x, node.y, node.left.x, node.left.y);
+            drawingContext.setLineDash([]);
+            drawEdges(node.left);
+        }
+        if (node.right) {
+            stroke(200);
+            if (node.right.isNull) {
+                drawingContext.setLineDash([4, 4]);
+                stroke(220);
+            }
+            strokeWeight(2);
+            line(node.x, node.y, node.right.x, node.right.y);
+            drawingContext.setLineDash([]);
+            drawEdges(node.right);
+        }
+      }
+
+      function drawNodes(node) {
+        if (!node) return;
+        
+        push();
+        let fillCol = color(255);
+        let borderCol = color(180);
+        let textCol = color(60);
+        let weight = 2;
+
+        if (node.state === 'ACTIVE_P') {
+            fillCol = color(240, 247, 255);
+            borderCol = color(106, 155, 204); // Blue for left pointer
+            weight = 4;
+        } else if (node.state === 'ACTIVE_Q') {
+            fillCol = color(255, 243, 238);
+            borderCol = color(217, 119, 87); // Orange for right pointer
+            weight = 4;
+        } else if (node.state === 'MATCHED') {
+            fillCol = color(245, 251, 244);
+            borderCol = color(120, 140, 93); // Green
+        } else if (node.state === 'ERROR') {
+            fillCol = color(255, 235, 238);
+            borderCol = color(220, 53, 69); // Red
+            weight = 4;
+        }
+
+        if (node.isNull) {
+             fill(250);
+             stroke(220);
+             strokeWeight(1);
+             drawingContext.setLineDash([4, 4]);
+             circle(node.x, node.y, 20);
+             drawingContext.setLineDash([]);
+             fill(150);
+             noStroke();
+             textSize(9);
+             textAlign(CENTER, CENTER);
+             text("null", node.x, node.y);
+             
+             // Draw border if active
+             if (node.state !== 'DEFAULT') {
+                 noFill();
+                 stroke(borderCol);
+                 strokeWeight(weight);
+                 circle(node.x, node.y, 26);
+             }
+        } else {
+             fill(fillCol);
+             stroke(borderCol);
+             strokeWeight(weight);
+             circle(node.x, node.y, 32);
+
+             noStroke();
+             fill(textCol);
+             textAlign(CENTER, CENTER);
+             textSize(13);
+             textFont("JetBrains Mono");
+             text(node.val, node.x, node.y);
+        }
+        
+        // Render labels for P and Q
+        if (node.state === 'ACTIVE_P') {
+             fill(106, 155, 204);
+             noStroke();
+             textSize(12);
+             text("p", node.x, node.y - 25);
+        } else if (node.state === 'ACTIVE_Q') {
+             fill(217, 119, 87);
+             noStroke();
+             textSize(12);
+             text("q", node.x, node.y - 25);
+        }
+
+        pop();
+
+        drawNodes(node.left);
+        drawNodes(node.right);
+      }
+
+      function drawCallStack() {
+        push();
+        let sx = width - 120;
+        let sy = height - 50; 
+        let sw = 100;
+        let sh = 25;
+
+        fill(150);
+        noStroke();
+        textSize(12);
+        textAlign(CENTER, BOTTOM);
+        text("对比调用栈 (Stack)", sx, height - 10);
+
+        stroke(200);
+        strokeWeight(2);
+        line(sx - sw/2, sy + sh/2, sx - sw/2, 50);
+        line(sx + sw/2, sy + sh/2, sx + sw/2, 50);
+        line(sx - sw/2, sy + sh/2, sx + sw/2, sy + sh/2);
+
+        for (let i = 0; i < callStack.length; i++) {
+            let pair = callStack[i];
+            let yPos = sy - i * (sh + 5);
+            
+            fill(250);
+            stroke(180);
+            rectMode(CENTER);
+            rect(sx, yPos, sw - 8, sh, 4);
+            
+            fill(80);
+            noStroke();
+            textAlign(CENTER, CENTER);
+            textFont("JetBrains Mono");
+            let pv = pair.p ? (pair.p.isNull ? 'null' : pair.p.val) : 'null';
+            let qv = pair.q ? (pair.q.isNull ? 'null' : pair.q.val) : 'null';
+            text(`[${pv}, ${qv}]`, sx, yPos);
+        }
+        pop();
+      }
+
+      function performStep() {
+          if (algoPhase === 'POP_PAIR') {
+              if (currentPair && currentPair.p && currentPair.p.state !== 'ERROR') currentPair.p.state = 'MATCHED';
+              if (currentPair && currentPair.q && currentPair.q.state !== 'ERROR') currentPair.q.state = 'MATCHED';
+
+              if (callStack.length === 0) {
+                  isDone = true;
+                  let statusEl = document.getElementById("result-status");
+                  statusEl.innerText = "状态: TRUE (严格对称)";
+                  statusEl.style.color = "var(--anthropic-green)";
+                  logMsg("🏁 所有比对项均通过，二叉树严格对称！", true);
+                  return;
+              }
+
+              currentPair = callStack.pop();
+              if (currentPair.p) currentPair.p.state = 'ACTIVE_P';
+              if (currentPair.q) currentPair.q.state = 'ACTIVE_Q';
+              
+              algoPhase = 'EVALUATE';
+
+          } else if (algoPhase === 'EVALUATE') {
+              let p = currentPair.p;
+              let q = currentPair.q;
+
+              let isPNull = !p || p.isNull;
+              let isQNull = !q || q.isNull;
+
+              if (isPNull && isQNull) {
+                  logMsg(`✅ <b>p</b> 与 <b>q</b> 同时到达 null 空节点，局部对称判定通过。`);
+                  algoPhase = 'POP_PAIR';
+              } else if (isPNull || isQNull) {
+                  logMsg(`❌ <b>结构不对称！</b>一个指针到达 null，另一个存在实体。算法熔断。`, false, true);
+                  if (p) p.state = 'ERROR';
+                  if (q) q.state = 'ERROR';
+                  terminateWithError();
+              } else if (p.val !== q.val) {
+                  logMsg(`❌ <b>内存值不对称！</b> p=${p.val}, q=${q.val}。算法熔断。`, false, true);
+                  p.state = 'ERROR';
+                  q.state = 'ERROR';
+                  terminateWithError();
+              } else {
+                  logMsg(`🔍 值对比一致 (p=${p.val}, q=${q.val})。将其子节点进行<b>交叉重组</b>并压入调用栈。`);
+                  // Push mirrored pairs
+                  // Note: Stack is LIFO, so pushing left/right then right/left means right/left is evaluated next
+                  callStack.push({ p: p.right, q: q.left });
+                  callStack.push({ p: p.left, q: q.right });
+                  algoPhase = 'POP_PAIR';
+              }
+          }
+      }
+
+      function terminateWithError() {
+          isDone = true;
+          let statusEl = document.getElementById("result-status");
+          statusEl.innerText = "状态: FALSE (不对称)";
+          statusEl.style.color = "#dc3545";
+      }
+
+      function logMsg(msg, isHighlight = false, isWarn = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item";
+        if (isWarn) {
+             item.style.borderLeftColor = "#e8a838";
+             item.style.background = "#fffdf2";
+             item.style.fontWeight = "500";
+        } else if (isHighlight) {
+             item.className += " highlight-green";
+        }
+
+        let time = new Date().toLocaleTimeString("zh-CN", {hour12: false, hour: "2-digit", minute:"2-digit", second:"2-digit"});
+        item.innerHTML = `<div class="time">[${time}]</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      let currentLang = "ts";
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c"
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== 'speed') {
+            initializeSystem();
+        }
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 101;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>
