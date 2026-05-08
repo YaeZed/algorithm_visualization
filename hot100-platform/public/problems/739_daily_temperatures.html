@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>每日温度 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --danger: #c75f5f;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .preset-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--anthropic-light-gray); background: #fff; border-radius: 6px; padding: 7px 6px; font-family: "JetBrains Mono", monospace; cursor: pointer; color: #555; font-size: 12px; text-align: left; }
+      .preset:hover { border-color: var(--anthropic-orange); color: var(--anthropic-orange); }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>每日温度</h1>
+        <div class="subtitle">单调栈 (Monotonic Stack) 经典题</div>
+
+        <div class="control-section">
+          <h3>预设温度数组</h3>
+          <div class="preset-grid">
+            <button class="preset" onclick="setPreset([73,74,75,71,69,72,76,73])">[73,74,75,71,69,72,76,73]</button>
+            <button class="preset" onclick="setPreset([30,40,50,60])">[30,40,50,60]</button>
+            <button class="preset" onclick="setPreset([30,60,90])">[30,60,90]</button>
+            <button class="preset" onclick="setPreset([80,75,70,60])">递减 (全为 0)</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N)</span>
+            <span class="memo-badge space">□ O(N)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **单调递减栈**：栈里存放元素的**下标**。我们保持栈底到栈顶的温度是递减的。</div>
+            <div class="memo-tip g">遇到比栈顶高的温度时，意味着栈顶的那天终于等到了变暖的日子！弹出栈顶，并且 `等待天数 = 当前天数 - 栈顶天数`。</div>
+            <div class="memo-tip w">一直循环弹出，直到栈为空或当前温度不大于栈顶，最后将当前天下标入栈，因为它也要等待未来更暖的一天。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">单调栈模板代码</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行日志 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def dailyTemperatures(self, temperatures: List[int]) -> List[int]:\n        n = len(temperatures)\n        ans = [0] * n\n        stack = []  # 单调栈，专门用来存下标\n        \n        for i in range(n):\n            t = temperatures[i]\n            # 当栈不为空，且当前温度大于栈顶温度时，说明栈顶元素找到了下一个更高的温度\n            while stack and t > temperatures[stack[-1]]:\n                prev_index = stack.pop()\n                # 计算等待的天数\n                ans[prev_index] = i - prev_index\n            \n            # 当前温度的下标入栈，等待未来比它高的温度来拯救它\n            stack.append(i)\n            \n        return ans`,
+        ts: `// TypeScript\nfunction dailyTemperatures(temperatures: number[]): number[] {\n    const n = temperatures.length;\n    const ans = new Array(n).fill(0);\n    const stack: number[] = []; // 单调递减栈（存下标）\n\n    for (let i = 0; i < n; i++) {\n        const t = temperatures[i];\n        // 如果当前温度打破了单调递减（比栈顶当天的温度高）\n        while (stack.length > 0 && t > temperatures[stack[stack.length - 1]]) {\n            const prevIndex = stack.pop()!;\n            ans[prevIndex] = i - prevIndex; // 答案就是下标差，即等待的天数\n        }\n        // 当前天数入栈\n        stack.push(i);\n    }\n\n    return ans;\n}`,
+        java: `// Java\nclass Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] ans = new int[n];\n        Deque<Integer> stack = new ArrayDeque<>();\n        \n        for (int i = 0; i < n; i++) {\n            int t = temperatures[i];\n            while (!stack.isEmpty() && t > temperatures[stack.peek()]) {\n                int prevIndex = stack.pop();\n                ans[prevIndex] = i - prevIndex;\n            }\n            stack.push(i);\n        }\n        return ans;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    vector<int> dailyTemperatures(vector<int>& temperatures) {\n        int n = temperatures.size();\n        vector<int> ans(n, 0);\n        stack<int> st;\n        \n        for (int i = 0; i < n; ++i) {\n            int t = temperatures[i];\n            while (!st.empty() && t > temperatures[st.top()]) {\n                int prevIndex = st.top();\n                st.pop();\n                ans[prevIndex] = i - prevIndex;\n            }\n            st.push(i);\n        }\n        \n        return ans;\n    }\n};`,
+        c: `// C\nint* dailyTemperatures(int* temperatures, int temperaturesSize, int* returnSize) {\n    int* ans = (int*)malloc(sizeof(int) * temperaturesSize);\n    memset(ans, 0, sizeof(int) * temperaturesSize);\n    *returnSize = temperaturesSize;\n    \n    int* stack = (int*)malloc(sizeof(int) * temperaturesSize);\n    int top = -1;\n    \n    for (int i = 0; i < temperaturesSize; i++) {\n        int t = temperatures[i];\n        while (top >= 0 && t > temperatures[stack[top]]) {\n            int prevIndex = stack[top--];\n            ans[prevIndex] = i - prevIndex;\n        }\n        stack[++top] = i;\n    }\n    \n    free(stack);\n    return ans;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let INPUT_ARR = [73, 74, 75, 71, 69, 72, 76, 73];
+      
+      let state = null;
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* dailyGen() {
+          let stack = [];
+          let ans = new Array(INPUT_ARR.length).fill(0);
+          
+          yield { phase: "START", stack: [...stack], ans: [...ans], i: -1, msg: "开始遍历数组，维护单调递减栈..." };
+          
+          for (let i = 0; i < INPUT_ARR.length; i++) {
+              yield { phase: "READ", i, T: INPUT_ARR[i], stack: [...stack], ans: [...ans], msg: `当前是第 <b>${i}</b> 天，气温：<b>${INPUT_ARR[i]}</b>` };
+              
+              while (stack.length > 0) {
+                  let topIdx = stack[stack.length - 1];
+                  let topTemp = INPUT_ARR[topIdx];
+                  
+                  yield { phase: "COMPARE", i, T: INPUT_ARR[i], topIdx, topTemp, stack: [...stack], ans: [...ans], msg: `比较当前气温 <b>${INPUT_ARR[i]}</b> 和栈顶气温 <b>${topTemp}</b> (第 ${topIdx} 天)` };
+                  
+                  if (INPUT_ARR[i] > topTemp) {
+                      let poppedIdx = stack.pop();
+                      let days = i - poppedIdx;
+                      ans[poppedIdx] = days;
+                      
+                      yield { phase: "POP", i, T: INPUT_ARR[i], poppedIdx, topTemp, days, stack: [...stack], ans: [...ans], msg: `打破递减！<b>${INPUT_ARR[i]} > ${topTemp}</b>，第 ${poppedIdx} 天终于等到了升温，等待天数 = <b>${i} - ${poppedIdx} = ${days}</b> 天` };
+                  } else {
+                      yield { phase: "COMPARE_FAIL", i, T: INPUT_ARR[i], topIdx, topTemp, stack: [...stack], ans: [...ans], msg: `<b>${INPUT_ARR[i]} <= ${topTemp}</b>，没有升温，停止出栈。` };
+                      break;
+                  }
+              }
+              
+              stack.push(i);
+              yield { phase: "PUSH", i, T: INPUT_ARR[i], stack: [...stack], ans: [...ans], msg: `将第 <b>${i}</b> 天压入栈，等待它的升温日...` };
+          }
+          yield { phase: "DONE", i: INPUT_ARR.length, stack: [...stack], ans: [...ans], msg: `遍历完成。留在栈里的元素就是永远等不到升温日子的天数，默认答案保持为 0。` };
+      }
+
+      function initializeSystem() {
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = dailyGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = "▶ 阶段：构建单调栈";
+        logMsg(`✅ 载入气温数组: [${INPUT_ARR.join(", ")}]`, true);
+      }
+
+      function setPreset(arr) {
+          INPUT_ARR = arr;
+          initializeSystem();
+      }
+
+      function drawVisuals() {
+          let s = state;
+          if (!s) return;
+          
+          let w = width;
+          let h = height;
+          let n = INPUT_ARR.length;
+          
+          let maxT = Math.max(...INPUT_ARR, 80);
+          let minT = Math.min(...INPUT_ARR, 30);
+          if (maxT === minT) { maxT += 10; minT -= 10; }
+          
+          let chartW = min(500, w - 240); // Leave 200px for stack on the right
+          let barW = chartW / n * 0.7;
+          let spacing = chartW / n;
+          let startX = 60;
+          
+          // --- 1. Draw Bar Chart ---
+          let chartYBase = 220;
+          let chartH = 150;
+          
+          fill(150); noStroke(); textAlign(LEFT, BOTTOM); textSize(12);
+          text("温度变化柱状图 (Temperatures)", startX - 20, chartYBase - chartH - 20);
+          
+          stroke(220); strokeWeight(1);
+          line(startX - 20, chartYBase, startX + chartW, chartYBase); // X axis
+          
+          for (let k = 0; k < n; k++) {
+              let val = INPUT_ARR[k];
+              let barHeight = map(val, minT - 5, maxT + 5, 10, chartH);
+              let bx = startX + k * spacing;
+              
+              // Colors
+              let isCurrent = (k === s.i);
+              let isPopped = (s.phase === "POP" && k === s.poppedIdx);
+              let isTop = (s.phase === "COMPARE" || s.phase === "COMPARE_FAIL") && k === s.topIdx;
+              
+              fill(240, 240, 240); stroke(200); strokeWeight(1);
+              if (isCurrent) { fill(254, 215, 170); stroke(234, 88, 12); strokeWeight(2); }
+              else if (isPopped) { fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2); }
+              else if (isTop) { fill(254, 240, 138); stroke(202, 138, 4); strokeWeight(2); }
+              else if (s.stack.includes(k) && k !== s.i) { fill(224, 242, 254); stroke(56, 189, 248); }
+              
+              rect(bx, chartYBase - barHeight, barW, barHeight, 4, 4, 0, 0);
+              
+              // Temperature text on top
+              fill(50); noStroke(); textAlign(CENTER, BOTTOM); textSize(13); textStyle(BOLD);
+              text(val, bx + barW/2, chartYBase - barHeight - 5);
+              textStyle(NORMAL);
+              
+              // Index text below X axis
+              fill(100); textAlign(CENTER, TOP); textSize(11);
+              text(`Day ${k}`, bx + barW/2, chartYBase + 5);
+          }
+          
+          // Draw connection arrow if popping
+          if (s.phase === "POP") {
+              let fromX = startX + s.poppedIdx * spacing + barW/2;
+              let toX = startX + s.i * spacing + barW/2;
+              let fromY = chartYBase - map(INPUT_ARR[s.poppedIdx], minT - 5, maxT + 5, 10, chartH) - 25;
+              let toY = chartYBase - map(INPUT_ARR[s.i], minT - 5, maxT + 5, 10, chartH) - 25;
+              
+              drawCurvedArrow(fromX, fromY, toX, toY, true, -30);
+              
+              fill(34, 197, 94); noStroke(); textAlign(CENTER, BOTTOM); textSize(14); textStyle(BOLD);
+              text(`等待 ${s.days} 天`, fromX + (toX-fromX)/2, min(fromY, toY) - 35);
+              textStyle(NORMAL);
+          }
+          
+          // --- 2. Draw Answer Array ---
+          let ansY = 320;
+          fill(150); noStroke(); textAlign(LEFT, CENTER); textSize(12);
+          text("结果数组 ans", startX - 20, ansY - 30);
+          
+          for (let k = 0; k < n; k++) {
+              let bx = startX + k * spacing;
+              let isUpdated = (s.phase === "POP" && k === s.poppedIdx);
+              
+              fill(isUpdated ? 220 : 255, isUpdated ? 252 : 255, isUpdated ? 231 : 255);
+              stroke(isUpdated ? 34 : 200, isUpdated ? 197 : 200, isUpdated ? 94 : 200);
+              strokeWeight(isUpdated ? 2 : 1);
+              
+              rect(bx, ansY, barW, 30, 4);
+              
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(15);
+              if (isUpdated) textStyle(BOLD); else textStyle(NORMAL);
+              text(s.ans[k], bx + barW/2, ansY + 15);
+          }
+
+          // --- 3. Draw Stack on the Right ---
+          let stackX = w - 120;
+          let stackYBase = 450;
+          let stackW = 100;
+          let stackH = 35;
+          
+          fill(150); noStroke(); textAlign(CENTER, BOTTOM); textSize(14);
+          text("单调栈 (存下标)", stackX, stackYBase + 30);
+          
+          stroke(200); strokeWeight(3); noFill();
+          beginShape();
+          vertex(stackX - stackW/2, stackYBase - 8 * stackH);
+          vertex(stackX - stackW/2, stackYBase);
+          vertex(stackX + stackW/2, stackYBase);
+          vertex(stackX + stackW/2, stackYBase - 8 * stackH);
+          endShape();
+          
+          for(let idx = 0; idx < (s.stack || []).length; idx++) {
+              let itemIdx = s.stack[idx];
+              let cy = stackYBase - idx * stackH - stackH/2;
+              
+              let isHighlight = (idx === s.stack.length - 1 && (s.phase === "COMPARE" || s.phase === "COMPARE_FAIL"));
+              let isJustPushed = (idx === s.stack.length - 1 && s.phase === "PUSH");
+              
+              if (isHighlight) { fill(254, 240, 138); stroke(202, 138, 4); }
+              else if (isJustPushed) { fill(254, 215, 170); stroke(234, 88, 12); }
+              else { fill(224, 242, 254); stroke(56, 189, 248); }
+              
+              strokeWeight(2);
+              rect(stackX - stackW/2 + 4, cy - stackH/2 + 2, stackW - 8, stackH - 4, 4);
+              
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(13);
+              text(`Day ${itemIdx} (${INPUT_ARR[itemIdx]}°)`, stackX, cy);
+          }
+      }
+      
+      function drawCurvedArrow(x1, y1, x2, y2, isGood, bend) {
+          stroke(34, 197, 94, 200); fill(34, 197, 94, 200);
+          
+          strokeWeight(2);
+          noFill();
+          
+          let cx1 = x1 + (x2 - x1) / 3;
+          let cy1 = y1 + bend;
+          let cx2 = x2 - (x2 - x1) / 3;
+          let cy2 = y2 + bend;
+          
+          bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+          
+          let tx = bezierTangent(x1, cx1, cx2, x2, 1);
+          let ty = bezierTangent(y1, cy1, cy2, y2, 1);
+          let angle = atan2(ty, tx);
+          
+          push();
+          translate(x2, y2);
+          rotate(angle);
+          fill(34, 197, 94, 200);
+          noStroke();
+          let headSize = 6;
+          triangle(-headSize*1.5, headSize, -headSize*1.5, -headSize, 0, 0);
+          pop();
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawVisuals();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+
+        if (s.phase === "START") {
+            logMsg(s.msg, false);
+        } else if (s.phase === "READ") {
+            logMsg(`\n------------------\n👀 ${s.msg}`, false);
+        } else if (s.phase === "COMPARE") {
+            logMsg(`🤔 ${s.msg}`, false);
+        } else if (s.phase === "COMPARE_FAIL") {
+            logMsg(`❌ ${s.msg}`, false);
+        } else if (s.phase === "POP") {
+            logMsg(`🎉 ${s.msg}`, true);
+        } else if (s.phase === "PUSH") {
+            logMsg(`📥 ${s.msg}`, false);
+        } else if (s.phase === "DONE") {
+            logMsg(`\n🏁 ${s.msg}`, true);
+            let headerEl = document.getElementById("phase-header");
+            if (headerEl) headerEl.innerHTML = "🏁 遍历结束";
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

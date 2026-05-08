@@ -126,23 +126,23 @@ export const HOT100: Problem[] = [
   { id: 20, slug: '020_valid_parentheses', title: '有效的括号', titleEn: 'Valid Parentheses', category: '栈', difficulty: 'Easy', tags: ['栈', '字符串'], hasVisualization: true },
   { id: 155, slug: '155_min_stack', title: '最小栈', titleEn: 'Min Stack', category: '栈', difficulty: 'Medium', tags: ['栈', '设计'], hasVisualization: true },
   { id: 394, slug: '394_decode_string', title: '字符串解码', titleEn: 'Decode String', category: '栈', difficulty: 'Medium', tags: ['栈', '字符串', '递归'], hasVisualization: true },
-  { id: 739, slug: '739_daily_temperatures', title: '每日温度', titleEn: 'Daily Temperatures', category: '栈', difficulty: 'Medium', tags: ['栈', '数组', '单调栈'], hasVisualization: false },
-  { id: 496, slug: '496_next_greater_element', title: '下一个更大元素 I', titleEn: 'Next Greater Element I', category: '栈', difficulty: 'Easy', tags: ['栈', '单调栈', '哈希表'], hasVisualization: false },
+  { id: 739, slug: '739_daily_temperatures', title: '每日温度', titleEn: 'Daily Temperatures', category: '栈', difficulty: 'Medium', tags: ['栈', '数组', '单调栈'], hasVisualization: true },
+  { id: 496, slug: '496_next_greater_element', title: '下一个更大元素 I', titleEn: 'Next Greater Element I', category: '栈', difficulty: 'Easy', tags: ['栈', '单调栈', '哈希表'], hasVisualization: true },
 
   // ── 堆 ──────────────────────────────────────────────────────
-  { id: 215, slug: '215_kth_largest', title: '数组中的第 K 个最大元素', titleEn: 'Kth Largest Element in an Array', category: '堆', difficulty: 'Medium', tags: ['堆', '快速选择'], hasVisualization: false },
-  { id: 347, slug: '347_top_k_frequent', title: '前 K 个高频元素', titleEn: 'Top K Frequent Elements', category: '堆', difficulty: 'Medium', tags: ['哈希表', '堆', '桶排序'], hasVisualization: false },
-  { id: 295, slug: '295_find_median', title: '数据流的中位数', titleEn: 'Find Median from Data Stream', category: '堆', difficulty: 'Hard', tags: ['双堆', '设计', '数据流'], hasVisualization: false },
+  { id: 215, slug: '215_kth_largest', title: '数组中的第 K 个最大元素', titleEn: 'Kth Largest Element in an Array', category: '堆', difficulty: 'Medium', tags: ['堆', '快速选择'], hasVisualization: true },
+  { id: 347, slug: '347_top_k_frequent', title: '前 K 个高频元素', titleEn: 'Top K Frequent Elements', category: '堆', difficulty: 'Medium', tags: ['哈希表', '堆', '桶排序'], hasVisualization: true },
+  { id: 295, slug: '295_find_median', title: '数据流的中位数', titleEn: 'Find Median from Data Stream', category: '堆', difficulty: 'Hard', tags: ['双堆', '设计', '数据流'], hasVisualization: true },
 
   // ── 贪心 ────────────────────────────────────────────────────
-  { id: 121, slug: '121_best_time_buy', title: '买卖股票的最佳时机', titleEn: 'Best Time to Buy and Sell Stock', category: '贪心', difficulty: 'Easy', tags: ['数组', '动态规划'], hasVisualization: false },
-  { id: 55, slug: '055_jump_game', title: '跳跃游戏', titleEn: 'Jump Game', category: '贪心', difficulty: 'Medium', tags: ['数组', '贪心', '动态规划'], hasVisualization: false },
-  { id: 45, slug: '045_jump_game_ii', title: '跳跃游戏 II', titleEn: 'Jump Game II', category: '贪心', difficulty: 'Medium', tags: ['数组', '贪心', '动态规划'], hasVisualization: false },
-  { id: 763, slug: '763_partition_labels', title: '划分字母区间', titleEn: 'Partition Labels', category: '贪心', difficulty: 'Medium', tags: ['哈希表', '贪心', '字符串'], hasVisualization: false },
+  { id: 121, slug: '121_best_time_buy', title: '买卖股票的最佳时机', titleEn: 'Best Time to Buy and Sell Stock', category: '贪心', difficulty: 'Easy', tags: ['数组', '动态规划'], hasVisualization: true },
+  { id: 55, slug: '055_jump_game', title: '跳跃游戏', titleEn: 'Jump Game', category: '贪心', difficulty: 'Medium', tags: ['数组', '贪心', '动态规划'], hasVisualization: true },
+  { id: 45, slug: '045_jump_game_ii', title: '跳跃游戏 II', titleEn: 'Jump Game II', category: '贪心', difficulty: 'Medium', tags: ['数组', '贪心', '动态规划'], hasVisualization: true },
+  { id: 763, slug: '763_partition_labels', title: '划分字母区间', titleEn: 'Partition Labels', category: '贪心', difficulty: 'Medium', tags: ['哈希表', '贪心', '字符串'], hasVisualization: true },
 
   // ── 动态规划 ────────────────────────────────────────────────
-  { id: 70, slug: '070_climbing_stairs', title: '爬楼梯', titleEn: 'Climbing Stairs', category: '动态规划', difficulty: 'Easy', tags: ['记忆化搜索', '数学', 'DP'], hasVisualization: false },
-  { id: 118, slug: '118_pascals_triangle', title: '杨辉三角', titleEn: "Pascal's Triangle", category: '动态规划', difficulty: 'Easy', tags: ['数组', 'DP'], hasVisualization: false },
+  { id: 70, slug: '070_climbing_stairs', title: '爬楼梯', titleEn: 'Climbing Stairs', category: '动态规划', difficulty: 'Easy', tags: ['记忆化搜索', '数学', 'DP'], hasVisualization: true },
+  { id: 118, slug: '118_pascals_triangle', title: '杨辉三角', titleEn: "Pascal's Triangle", category: '动态规划', difficulty: 'Easy', tags: ['数组', 'DP'], hasVisualization: true },
   { id: 198, slug: '198_house_robber', title: '打家劫舍', titleEn: 'House Robber', category: '动态规划', difficulty: 'Medium', tags: ['数组', 'DP'], hasVisualization: false },
   { id: 279, slug: '279_perfect_squares', title: '完全平方数', titleEn: 'Perfect Squares', category: '动态规划', difficulty: 'Medium', tags: ['广度优先', 'DP'], hasVisualization: false },
   { id: 322, slug: '322_coin_change', title: '零钱兑换', titleEn: 'Coin Change', category: '动态规划', difficulty: 'Medium', tags: ['广度优先', 'DP'], hasVisualization: false },

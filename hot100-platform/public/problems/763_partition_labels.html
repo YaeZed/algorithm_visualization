@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>划分字母区间 - 算法可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Code Highlight Engine -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css" id="hljs-theme" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --danger: #c75f5f;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .preset-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--anthropic-light-gray); background: #fff; border-radius: 6px; padding: 7px 6px; font-family: "JetBrains Mono", monospace; cursor: pointer; color: #555; font-size: 12px; text-align: left; }
+      .preset:hover { border-color: var(--anthropic-orange); color: var(--anthropic-orange); }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>划分字母区间</h1>
+        <div class="subtitle">贪心算法 (Greedy) · 边界扩张</div>
+
+        <div class="control-section">
+          <h3>预设测试用例</h3>
+          <div class="preset-grid">
+            <button class="preset" onclick="setPreset('abaccbdeffed')">abaccb | deffed (清晰双段)</button>
+            <button class="preset" onclick="setPreset('eccbbbbdec')">eccbbbbdec (单字母牵连全部)</button>
+            <button class="preset" onclick="setPreset('ababcbacadefegdehijhklij')">原题测试用例 (较长)</button>
+            <button class="preset" onclick="setPreset('abcdef')">abcdef (完全不重复)</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N)</span>
+            <span class="memo-badge space">□ O(Σ)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **核心思想**：同一个字母必须在同一个片段。这就意味着一个片段的右边界，**至少要包含**里面所有字母的最后出现位置。</div>
+            <div class="memo-tip g">遍历之前，先扫一遍字符串，记录每个字母的**最远下标 (Last Index)**。</div>
+            <div class="memo-tip w">遍历时，遇到一个字母，就拿它的最远下标去更新当前片段的边界 `end`。当我们走到 `i == end` 时，就说明这个片段里的所有字母都不会在后面出现了，**果断切断**！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码 (贪心查表切割)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行日志 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def partitionLabels(self, s: str) -> List[int]:\n        # 1. 记录每个字符最后出现的位置\n        last_occ = {}\n        for i, ch in enumerate(s):\n            last_occ[ch] = i\n            \n        partitions = []\n        start = 0\n        end = 0\n        \n        # 2. 遍历字符串，不断更新当前片段的边界\n        for i, ch in enumerate(s):\n            # 贪心：当前字符的最远位置如果超过了边界，就扩张边界\n            end = max(end, last_occ[ch])\n            \n            # 如果走到了边界，说明当前片段里的所有字符都集齐了\n            if i == end:\n                partitions.append(end - start + 1)\n                start = i + 1\n                \n        return partitions`,
+        ts: `// TypeScript\nfunction partitionLabels(s: string): number[] {\n    // 1. 记录每个字符最后出现的位置\n    const lastOcc = new Map<string, number>();\n    for (let i = 0; i < s.length; i++) {\n        lastOcc.set(s[i], i);\n    }\n    \n    const partitions: number[] = [];\n    let start = 0;\n    let end = 0;\n    \n    // 2. 遍历字符串，不断更新当前片段的边界\n    for (let i = 0; i < s.length; i++) {\n        // 贪心扩张边界\n        end = Math.max(end, lastOcc.get(s[i])!);\n        \n        // 走到边界就切一刀\n        if (i === end) {\n            partitions.push(end - start + 1);\n            start = i + 1;\n        }\n    }\n    \n    return partitions;\n}`,
+        java: `// Java\nclass Solution {\n    public List<Integer> partitionLabels(String s) {\n        // 1. 记录每个字符最后出现的位置\n        int[] lastOcc = new int[26];\n        for (int i = 0; i < s.length(); i++) {\n            lastOcc[s.charAt(i) - 'a'] = i;\n        }\n        \n        List<Integer> partitions = new ArrayList<>();\n        int start = 0;\n        int end = 0;\n        \n        // 2. 遍历字符串，不断更新当前片段的边界\n        for (int i = 0; i < s.length(); i++) {\n            end = Math.max(end, lastOcc[s.charAt(i) - 'a']);\n            \n            if (i == end) {\n                partitions.add(end - start + 1);\n                start = i + 1;\n            }\n        }\n        \n        return partitions;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    vector<int> partitionLabels(string s) {\n        // 1. 记录每个字符最后出现的位置\n        int lastOcc[26] = {0};\n        for (int i = 0; i < s.length(); i++) {\n            lastOcc[s[i] - 'a'] = i;\n        }\n        \n        vector<int> partitions;\n        int start = 0, end = 0;\n        \n        // 2. 遍历字符串，不断更新当前片段的边界\n        for (int i = 0; i < s.length(); i++) {\n            end = max(end, lastOcc[s[i] - 'a']);\n            \n            if (i == end) {\n                partitions.push_back(end - start + 1);\n                start = i + 1;\n            }\n        }\n        \n        return partitions;\n    }\n};`,
+        c: `// C\nint* partitionLabels(char * s, int* returnSize) {\n    // 1. 记录每个字符最后出现的位置\n    int lastOcc[26] = {0};\n    int len = strlen(s);\n    for (int i = 0; i < len; i++) {\n        lastOcc[s[i] - 'a'] = i;\n    }\n    \n    int* partitions = (int*)malloc(len * sizeof(int));\n    *returnSize = 0;\n    int start = 0, end = 0;\n    \n    // 2. 遍历字符串，不断更新当前片段的边界\n    for (int i = 0; i < len; i++) {\n        if (lastOcc[s[i] - 'a'] > end) {\n            end = lastOcc[s[i] - 'a'];\n        }\n        \n        if (i == end) {\n            partitions[(*returnSize)++] = end - start + 1;\n            start = i + 1;\n        }\n    }\n    \n    return partitions;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let TEST_STR = "abaccbdeffed";
+      
+      let state = null;
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* partitionGen() {
+          let s = TEST_STR;
+          let lastOcc = {};
+          
+          for (let i = 0; i < s.length; i++) {
+              lastOcc[s[i]] = i;
+          }
+          
+          yield { phase: "INIT", lastOcc, i: -1, start: 0, end: 0, partitions: [], msg: "第一步：扫描全图，建立【字母 -> 最远出现位置】哈希表。" };
+          
+          let start = 0;
+          let end = 0;
+          let partitions = [];
+          
+          for (let i = 0; i < s.length; i++) {
+              let char = s[i];
+              let last = lastOcc[char];
+              
+              yield { phase: "READ", i, char, last, start, end, partitions, msg: `读到字母 <b>${char}</b>，查表得知它最远出现在 <b>${last}</b>。` };
+              
+              if (last > end) {
+                  end = last;
+                  yield { phase: "UPDATE_END", i, char, last, start, end, partitions, msg: `📈 扩大区间！因为字母 ${char} 最远在 ${last} 才结束，为了把它包进来，边界扩张至 <b>${end}</b>。` };
+              } else {
+                  yield { phase: "NO_UPDATE", i, char, last, start, end, partitions, msg: `字母 ${char} 最远在 ${last}，没超出当前边界 ${end}，安全。` };
+              }
+              
+              if (i === end) {
+                  let len = end - start + 1;
+                  partitions.push({ start, end, len });
+                  yield { phase: "CUT", i, start, end, partitions, msg: `✂️ 走到右边界！区间内所有字母都不会在后面出现了。完美切割长度为 <b>${len}</b> 的片段。` };
+                  start = i + 1;
+              }
+          }
+          
+          yield { phase: "DONE", lastOcc, start, end, partitions, i: s.length, msg: `🎉 全部划分完毕！片段长度：[${partitions.map(p => p.len).join(", ")}]` };
+      }
+
+      function initializeSystem() {
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = partitionGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = `▶ 橡皮筋切割模拟中...`;
+        logMsg(`✅ 载入字符串: "${TEST_STR}"`, true);
+      }
+
+      function setPreset(str) {
+          TEST_STR = str;
+          initializeSystem();
+      }
+
+      function drawVisuals() {
+          let s = state;
+          if (!s) return;
+          
+          let w = width;
+          let h = height;
+          
+          // Layout variables
+          let isLong = TEST_STR.length > 15;
+          let boxW = isLong ? 26 : 38;
+          let spacing = isLong ? 30 : 45;
+          let totalW = (TEST_STR.length - 1) * spacing + boxW;
+          let startX = max(40, w/2 - totalW/2);
+          
+          let mapY = 100;
+          let strY = 280;
+          
+          // 1. Draw Hash Map Table (Top)
+          if (s.lastOcc) {
+              let uniqueChars = Object.keys(s.lastOcc).sort();
+              let mapBoxW = 28;
+              let mapTotalW = uniqueChars.length * (mapBoxW + 5);
+              let mapStartX = w/2 - mapTotalW/2;
+              
+              fill(100); noStroke(); textAlign(CENTER, BOTTOM); textSize(12);
+              text("字符最远出现位置 (Last Occurrence Map)", w/2, mapY - 25);
+              
+              for (let k = 0; k < uniqueChars.length; k++) {
+                  let char = uniqueChars[k];
+                  let idx = s.lastOcc[char];
+                  let x = mapStartX + k * (mapBoxW + 5);
+                  
+                  let isHighlighted = (s.phase !== "INIT" && s.phase !== "DONE" && s.char === char);
+                  
+                  if (isHighlighted) { fill(254, 215, 170); stroke(234, 88, 12); strokeWeight(2); }
+                  else { fill(245); stroke(200); strokeWeight(1); }
+                  
+                  rect(x, mapY, mapBoxW, mapBoxW, 4);
+                  
+                  fill(isHighlighted ? 234 : 100, isHighlighted ? 88 : 100, isHighlighted ? 12 : 100); 
+                  noStroke(); textAlign(CENTER, CENTER); textSize(14); textStyle(BOLD);
+                  text(char, x + mapBoxW/2, mapY + mapBoxW/2);
+                  
+                  fill(150); textSize(10); textStyle(NORMAL);
+                  text(idx, x + mapBoxW/2, mapY + mapBoxW + 12);
+              }
+          }
+          
+          // 2. Draw Finished Partitions (Locked Boxes)
+          let colors = [
+              [219, 234, 254, 59, 130, 246], // Blue
+              [254, 240, 138, 202, 138, 4],  // Yellow
+              [252, 211, 77, 217, 119, 6],   // Amber
+              [191, 219, 254, 37, 99, 235],  // Darker Blue
+              [253, 230, 138, 180, 83, 9]    // Orange
+          ];
+          
+          for (let pIdx = 0; pIdx < s.partitions.length; pIdx++) {
+              let p = s.partitions[pIdx];
+              let x1 = startX + p.start * spacing - spacing/2 + 2;
+              let x2 = startX + p.end * spacing + spacing/2 - 2;
+              let pw = x2 - x1;
+              
+              let col = colors[pIdx % colors.length];
+              fill(col[0], col[1], col[2], 120);
+              stroke(col[3], col[4], col[5]);
+              strokeWeight(2);
+              rect(x1, strY - boxW/2 - 12, pw, boxW + 24, 8);
+              
+              fill(col[3], col[4], col[5]); noStroke(); textAlign(CENTER, TOP); textSize(11); textStyle(BOLD);
+              let textY = strY + boxW/2 + 15 + (pIdx % 3) * 16;
+              text(`片段${pIdx + 1}(长${p.len})`, (x1 + x2)/2, textY);
+              textStyle(NORMAL);
+          }
+          
+          // 3. Draw Current Expanding Partition (Light Red / Pink)
+          if (s.phase !== "INIT" && s.phase !== "DONE" && s.i < TEST_STR.length) {
+              // Ensure we don't draw current if we just cut on this exact frame
+              if (!(s.phase === "CUT" && s.i === s.end)) {
+                  let endVisual = min(s.end, TEST_STR.length - 1);
+                  let x1 = startX + s.start * spacing - spacing/2 + 2;
+                  let x2 = startX + endVisual * spacing + spacing/2 - 2;
+                  let pw = x2 - x1;
+                  
+                  fill(254, 226, 226, 120); // light red transparent
+                  stroke(239, 68, 68);
+                  strokeWeight(2);
+                  drawingContext.setLineDash([5, 5]);
+                  rect(x1, strY - boxW/2 - 12, pw, boxW + 24, 8);
+                  drawingContext.setLineDash([]);
+                  
+                  fill(239, 68, 68); noStroke(); textAlign(CENTER, BOTTOM); textSize(11); textStyle(BOLD);
+                  text(`当前区间(扩张)`, (x1 + x2)/2, strY - boxW/2 - 18);
+                  textStyle(NORMAL);
+              }
+          }
+          
+          // 4. Draw Characters (The String)
+          for (let k = 0; k < TEST_STR.length; k++) {
+              let bx = startX + k * spacing;
+              
+              let isCurrent = (k === s.i);
+              
+              if (isCurrent) { fill(254, 215, 170); stroke(234, 88, 12); strokeWeight(3); }
+              else { fill(255); stroke(200); strokeWeight(1); }
+              
+              rect(bx - boxW/2, strY - boxW/2, boxW, boxW, 6);
+              
+              fill(isCurrent ? 50 : 80); noStroke(); textAlign(CENTER, CENTER); textSize(isLong ? 16 : 20); textStyle(BOLD);
+              text(TEST_STR[k], bx, strY);
+              textStyle(NORMAL);
+              
+              // Indices
+              if (!isLong || k % 2 === 0 || k === TEST_STR.length - 1) {
+                  fill(150); textSize(10);
+                  text(k, bx, strY - boxW/2 - 25);
+              }
+          }
+          
+          // 5. Draw Cut Action Animation (Scissor icon dropping)
+          if (s.phase === "CUT") {
+              let cutX = startX + s.end * spacing + boxW/2 + 4; // Right edge of current char
+              fill(220, 38, 38); noStroke(); textAlign(CENTER, CENTER); textSize(24);
+              text("✂️", cutX, strY);
+          }
+          
+          // 6. Draw Arrow connecting char to its max reach
+          if (s.phase === "READ" || s.phase === "UPDATE_REACH" || s.phase === "UPDATE_END") {
+              if (s.last > s.i) {
+                  let fromX = startX + s.i * spacing;
+                  let toX = startX + s.last * spacing;
+                  
+                  stroke(234, 88, 12); fill(234, 88, 12);
+                  drawCurvedArrow(fromX, strY + boxW/2 + 5, toX, strY + boxW/2 + 5, 40);
+              }
+          }
+          
+          // 7. Result Box
+          if (s.phase === "DONE") {
+              let statusY = strY + 120;
+              fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2);
+              rect(w/2 - 180, statusY, 360, 50, 8);
+              fill(21, 128, 61); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
+              text(`🎉 划分结束！结果：[${s.partitions.map(p => p.len).join(", ")}]`, w/2, statusY + 25);
+              textStyle(NORMAL);
+          }
+      }
+      
+      function drawCurvedArrow(x1, y1, x2, y2, bend) {
+          strokeWeight(2);
+          noFill();
+          let cx1 = x1 + (x2 - x1) / 3;
+          let cy1 = y1 + bend;
+          let cx2 = x2 - (x2 - x1) / 3;
+          let cy2 = y2 + bend;
+          bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+          
+          let tx = bezierTangent(x1, cx1, cx2, x2, 1);
+          let ty = bezierTangent(y1, cy1, cy2, y2, 1);
+          let angle = atan2(ty, tx);
+          
+          push();
+          translate(x2, y2);
+          rotate(angle);
+          fill(234, 88, 12);
+          noStroke();
+          triangle(-8, -5, -8, 5, 0, 0); // arrow pointing right-up (inverted because we are below)
+          pop();
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawVisuals();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          let waitLimit = 1.0;
+          if (state && state.phase === "READ") waitLimit = 0.6;
+          if (state && state.phase === "UPDATE_END") waitLimit = 1.5;
+          if (state && state.phase === "CUT") waitLimit = 1.8;
+          
+          if (p5Timer > waitLimit) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+
+        if (s.phase === "INIT") {
+            logMsg(s.msg, false);
+        } else if (s.phase === "READ") {
+            logMsg(`\n------------------\n👀 ${s.msg}`, false);
+        } else if (s.phase === "UPDATE_END") {
+            logMsg(`📈 ${s.msg}`, true);
+        } else if (s.phase === "NO_UPDATE") {
+            logMsg(`➖ ${s.msg}`, false);
+        } else if (s.phase === "CUT") {
+            logMsg(`✂️ ${s.msg}`, true);
+        } else if (s.phase === "DONE") {
+            logMsg(`\n🏆 ${s.msg}`, true);
+            let headerEl = document.getElementById("phase-header");
+            if (headerEl) headerEl.innerHTML = "🏁 贪心切割完成";
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>爬楼梯 - 算法可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Code Highlight Engine -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css" id="hljs-theme" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --danger: #c75f5f;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .preset-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--anthropic-light-gray); background: #fff; border-radius: 6px; padding: 7px 6px; font-family: "JetBrains Mono", monospace; cursor: pointer; color: #555; font-size: 12px; text-align: left; }
+      .preset:hover { border-color: var(--anthropic-orange); color: var(--anthropic-orange); }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>爬楼梯</h1>
+        <div class="subtitle">动态规划 (Dynamic Programming) · 状态转移</div>
+
+        <div class="control-section">
+          <h3>测试规模</h3>
+          <div class="preset-grid">
+            <button class="preset" onclick="setPreset(4)">n = 4 阶</button>
+            <button class="preset" onclick="setPreset(5)">n = 5 阶</button>
+            <button class="preset" onclick="setPreset(6)">n = 6 阶</button>
+            <button class="preset" onclick="setPreset(8)">n = 8 阶</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **核心思想**：因为每次只能爬 1 阶或 2 阶，所以到达第 `i` 阶的方法，一定等于到达第 `i-1` 阶和第 `i-2` 阶的方法之和。</div>
+            <div class="memo-tip g">这就是经典的**斐波那契数列**：`dp[i] = dp[i-1] + dp[i-2]`。</div>
+            <div class="memo-tip w">由于我们只需要用到前两个状态，所以不需要真的开一个长度为 N 的数组，用两个变量 `prev1` 和 `prev2` 滚动更新即可，这就是空间优化！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码 (空间优化 DP)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行日志 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def climbStairs(self, n: int) -> int:\n        if n <= 2:\n            return n\n            \n        prev2 = 1  # 对应 dp[i-2]\n        prev1 = 2  # 对应 dp[i-1]\n        \n        for i in range(3, n + 1):\n            # dp[i] = dp[i-1] + dp[i-2]\n            current = prev1 + prev2\n            \n            # 滚动更新，准备计算下一阶\n            prev2 = prev1\n            prev1 = current\n            \n        return prev1`,
+        ts: `// TypeScript\nfunction climbStairs(n: number): number {\n    if (n <= 2) return n;\n    \n    let prev2 = 1; // 对应 dp[i-2]：跳 2 阶到达的方法数\n    let prev1 = 2; // 对应 dp[i-1]：跳 1 阶到达的方法数\n    \n    for (let i = 3; i <= n; i++) {\n        // dp[i] = dp[i-1] + dp[i-2]\n        let current = prev1 + prev2;\n        \n        // 滚动更新变量，准备推导下一阶\n        prev2 = prev1;\n        prev1 = current;\n    }\n    \n    return prev1;\n}`,
+        java: `// Java\nclass Solution {\n    public int climbStairs(int n) {\n        if (n <= 2) return n;\n        \n        int prev2 = 1; // 对应 dp[i-2]\n        int prev1 = 2; // 对应 dp[i-1]\n        \n        for (int i = 3; i <= n; i++) {\n            // 到达当前阶的方法数 = 从前一阶上来的 + 从前两阶上来的\n            int current = prev1 + prev2;\n            \n            // 状态滚动\n            prev2 = prev1;\n            prev1 = current;\n        }\n        \n        return prev1;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    int climbStairs(int n) {\n        if (n <= 2) return n;\n        \n        int prev2 = 1; // dp[i-2]\n        int prev1 = 2; // dp[i-1]\n        \n        for (int i = 3; i <= n; i++) {\n            int current = prev1 + prev2;\n            // 向前滑动窗口\n            prev2 = prev1;\n            prev1 = current;\n        }\n        \n        return prev1;\n    }\n};`,
+        c: `// C\nint climbStairs(int n) {\n    if (n <= 2) return n;\n    \n    int prev2 = 1; // dp[i-2]\n    int prev1 = 2; // dp[i-1]\n    \n    for (int i = 3; i <= n; i++) {\n        int current = prev1 + prev2;\n        // 向前滑动窗口\n        prev2 = prev1;\n        prev1 = current;\n    }\n    \n    return prev1;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let TOTAL_STEPS = 5;
+      
+      let state = null;
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* climbingGen() {
+          let n = TOTAL_STEPS;
+          let dp = new Array(n + 1).fill(0);
+          
+          if (n >= 1) dp[1] = 1;
+          if (n >= 2) dp[2] = 2;
+          
+          yield { phase: "INIT", dp: [...dp], i: 2, msg: "初始化基础状态：到达 1 阶有 1 种方法，到达 2 阶有 2 种方法。" };
+          
+          if (n <= 2) {
+              yield { phase: "DONE", dp: [...dp], i: n, msg: `阶数较小，直接返回结果：${n}` };
+              return;
+          }
+          
+          for (let i = 3; i <= n; i++) {
+              yield { phase: "READ", i, dp: [...dp], msg: `准备计算第 <b>${i}</b> 阶的方法数...` };
+              
+              yield { phase: "CALC", i, v1: dp[i-1], v2: dp[i-2], dp: [...dp], msg: `要爬到第 ${i} 阶，只能从 <b>${i-1}</b> 阶或 <b>${i-2}</b> 阶跨过来。` };
+              
+              dp[i] = dp[i-1] + dp[i-2];
+              yield { phase: "WRITE", i, dp: [...dp], msg: `状态转移：dp[${i}] = ${dp[i-1]} + ${dp[i-2]} = <b>${dp[i]}</b>` };
+              
+              yield { phase: "SLIDE", i, dp: [...dp], msg: `向前滚动指针：将当前状态作为接下来的基础。` };
+          }
+          
+          yield { phase: "DONE", i: n, dp: [...dp], msg: `🎉 计算完成！爬到第 ${n} 阶共有 <b>${dp[n]}</b> 种方法。` };
+      }
+
+      function initializeSystem() {
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = climbingGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = `▶ DP 状态转移推导中...`;
+        logMsg(`✅ 载入楼梯总数: n = ${TOTAL_STEPS}`, true);
+      }
+
+      function setPreset(n) {
+          TOTAL_STEPS = n;
+          initializeSystem();
+      }
+
+      function drawVisuals() {
+          let s = state;
+          if (!s) return;
+          
+          let w = width;
+          let h = height;
+          
+          let n = TOTAL_STEPS;
+          let boxW = 50;
+          let spacing = 65;
+          let totalW = (n - 1) * spacing + boxW;
+          let startX = max(40, w/2 - totalW/2);
+          
+          let mapY = h - 150;
+          
+          // 1. Draw DP Array
+          fill(150); noStroke(); textAlign(LEFT, BOTTOM); textSize(12);
+          text("DP 一维状态数组", startX - 20, mapY - 40);
+          
+          for (let k = 1; k <= n; k++) {
+              let bx = startX + (k - 1) * spacing;
+              let val = s.dp[k];
+              
+              let isCurrent = (s.phase !== "INIT" && s.phase !== "DONE" && k === s.i);
+              let isPrev1 = (s.phase !== "INIT" && s.phase !== "DONE" && k === s.i - 1);
+              let isPrev2 = (s.phase !== "INIT" && s.phase !== "DONE" && k === s.i - 2);
+              
+              if (isCurrent) { fill(254, 215, 170); stroke(234, 88, 12); strokeWeight(3); }
+              else if (isPrev1) { fill(219, 234, 254); stroke(59, 130, 246); strokeWeight(2); }
+              else if (isPrev2) { fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2); }
+              else if (val > 0) { fill(245); stroke(200); strokeWeight(1); } // calculated but not active
+              else { fill(255); stroke(220); strokeWeight(1); drawingContext.setLineDash([4, 4]); } // empty
+              
+              rect(bx - boxW/2, mapY - boxW/2, boxW, boxW, 8);
+              drawingContext.setLineDash([]);
+              
+              if (val > 0 || isCurrent) {
+                  fill(isCurrent ? 234 : 50, isCurrent ? 88 : 50, isCurrent ? 12 : 50); 
+                  noStroke(); textAlign(CENTER, CENTER); textSize(20); textStyle(BOLD);
+                  text(val === 0 ? "?" : val, bx, mapY);
+                  textStyle(NORMAL);
+              }
+              
+              // Array Index (dp[i])
+              fill(150); textSize(11);
+              text(`dp[${k}]`, bx, mapY + boxW/2 + 20);
+              
+              // Variable Labels (Space Optimization)
+              if (s.phase !== "DONE") {
+                  if (isPrev1) { fill(59, 130, 246); text("prev1", bx, mapY - boxW/2 - 15); }
+                  if (isPrev2) { fill(34, 197, 94); text("prev2", bx, mapY - boxW/2 - 15); }
+                  if (isCurrent) { fill(234, 88, 12); text("current", bx, mapY - boxW/2 - 15); }
+              }
+          }
+          
+          // 2. Draw Calculation Arrows
+          if (s.phase === "CALC" || s.phase === "WRITE") {
+              let targetX = startX + (s.i - 1) * spacing;
+              let p1X = startX + (s.i - 2) * spacing;
+              let p2X = startX + (s.i - 3) * spacing;
+              
+              stroke(59, 130, 246); fill(59, 130, 246);
+              drawCurvedArrow(p1X, mapY + boxW/2 + 35, targetX - 5, mapY + boxW/2 + 35, 30);
+              
+              stroke(34, 197, 94); fill(34, 197, 94);
+              drawCurvedArrow(p2X, mapY + boxW/2 + 35, targetX + 5, mapY + boxW/2 + 35, 50);
+              
+              fill(100); noStroke(); textAlign(CENTER, TOP); textSize(18); textStyle(BOLD);
+              text(`+`, (p1X + targetX)/2, mapY + boxW/2 + 50);
+              textStyle(NORMAL);
+          }
+          
+          // 3. Draw Staircase Visualization (Top)
+          let stairBaseY = mapY - 140;
+          let stairH = 30;
+          let stairW = 55;
+          
+          // We draw the staircase climbing up to the right.
+          // Since we want to fit it on screen, we scale slightly if n is large, but n=8 is small.
+          let stairTotalW = n * stairW;
+          let stairStartX = w/2 - stairTotalW/2;
+          
+          fill(200); noStroke(); textAlign(CENTER, BOTTOM); textSize(12);
+          text("可视化楼梯", w/2, stairBaseY - n * stairH - 40);
+          
+          for (let k = 1; k <= n; k++) {
+              let sx = stairStartX + (k - 1) * stairW;
+              let sy = stairBaseY - k * stairH;
+              
+              let val = s.dp[k];
+              let isCurrent = (s.phase !== "INIT" && s.phase !== "DONE" && k === s.i);
+              
+              if (isCurrent) fill(254, 215, 170);
+              else if (val > 0) fill(240, 253, 244);
+              else fill(245);
+              
+              stroke(200);
+              if (isCurrent) stroke(234, 88, 12);
+              
+              // Draw step
+              rect(sx, sy, stairW, k * stairH);
+              
+              // Draw text on top of step
+              if (val > 0 || isCurrent) {
+                  fill(isCurrent ? 234 : 21, isCurrent ? 88 : 128, isCurrent ? 12 : 61);
+                  noStroke(); textAlign(CENTER, BOTTOM); textSize(14); textStyle(BOLD);
+                  text(val === 0 ? "?" : val, sx + stairW/2, sy - 5);
+                  textStyle(NORMAL);
+              }
+              
+              // Step number
+              fill(150); textSize(10);
+              text(`${k}阶`, sx + stairW/2, sy + 15);
+              
+              // Character standing on current step (optional cute touch)
+              if (isCurrent && s.phase === "WRITE") {
+                  fill(234, 88, 12);
+                  circle(sx + stairW/2, sy - 30, 14);
+                  stroke(234, 88, 12); strokeWeight(2);
+                  line(sx + stairW/2, sy - 23, sx + stairW/2, sy - 10); // body
+                  line(sx + stairW/2, sy - 10, sx + stairW/2 - 5, sy); // leg 1
+                  line(sx + stairW/2, sy - 10, sx + stairW/2 + 5, sy); // leg 2
+              }
+          }
+          
+          // Result Box
+          if (s.phase === "DONE") {
+              let statusY = 80;
+              fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2);
+              rect(w/2 - 150, statusY, 300, 50, 8);
+              fill(21, 128, 61); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
+              text(`🎉 爬到 ${n} 阶共有 ${s.dp[n]} 种方法！`, w/2, statusY + 25);
+              textStyle(NORMAL);
+          }
+      }
+      
+      function drawCurvedArrow(x1, y1, x2, y2, bend) {
+          strokeWeight(2);
+          noFill();
+          let cx1 = x1 + (x2 - x1) / 3;
+          let cy1 = y1 + bend;
+          let cx2 = x2 - (x2 - x1) / 3;
+          let cy2 = y2 + bend;
+          bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+          
+          let tx = bezierTangent(x1, cx1, cx2, x2, 1);
+          let ty = bezierTangent(y1, cy1, cy2, y2, 1);
+          let angle = atan2(ty, tx);
+          
+          push();
+          translate(x2, y2);
+          rotate(angle);
+          fill(p5.instance.drawingContext.strokeStyle);
+          noStroke();
+          triangle(-8, -5, -8, 5, 0, 0); 
+          pop();
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawVisuals();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          let waitLimit = 1.0;
+          if (state && state.phase === "READ") waitLimit = 0.5;
+          if (state && state.phase === "CALC") waitLimit = 1.2;
+          if (state && state.phase === "WRITE") waitLimit = 1.5;
+          if (state && state.phase === "SLIDE") waitLimit = 0.8;
+          
+          if (p5Timer > waitLimit) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+
+        if (s.phase === "INIT") {
+            logMsg(`🧱 ${s.msg}`, false);
+        } else if (s.phase === "READ") {
+            logMsg(`\n------------------\n👀 ${s.msg}`, false);
+        } else if (s.phase === "CALC") {
+            logMsg(`🧮 ${s.msg}`, false);
+        } else if (s.phase === "WRITE") {
+            logMsg(`📝 ${s.msg}`, true);
+        } else if (s.phase === "SLIDE") {
+            logMsg(`➡️ ${s.msg}`, false);
+        } else if (s.phase === "DONE") {
+            logMsg(`\n🏆 ${s.msg}`, true);
+            let headerEl = document.getElementById("phase-header");
+            if (headerEl) headerEl.innerHTML = "🏁 DP 状态推导完成";
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

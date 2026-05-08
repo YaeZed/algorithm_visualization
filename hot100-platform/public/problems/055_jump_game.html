@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>跳跃游戏 - 算法可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Code Highlight Engine -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css" id="hljs-theme" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --danger: #c75f5f;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .preset-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--anthropic-light-gray); background: #fff; border-radius: 6px; padding: 7px 6px; font-family: "JetBrains Mono", monospace; cursor: pointer; color: #555; font-size: 12px; text-align: left; }
+      .preset:hover { border-color: var(--anthropic-orange); color: var(--anthropic-orange); }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>跳跃游戏</h1>
+        <div class="subtitle">贪心算法 (Greedy) · 范围推进</div>
+
+        <div class="control-section">
+          <h3>预设测试地图</h3>
+          <div class="preset-grid">
+            <button class="preset" onclick="setPreset([2, 3, 1, 1, 4])">[2, 3, 1, 1, 4] (能到达)</button>
+            <button class="preset" onclick="setPreset([3, 2, 1, 0, 4])">[3, 2, 1, 0, 4] (被 0 卡死)</button>
+            <button class="preset" onclick="setPreset([0])">[0] (出生在终点)</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **核心思想**：不要纠结具体的跳跃步数，而是维护一个**“最远覆盖范围” (`maxReach`)**。</div>
+            <div class="memo-tip g">遍历数组的每个格子，只要当前格子在我们的覆盖范围内，我们就尝试用它的跳跃力来**扩展覆盖范围**。</div>
+            <div class="memo-tip w">如果某一步遍历到了覆盖范围之外（说明前面的所有格子都跳不到这里，断层了），游戏直接失败。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码 (贪心覆盖范围)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行日志 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def canJump(self, nums: List[int]) -> bool:\n        # max_reach 记录我们目前最远能跳到哪个索引\n        max_reach = 0\n        \n        for i, jump in enumerate(nums):\n            # 如果当前位置已经超出了我们最远能到达的范围\n            # 说明我们被前面的某个 0 卡死了，无法继续前进\n            if i > max_reach:\n                return False\n                \n            # 贪心：如果当前位置能让我们覆盖得更远，就扩大覆盖范围\n            max_reach = max(max_reach, i + jump)\n            \n            # 只要覆盖范围包含了终点（或超越终点），就必定能到达\n            if max_reach >= len(nums) - 1:\n                return True\n                \n        return True`,
+        ts: `// TypeScript\nfunction canJump(nums: number[]): boolean {\n    let maxReach = 0; // 记录我们目前最远能跳到哪个索引\n    \n    for (let i = 0; i < nums.length; i++) {\n        // 走不到当前格子，直接失败\n        if (i > maxReach) {\n            return false;\n        }\n        \n        // 贪心更新能覆盖的最远距离\n        maxReach = Math.max(maxReach, i + nums[i]);\n        \n        // 已经能覆盖到终点，提前成功\n        if (maxReach >= nums.length - 1) {\n            return true;\n        }\n    }\n    \n    return true;\n}`,
+        java: `// Java\nclass Solution {\n    public boolean canJump(int[] nums) {\n        int maxReach = 0; // 最远能到达的索引\n        \n        for (int i = 0; i < nums.length; i++) {\n            // 如果当前位置已经超出了最远到达范围，被 0 卡死\n            if (i > maxReach) {\n                return false;\n            }\n            \n            // 尝试扩大覆盖范围\n            maxReach = Math.max(maxReach, i + nums[i]);\n            \n            // 只要覆盖范围包含了终点，就必定能到达\n            if (maxReach >= nums.length - 1) {\n                return true;\n            }\n        }\n        \n        return true;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    bool canJump(vector<int>& nums) {\n        int maxReach = 0; // 最远覆盖范围\n        \n        for (int i = 0; i < nums.size(); ++i) {\n            // 无法到达当前格子\n            if (i > maxReach) {\n                return false;\n            }\n            \n            // 更新潜能\n            maxReach = max(maxReach, i + nums[i]);\n            \n            // 提前判断成功\n            if (maxReach >= nums.size() - 1) {\n                return true;\n            }\n        }\n        \n        return true;\n    }\n};`,
+        c: `// C\nbool canJump(int* nums, int numsSize) {\n    int maxReach = 0; // 最远到达位置\n    \n    for (int i = 0; i < numsSize; i++) {\n        // 被卡死了\n        if (i > maxReach) {\n            return false;\n        }\n        \n        // 计算当前起跳的最远距离\n        int currentReach = i + nums[i];\n        if (currentReach > maxReach) {\n            maxReach = currentReach;\n        }\n        \n        // 达到终点\n        if (maxReach >= numsSize - 1) {\n            return true;\n        }\n    }\n    \n    return true;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let NUMS = [2, 3, 1, 1, 4];
+      
+      let state = null;
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* jumpGen() {
+          let maxReach = 0;
+          
+          yield { phase: "START", maxReach, i: -1, msg: "开始探险！初始最远覆盖范围 <b>maxReach = 0</b>" };
+          
+          if (NUMS.length <= 1) {
+              yield { phase: "SUCCESS", i: 0, maxReach: 0, msg: `🎉 成功！你已经在终点了，无需跳跃！` };
+              return;
+          }
+          
+          for (let i = 0; i < NUMS.length; i++) {
+              yield { phase: "READ", i, maxReach, msg: `推进到索引 <b>${i}</b>，格子的跳跃力为 <b>${NUMS[i]}</b>。当前 maxReach = ${maxReach}` };
+              
+              if (i > maxReach) {
+                  yield { phase: "FAIL", i, maxReach, msg: `❌ 致命失败！索引 ${i} 超出了我们的最大覆盖范围 ${maxReach}，前面肯定有连续的 0 把我们卡死了！永远无法到达终点。` };
+                  return;
+              }
+              
+              let currentReach = i + NUMS[i];
+              yield { phase: "CALC_JUMP", i, currentReach, maxReach, msg: `站在索引 ${i} 上，最远可以跳到索引 <b>${i} + ${NUMS[i]} = ${currentReach}</b>` };
+              
+              if (currentReach > maxReach) {
+                  maxReach = currentReach;
+                  yield { phase: "UPDATE_REACH", i, maxReach, currentReach, msg: `📈 贪心扩大领地！将最远覆盖范围更新为 <b>${maxReach}</b>` };
+              } else {
+                  yield { phase: "NO_UPDATE", i, maxReach, currentReach, msg: `最远只能跳到 ${currentReach}，比历史记录 ${maxReach} 短，覆盖范围不增加。` };
+              }
+              
+              if (maxReach >= NUMS.length - 1) {
+                  yield { phase: "SUCCESS", i, maxReach, msg: `🎉 成功！目前的覆盖范围 ${maxReach} 已经包围了终点 (索引 ${NUMS.length - 1})，必定能到达！` };
+                  return;
+              }
+          }
+      }
+
+      function initializeSystem() {
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = jumpGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = `▶ 覆盖范围贪心算法执行中`;
+        logMsg(`✅ 载入地图: [${NUMS.join(", ")}]`, true);
+      }
+
+      function setPreset(arr) {
+          NUMS = arr;
+          initializeSystem();
+      }
+
+      function drawVisuals() {
+          let s = state;
+          if (!s) return;
+          
+          let w = width;
+          let h = height;
+          
+          let boxW = 50;
+          let spacing = 65;
+          let mapY = 300;
+          
+          // Center the map
+          let totalW = (NUMS.length - 1) * spacing + boxW;
+          let startX = max(40, w/2 - totalW/2);
+          
+          // Draw maxReach Coverage Area (Background Highlight)
+          let reachTiles = min(s.maxReach, NUMS.length - 1);
+          if (s.maxReach >= 0 && s.phase !== "START") {
+              let covW = reachTiles * spacing + boxW + 20;
+              fill(220, 252, 231, 150); // Light green transparent
+              if (s.phase === "FAIL") fill(254, 202, 202, 150); // Light red if failed
+              noStroke();
+              rect(startX - 10, mapY - boxW/2 - 30, covW, boxW + 60, 12);
+              
+              // Coverage Line above
+              stroke(34, 197, 94);
+              if (s.phase === "FAIL") stroke(239, 68, 68);
+              strokeWeight(3);
+              line(startX, mapY - boxW/2 - 20, startX + reachTiles * spacing, mapY - boxW/2 - 20);
+              
+              fill(s.phase === "FAIL" ? 220 : 21, s.phase === "FAIL" ? 38 : 128, s.phase === "FAIL" ? 38 : 61);
+              noStroke(); textAlign(CENTER, BOTTOM); textSize(14); textStyle(BOLD);
+              text(`当前最远覆盖范围: maxReach = ${s.maxReach}`, startX + (reachTiles * spacing)/2, mapY - boxW/2 - 25);
+              textStyle(NORMAL);
+          }
+          
+          // Draw Nodes
+          for (let k = 0; k < NUMS.length; k++) {
+              let bx = startX + k * spacing;
+              
+              let isCurrent = (k === s.i);
+              let isTarget = (k === NUMS.length - 1);
+              let inReach = (k <= s.maxReach);
+              
+              if (s.phase === "FAIL" && isCurrent) { fill(254, 202, 202); stroke(239, 68, 68); strokeWeight(3); } // Stranded
+              else if (isCurrent) { fill(254, 215, 170); stroke(234, 88, 12); strokeWeight(3); }
+              else if (isTarget) { fill(254, 240, 138); stroke(202, 138, 4); strokeWeight(2); } // End goal
+              else if (inReach) { fill(240, 253, 244); stroke(34, 197, 94); strokeWeight(2); }
+              else { fill(250); stroke(200); strokeWeight(1); }
+              
+              rect(bx - boxW/2, mapY - boxW/2, boxW, boxW, 8);
+              
+              fill(isCurrent || inReach || isTarget ? 50 : 150); noStroke(); textAlign(CENTER, CENTER); textSize(20); textStyle(BOLD);
+              text(NUMS[k], bx, mapY);
+              textStyle(NORMAL);
+              
+              // Indices
+              fill(150); textSize(12);
+              text(k, bx, mapY + boxW/2 + 15);
+              
+              // End Flag
+              if (isTarget) {
+                  fill(202, 138, 4);
+                  text("🏁", bx, mapY - boxW/2 - 10);
+              }
+          }
+          
+          // Draw Jump Arc Calculation
+          if ((s.phase === "CALC_JUMP" || s.phase === "UPDATE_REACH") && NUMS[s.i] > 0) {
+              let fromX = startX + s.i * spacing;
+              let destIdx = min(s.currentReach, NUMS.length - 1 + 1); // allow draw past end visually slightly
+              let toX = startX + destIdx * spacing;
+              
+              stroke(234, 88, 12); fill(234, 88, 12);
+              drawCurvedArrow(fromX, mapY - boxW/2 - 5, toX, mapY - boxW/2 - 5, -50);
+              
+              fill(234, 88, 12); noStroke(); textAlign(CENTER, BOTTOM); textSize(14); textStyle(BOLD);
+              text(`可跳跃至 ${s.currentReach}`, (fromX + toX)/2, mapY - boxW/2 - 50 - 5);
+              textStyle(NORMAL);
+          }
+          
+          // Status Box
+          let statusY = mapY + 80;
+          if (s.phase === "SUCCESS") {
+              fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2);
+              rect(w/2 - 150, statusY, 300, 50, 8);
+              fill(21, 128, 61); noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+              text(`🎉 判定成功：可以跳跃到终点！`, w/2, statusY + 25);
+              textStyle(NORMAL);
+          } else if (s.phase === "FAIL") {
+              fill(254, 202, 202); stroke(239, 68, 68); strokeWeight(2);
+              rect(w/2 - 150, statusY, 300, 50, 8);
+              fill(185, 28, 28); noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+              text(`❌ 判定失败：断层，无法继续推进！`, w/2, statusY + 25);
+              textStyle(NORMAL);
+          }
+      }
+      
+      function drawCurvedArrow(x1, y1, x2, y2, bend) {
+          strokeWeight(2);
+          noFill();
+          let cx1 = x1 + (x2 - x1) / 3;
+          let cy1 = y1 + bend;
+          let cx2 = x2 - (x2 - x1) / 3;
+          let cy2 = y2 + bend;
+          bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+          
+          let tx = bezierTangent(x1, cx1, cx2, x2, 1);
+          let ty = bezierTangent(y1, cy1, cy2, y2, 1);
+          let angle = atan2(ty, tx);
+          
+          push();
+          translate(x2, y2);
+          rotate(angle);
+          fill(234, 88, 12);
+          noStroke();
+          triangle(-8, 5, -8, -5, 0, 0);
+          pop();
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawVisuals();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          let waitLimit = 1.0;
+          if (state && state.phase === "READ") waitLimit = 0.5;
+          if (state && (state.phase === "UPDATE_REACH" || state.phase === "CALC_JUMP")) waitLimit = 1.5;
+          
+          if (p5Timer > waitLimit) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+
+        if (s.phase === "START") {
+            logMsg(s.msg, false);
+        } else if (s.phase === "READ") {
+            logMsg(`\n------------------\n👀 ${s.msg}`, false);
+        } else if (s.phase === "CALC_JUMP") {
+            logMsg(`🧮 ${s.msg}`, false);
+        } else if (s.phase === "UPDATE_REACH") {
+            logMsg(`📈 ${s.msg}`, true);
+        } else if (s.phase === "NO_UPDATE") {
+            logMsg(`➖ ${s.msg}`, false);
+        } else if (s.phase === "SUCCESS") {
+            logMsg(`\n🏆 ${s.msg}`, true);
+            let headerEl = document.getElementById("phase-header");
+            if (headerEl) headerEl.innerHTML = "🏁 贪心判定成功";
+        } else if (s.phase === "FAIL") {
+            logMsg(`\n💀 ${s.msg}`, true);
+            let headerEl = document.getElementById("phase-header");
+            if (headerEl) headerEl.innerHTML = "🏁 贪心判定失败";
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

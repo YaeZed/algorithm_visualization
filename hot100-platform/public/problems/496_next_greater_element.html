@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>下一个更大元素 I - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --danger: #c75f5f;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .preset-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--anthropic-light-gray); background: #fff; border-radius: 6px; padding: 7px 6px; font-family: "JetBrains Mono", monospace; cursor: pointer; color: #555; font-size: 12px; text-align: left; }
+      .preset:hover { border-color: var(--anthropic-orange); color: var(--anthropic-orange); }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>下一个更大元素 I</h1>
+        <div class="subtitle">单调栈 + 哈希表 (Monotonic Stack + Hash Map)</div>
+
+        <div class="control-section">
+          <h3>预设输入 (nums1 & nums2)</h3>
+          <div class="preset-grid">
+            <button class="preset" onclick="setPreset([4,1,2], [1,3,4,2])">nums1=[4,1,2]<br>nums2=[1,3,4,2]</button>
+            <button class="preset" onclick="setPreset([2,4], [1,2,3,4])">nums1=[2,4]<br>nums2=[1,2,3,4]</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(M + N)</span>
+            <span class="memo-badge space">□ O(N)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">由于 `nums1` 是 `nums2` 的子集，我们可以先预处理 `nums2`，找出其中每个元素的下一个更大元素，存进**哈希表**。</div>
+            <div class="memo-tip g">预处理方法：**单调递减栈**。当遇到比栈顶大的元素时，栈顶元素出栈，并且我们知道它的下一个更大元素就是当前元素。立刻记录到哈希表中！</div>
+            <div class="memo-tip w">预处理结束后，直接遍历 `nums1`，在哈希表里 O(1) 查表拿结果即可，秒出答案！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码 (单调栈 + Map)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行日志 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def nextGreaterElement(self, nums1: List[int], nums2: List[int]) -> List[int]:\n        # 记录 nums2 中每个元素的下一个更大元素\n        next_greater_map = {}\n        stack = []  # 单调递减栈\n        \n        # 预处理 nums2\n        for num in nums2:\n            # 当栈不为空，且当前元素 > 栈顶元素时，打破了单调递减\n            # 说明当前元素就是栈顶元素的下一个更大元素！\n            while stack and num > stack[-1]:\n                popped = stack.pop()\n                next_greater_map[popped] = num\n                \n            # 当前元素入栈，等待属于它的更大元素\n            stack.append(num)\n            \n        # 遍历 nums1，直接从哈希表中 O(1) 取出答案\n        # 如果没在字典中，说明它右边没有更大的元素，返回 -1\n        return [next_greater_map.get(x, -1) for x in nums1]`,
+        ts: `// TypeScript\nfunction nextGreaterElement(nums1: number[], nums2: number[]): number[] {\n    const nextGreaterMap = new Map<number, number>();\n    const stack: number[] = [];\n\n    for (const num of nums2) {\n        while (stack.length > 0 && num > stack[stack.length - 1]) {\n            const popped = stack.pop()!;\n            nextGreaterMap.set(popped, num);\n        }\n        stack.push(num);\n    }\n\n    return nums1.map(x => nextGreaterMap.has(x) ? nextGreaterMap.get(x)! : -1);\n}`,
+        java: `// Java\nclass Solution {\n    public int[] nextGreaterElement(int[] nums1, int[] nums2) {\n        Map<Integer, Integer> map = new HashMap<>();\n        Deque<Integer> stack = new ArrayDeque<>();\n        \n        for (int num : nums2) {\n            while (!stack.isEmpty() && num > stack.peek()) {\n                map.put(stack.pop(), num);\n            }\n            stack.push(num);\n        }\n        \n        int[] ans = new int[nums1.length];\n        for (int i = 0; i < nums1.length; i++) {\n            ans[i] = map.getOrDefault(nums1[i], -1);\n        }\n        return ans;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    vector<int> nextGreaterElement(vector<int>& nums1, vector<int>& nums2) {\n        unordered_map<int, int> umap;\n        stack<int> st;\n        \n        for (int num : nums2) {\n            while (!st.empty() && num > st.top()) {\n                umap[st.top()] = num;\n                st.pop();\n            }\n            st.push(num);\n        }\n        \n        vector<int> ans(nums1.size());\n        for (int i = 0; i < nums1.size(); ++i) {\n            ans[i] = umap.count(nums1[i]) ? umap[nums1[i]] : -1;\n        }\n        return ans;\n    }\n};`,
+        c: `// C\n// C 语言中没有现成的哈希表，通常通过建立一个足够大的数组（如果数值范围已知且较小）\n// 或者手写 Hash 结构来实现。这题数值范围 <= 10^4，可以直接用一个长度 10001 的数组当哈希表。`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let NUMS1 = [4, 1, 2];
+      let NUMS2 = [1, 3, 4, 2];
+      
+      let state = null;
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* nextGreaterGen() {
+          let stack = [];
+          let map = {};
+          let ans = new Array(NUMS1.length).fill(-1);
+          
+          yield { phase: "START", stack: [...stack], map: {...map}, ans: [...ans], i2: -1, i1: -1, msg: "开始阶段：先遍历 nums2 建立单调递减栈和映射表" };
+          
+          // Phase 1: Traverse nums2
+          for (let i = 0; i < NUMS2.length; i++) {
+              let curr = NUMS2[i];
+              yield { phase: "READ_NUMS2", i2: i, curr, stack: [...stack], map: {...map}, ans: [...ans], msg: `读取 nums2[${i}] = <b>${curr}</b>` };
+              
+              while (stack.length > 0) {
+                  let top = stack[stack.length - 1];
+                  yield { phase: "COMPARE", i2: i, curr, top, stack: [...stack], map: {...map}, ans: [...ans], msg: `比较当前元素 <b>${curr}</b> 和栈顶元素 <b>${top}</b>` };
+                  
+                  if (curr > top) {
+                      let popped = stack.pop();
+                      map[popped] = curr;
+                      yield { phase: "POP_AND_MAP", i2: i, curr, popped, stack: [...stack], map: {...map}, ans: [...ans], msg: `<b>${curr} > ${popped}</b> 打破了单调递减！说明 ${popped} 的下一个更大元素就是 ${curr}。<br>出栈并记录到哈希表：<b>Map[${popped}] = ${curr}</b>` };
+                  } else {
+                      break;
+                  }
+              }
+              stack.push(curr);
+              yield { phase: "PUSH", i2: i, curr, stack: [...stack], map: {...map}, ans: [...ans], msg: `将 <b>${curr}</b> 压入单调栈，等待属于它的更大元素到来` };
+          }
+          
+          yield { phase: "END_NUMS2", stack: [...stack], map: {...map}, ans: [...ans], i2: NUMS2.length, i1: -1, msg: "nums2 遍历完毕！哈希表已就绪。栈中剩下的元素都没有更大元素了。" };
+          
+          // Phase 2: Traverse nums1
+          for (let j = 0; j < NUMS1.length; j++) {
+              let query = NUMS1[j];
+              yield { phase: "READ_NUMS1", i1: j, query, stack: [...stack], map: {...map}, ans: [...ans], i2: NUMS2.length, msg: `准备计算 nums1[${j}] = <b>${query}</b> 的答案` };
+              
+              let res = map[query] !== undefined ? map[query] : -1;
+              ans[j] = res;
+              
+              yield { phase: "MAP_QUERY", i1: j, query, res, stack: [...stack], map: {...map}, ans: [...ans], i2: NUMS2.length, msg: `直接在哈希表中查询 <b>Key=${query}</b>，得到结果 <b>${res}</b>，填入 ans 数组` };
+          }
+          
+          yield { phase: "DONE", i1: NUMS1.length, stack: [...stack], map: {...map}, ans: [...ans], i2: NUMS2.length, msg: "查询全部完成！" };
+      }
+
+      function initializeSystem() {
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = nextGreaterGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = "▶ 阶段：[阶段一] 预处理 nums2";
+        logMsg(`✅ 系统初始化，准备就绪`, true);
+      }
+
+      function setPreset(n1, n2) {
+          NUMS1 = n1;
+          NUMS2 = n2;
+          initializeSystem();
+      }
+
+      function drawVisuals() {
+          let s = state;
+          if (!s) return;
+          
+          let w = width;
+          let h = height;
+          let boxW = 45;
+          let boxH = 45;
+          let spacing = 60;
+          
+          // 严格计算不重叠的坐标系
+          let nums2XBase = 40;
+          let nums2Y = 100;
+          
+          let nums1XBase = w / 2 + 20;
+          let nums1Y = 100;
+          let ansY = 180;
+          
+          let stackX = 120;
+          let stackYBase = height - 60; // 底部向上画
+          
+          let mapX = w / 2 + 60;
+          let mapYBase = 320;
+          
+          // --- 1. Draw nums2 (Left Top) ---
+          fill(150); noStroke(); textAlign(LEFT, BOTTOM); textSize(14); textStyle(BOLD);
+          text("目标数组 nums2 (用于构建映射)", nums2XBase, nums2Y - 30);
+          textStyle(NORMAL);
+          
+          for (let k = 0; k < NUMS2.length; k++) {
+              let bx = nums2XBase + k * spacing + boxW/2;
+              let by = nums2Y;
+              
+              let isCurrent = (k === s.i2);
+              
+              if (isCurrent) { fill(254, 215, 170); stroke(234, 88, 12); strokeWeight(2); }
+              else if (k < s.i2) { fill(245); stroke(220); strokeWeight(1); }
+              else { fill(255); stroke(200); strokeWeight(1); }
+              
+              rect(bx - boxW/2, by, boxW, boxH, 6);
+              
+              if (k < s.i2 && !isCurrent) fill(150); else fill(50);
+              noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+              text(NUMS2[k], bx, by + boxH/2);
+              textStyle(NORMAL);
+              
+              if (isCurrent) {
+                  fill(249, 115, 22);
+                  triangle(bx - 6, by + boxH + 12, bx + 6, by + boxH + 12, bx, by + boxH + 4);
+              }
+          }
+          
+          // --- 2. Draw nums1 and ans (Right Top) ---
+          fill(150); noStroke(); textAlign(LEFT, BOTTOM); textSize(14); textStyle(BOLD);
+          text("查询数组 nums1", nums1XBase, nums1Y - 30);
+          text("结果数组 ans", nums1XBase, ansY - 15);
+          textStyle(NORMAL);
+          
+          for (let k = 0; k < NUMS1.length; k++) {
+              let bx = nums1XBase + k * spacing + boxW/2;
+              let isQuery = (k === s.i1);
+              
+              // nums1 box
+              if (isQuery) { fill(224, 242, 254); stroke(56, 189, 248); strokeWeight(2); }
+              else { fill(255); stroke(200); strokeWeight(1); }
+              rect(bx - boxW/2, nums1Y, boxW, boxH, 6);
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+              text(NUMS1[k], bx, nums1Y + boxH/2);
+              textStyle(NORMAL);
+              
+              if (isQuery && s.phase === "READ_NUMS1") {
+                  fill(56, 189, 248);
+                  triangle(bx - 6, nums1Y - 12, bx + 6, nums1Y - 12, bx, nums1Y - 4);
+              }
+              
+              // ans box
+              let isAnsUpdate = (s.phase === "MAP_QUERY" && k === s.i1);
+              if (isAnsUpdate) { fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2); }
+              else { fill(245); stroke(220); strokeWeight(1); }
+              rect(bx - boxW/2, ansY, boxW, boxH, 6);
+              fill(isAnsUpdate ? 34 : 100); noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+              text(s.ans[k] === -1 && !isAnsUpdate ? "" : s.ans[k], bx, ansY + boxH/2);
+              textStyle(NORMAL);
+          }
+          
+          // --- 3. Draw Stack (Left Bottom) ---
+          let stackW = 90;
+          let stackH = 38;
+          
+          fill(150); noStroke(); textAlign(CENTER, BOTTOM); textSize(14); textStyle(BOLD);
+          text("单调递减栈", stackX, stackYBase + 35);
+          textStyle(NORMAL);
+          
+          stroke(200); strokeWeight(3); noFill();
+          beginShape();
+          vertex(stackX - stackW/2, stackYBase - 5 * stackH);
+          vertex(stackX - stackW/2, stackYBase);
+          vertex(stackX + stackW/2, stackYBase);
+          vertex(stackX + stackW/2, stackYBase - 5 * stackH);
+          endShape();
+          
+          let st = s.stack || [];
+          for (let idx = 0; idx < st.length; idx++) {
+              let cy = stackYBase - idx * stackH - stackH/2;
+              
+              let isTopHighlight = (idx === st.length - 1 && (s.phase === "COMPARE"));
+              let isJustPushed = (idx === st.length - 1 && s.phase === "PUSH");
+              
+              if (isTopHighlight) { fill(254, 240, 138); stroke(202, 138, 4); }
+              else if (isJustPushed) { fill(254, 215, 170); stroke(234, 88, 12); }
+              else { fill(250); stroke(200); }
+              
+              strokeWeight(2);
+              rect(stackX - stackW/2 + 4, cy - stackH/2 + 2, stackW - 8, stackH - 4, 4);
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
+              text(st[idx], stackX, cy);
+              textStyle(NORMAL);
+          }
+          
+          // Draw floating Popped element
+          if (s.phase === "POP_AND_MAP") {
+              let cy = stackYBase - st.length * stackH - stackH/2 - 20;
+              fill(254, 202, 202); stroke(239, 68, 68); strokeWeight(2);
+              rect(stackX - stackW/2 + 4, cy - stackH/2 + 2, stackW - 8, stackH - 4, 4);
+              fill(220, 38, 38); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
+              text(s.popped, stackX, cy);
+              textStyle(NORMAL);
+              
+              // Draw an arrow moving it towards the Map
+              stroke(239, 68, 68); fill(239, 68, 68);
+              let fromX = stackX + stackW/2 + 10;
+              let toX = mapX - 50;
+              let fromY = cy;
+              let toY = mapYBase + Object.keys(s.map).length * 35; // approximate next row
+              drawArrow(fromX, fromY, toX, toY);
+          }
+          
+          // --- 4. Draw Hash Map (Right Bottom) ---
+          fill(150); noStroke(); textAlign(LEFT, BOTTOM); textSize(14); textStyle(BOLD);
+          text("Next Greater Map (哈希表)", mapX, mapYBase - 15);
+          textStyle(NORMAL);
+          
+          // Table Header
+          fill(240); stroke(200); strokeWeight(1);
+          rect(mapX, mapYBase, 80, 25);
+          rect(mapX + 80, mapYBase, 80, 25);
+          fill(100); noStroke(); textAlign(CENTER, CENTER); textSize(12);
+          text("Key", mapX + 40, mapYBase + 12);
+          text("Value", mapX + 120, mapYBase + 12);
+          
+          let keys = Object.keys(s.map);
+          for (let k = 0; k < keys.length; k++) {
+              let key = keys[k];
+              let val = s.map[key];
+              let rowY = mapYBase + 25 + k * 25;
+              
+              let isJustAdded = (s.phase === "POP_AND_MAP" && key == s.popped);
+              let isQueried = (s.phase === "MAP_QUERY" && key == s.query);
+              
+              if (isJustAdded) { fill(254, 240, 138); }
+              else if (isQueried) { fill(220, 252, 231); }
+              else { fill(255); }
+              
+              stroke(200); strokeWeight(1);
+              rect(mapX, rowY, 80, 25);
+              rect(mapX + 80, rowY, 80, 25);
+              
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(14); textStyle(BOLD);
+              text(key, mapX + 40, rowY + 12);
+              if (isJustAdded) fill(234, 88, 12);
+              else if (isQueried) fill(34, 197, 94);
+              else fill(50);
+              text(val, mapX + 120, rowY + 12);
+              textStyle(NORMAL);
+          }
+      }
+      
+      function drawArrow(x1, y1, x2, y2) {
+          strokeWeight(2);
+          let dx = x2 - x1;
+          let dy = y2 - y1;
+          if (dx === 0 && dy === 0) return;
+          // shorten
+          let len = dist(x1, y1, x2, y2);
+          let p2x = x1 + (dx/len) * (len - 8);
+          let p2y = y1 + (dy/len) * (len - 8);
+          line(x1, y1, p2x, p2y);
+          
+          push();
+          translate(p2x, p2y);
+          rotate(atan2(dy, dx));
+          noStroke();
+          triangle(-8, 5, -8, -5, 0, 0);
+          pop();
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawVisuals();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+        
+        let headerEl = document.getElementById("phase-header");
+
+        if (s.phase === "START") {
+            logMsg(s.msg, false);
+        } else if (s.phase === "READ_NUMS2") {
+            logMsg(`\n-- [预处理阶段] --\n👀 ${s.msg}`, false);
+        } else if (s.phase === "COMPARE") {
+            logMsg(`🤔 ${s.msg}`, false);
+        } else if (s.phase === "POP_AND_MAP") {
+            logMsg(`🎉 ${s.msg}`, true);
+        } else if (s.phase === "PUSH") {
+            logMsg(`📥 ${s.msg}`, false);
+        } else if (s.phase === "END_NUMS2") {
+            logMsg(`\n========= 预处理完成 =========\n✅ ${s.msg}`, true);
+            if (headerEl) headerEl.innerHTML = "▶ 阶段：[阶段二] 查询 nums1 并生成答案";
+        } else if (s.phase === "READ_NUMS1") {
+            logMsg(`\n-- [查询阶段] --\n🔍 ${s.msg}`, false);
+        } else if (s.phase === "MAP_QUERY") {
+            logMsg(`⚡ ${s.msg}`, true);
+        } else if (s.phase === "DONE") {
+            logMsg(`\n🏁 ${s.msg}`, true);
+            if (headerEl) headerEl.innerHTML = "🏁 全部完成";
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

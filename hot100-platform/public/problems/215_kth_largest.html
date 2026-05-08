@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>数组中的第K个最大元素 - 算法可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Code Highlight Engine -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css" id="hljs-theme" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --danger: #c75f5f;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .preset-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--anthropic-light-gray); background: #fff; border-radius: 6px; padding: 7px 6px; font-family: "JetBrains Mono", monospace; cursor: pointer; color: #555; font-size: 12px; text-align: left; }
+      .preset:hover { border-color: var(--anthropic-orange); color: var(--anthropic-orange); }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>第 K 个最大元素</h1>
+        <div class="subtitle">堆 (Priority Queue) · 小顶堆解法</div>
+
+        <div class="control-section">
+          <h3>预设输入参数</h3>
+          <div class="preset-grid">
+            <button class="preset" onclick="setPreset([3,2,1,5,6,4], 2)">[3,2,1,5,6,4], K=2</button>
+            <button class="preset" onclick="setPreset([3,2,3,1,2,4,5,5,6], 4)">[3,2,3,1...6], K=4</button>
+            <button class="preset" onclick="setPreset([10,9,8,7,6], 3)">递减数组, K=3</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N log K)</span>
+            <span class="memo-badge space">□ O(K)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **核心思想**：求第 K 个“最大”元素，我们维护一个大小只有 K 的 **小顶堆 (Min-Heap)**！</div>
+            <div class="memo-tip g">小顶堆的**堆顶**永远是这 K 个元素里**最小**的那一个（也就是排名第 K 大的守门员）。</div>
+            <div class="memo-tip w">当新来的数字比守门员（堆顶）还要大时，说明它有资格进入前 K 名。于是把原堆顶踢走，新数字入堆并重新调整树形。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码 (优先队列)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行日志 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nimport heapq\n\nclass Solution:\n    def findKthLargest(self, nums: List[int], k: int) -> int:\n        # 维护一个大小为 k 的小顶堆\n        min_heap = []\n        \n        for num in nums:\n            heapq.heappush(min_heap, num)\n            # 如果堆的体积超过了 k，就弹出堆顶（目前最小的元素）\n            if len(min_heap) > k:\n                heapq.heappop(min_heap)\n                \n        # 最终堆里剩下的是最大的 k 个元素\n        # 由于是小顶堆，堆顶正好是这 k 个里最小的，即第 k 大\n        return min_heap[0]`,
+        ts: `// TypeScript\nfunction findKthLargest(nums: number[], k: number): number {\n    // TS 没有内置的 PriorityQueue，这里可以用类似 MinPriorityQueue 的第三方库\n    // 或者手写一个简单的堆（动画中即展示了手写堆的调整过程）。\n    const minHeap = new MinPriorityQueue();\n    \n    for (const num of nums) {\n        minHeap.enqueue(num);\n        if (minHeap.size() > k) {\n            minHeap.dequeue();\n        }\n    }\n    \n    return minHeap.front().element;\n}`,
+        java: `// Java\nclass Solution {\n    public int findKthLargest(int[] nums, int k) {\n        // PriorityQueue 默认就是小顶堆 (Min-Heap)\n        PriorityQueue<Integer> pq = new PriorityQueue<>();\n        \n        for (int num : nums) {\n            pq.offer(num);\n            // 维持堆的大小不超过 k\n            if (pq.size() > k) {\n                pq.poll();\n            }\n        }\n        \n        // 堆顶即为第 k 大的元素\n        return pq.peek();\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    int findKthLargest(vector<int>& nums, int k) {\n        // std::priority_queue 默认大顶堆，我们需要使用 greater 实现小顶堆\n        priority_queue<int, vector<int>, greater<int>> minHeap;\n        \n        for (int num : nums) {\n            minHeap.push(num);\n            if (minHeap.size() > k) {\n                minHeap.pop();\n            }\n        }\n        \n        return minHeap.top();\n    }\n};`,
+        c: `// C\n// C 语言需要手动实现二叉堆操作（Heapify, Push, Pop）\n// 动画右侧直接展示了建堆和调整堆的详细过程。`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let NUMS = [3, 2, 1, 5, 6, 4];
+      let K = 2;
+      
+      let state = null;
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* heapGen() {
+          let heap = [];
+          
+          yield { phase: "START", heap: [...heap], i: -1, msg: `目标：使用大小为 ${K} 的小顶堆，找出第 ${K} 大元素。` };
+          
+          for (let i = 0; i < NUMS.length; i++) {
+              let val = NUMS[i];
+              yield { phase: "READ", i, val, heap: [...heap], msg: `读取数字 <b>${val}</b>，准备入堆` };
+              
+              // PUSH
+              heap.push(val);
+              yield { phase: "PUSH", i, val, heap: [...heap], highlightIdx: heap.length - 1, msg: `将其添加到堆的末尾（树的最后一片叶子）` };
+              
+              // BUBBLE UP (Swap Up)
+              let curr = heap.length - 1;
+              while (curr > 0) {
+                  let parent = Math.floor((curr - 1) / 2);
+                  yield { phase: "COMPARE_UP", i, heap: [...heap], curr, parent, msg: `向上调整：比较节点 <b>${heap[curr]}</b> 和它的父节点 <b>${heap[parent]}</b>` };
+                  
+                  if (heap[curr] < heap[parent]) {
+                      let temp = heap[curr];
+                      heap[curr] = heap[parent];
+                      heap[parent] = temp;
+                      yield { phase: "SWAP_UP", i, heap: [...heap], curr: parent, prev: curr, msg: `因为 ${heap[parent]} < ${heap[curr]}（子比父小），执行<b>交换 (Swap Up)</b>，维护小顶堆性质！` };
+                      curr = parent;
+                  } else {
+                      yield { phase: "NO_SWAP_UP", i, heap: [...heap], curr, parent, msg: `子节点不小于父节点，向上调整完毕。` };
+                      break;
+                  }
+              }
+              
+              // CHECK K SIZE
+              if (heap.length > K) {
+                  yield { phase: "OVERFLOW", i, heap: [...heap], msg: `堆的容量 (${heap.length}) 超过了限制 K=${K}！需要把最小的数字（堆顶）请出去。` };
+                  
+                  let minVal = heap[0];
+                  let lastVal = heap.pop();
+                  
+                  if (heap.length > 0) {
+                      heap[0] = lastVal;
+                      yield { phase: "REPLACE_ROOT", i, heap: [...heap], minVal, msg: `弹出堆顶 <b>${minVal}</b>，将堆尾元素 <b>${lastVal}</b> 移到堆顶。` };
+                      
+                      // BUBBLE DOWN (Swap Down)
+                      let curr = 0;
+                      while (true) {
+                          let left = 2 * curr + 1;
+                          let right = 2 * curr + 2;
+                          let smallest = curr;
+                          
+                          if (left < heap.length) {
+                              yield { phase: "COMPARE_DOWN", i, heap: [...heap], curr, target: left, msg: `向下调整：比较当前节点 <b>${heap[curr]}</b> 和左孩子 <b>${heap[left]}</b>` };
+                              if (heap[left] < heap[smallest]) smallest = left;
+                          }
+                          if (right < heap.length) {
+                              yield { phase: "COMPARE_DOWN", i, heap: [...heap], curr: smallest, target: right, msg: `向下调整：比较当前最小节点 <b>${heap[smallest]}</b> 和右孩子 <b>${heap[right]}</b>` };
+                              if (heap[right] < heap[smallest]) smallest = right;
+                          }
+                          
+                          if (smallest !== curr) {
+                              let temp = heap[curr];
+                              heap[curr] = heap[smallest];
+                              heap[smallest] = temp;
+                              yield { phase: "SWAP_DOWN", i, heap: [...heap], curr: smallest, prev: curr, msg: `将父节点与较小的孩子 <b>${heap[smallest]}</b> <b>交换 (Swap Down)</b>！` };
+                              curr = smallest;
+                          } else {
+                              yield { phase: "NO_SWAP_DOWN", i, heap: [...heap], curr, msg: `父节点已经比所有孩子都小，向下调整完毕。` };
+                              break;
+                          }
+                      }
+                  } else {
+                      yield { phase: "POP_ONLY", i, heap: [...heap], msg: `堆弹空了。` };
+                  }
+              }
+          }
+          
+          yield { phase: "DONE", heap: [...heap], result: heap[0], i: NUMS.length, msg: `遍历结束！留在堆顶的 <b>${heap[0]}</b> 就是排名第 ${K} 的最大元素！` };
+      }
+
+      function initializeSystem() {
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = heapGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = `▶ 阶段：扫描数组，维护容量为 ${K} 的小顶堆`;
+        logMsg(`✅ 载入数组: [${NUMS.join(", ")}], 目标: 第 ${K} 大元素`, true);
+      }
+
+      function setPreset(arr, k) {
+          NUMS = arr;
+          K = k;
+          initializeSystem();
+      }
+
+      function drawVisuals() {
+          let s = state;
+          if (!s) return;
+          
+          let w = width;
+          let h = height;
+          
+          // --- 1. Draw Array ---
+          let arrayY = 80;
+          let boxW = 40;
+          let spacing = 50;
+          let startX = w/2 - (NUMS.length * spacing) / 2 + boxW/2;
+          
+          fill(150); noStroke(); textAlign(LEFT, BOTTOM); textSize(14); textStyle(BOLD);
+          text("输入数组 (扫描进度)", startX - boxW/2, arrayY - 20);
+          textStyle(NORMAL);
+          
+          for (let k = 0; k < NUMS.length; k++) {
+              let bx = startX + k * spacing;
+              let isCurrent = (k === s.i);
+              let isProcessed = (k < s.i);
+              
+              if (isCurrent) { fill(254, 215, 170); stroke(234, 88, 12); strokeWeight(2); }
+              else if (isProcessed) { fill(245); stroke(220); strokeWeight(1); }
+              else { fill(255); stroke(200); strokeWeight(1); }
+              
+              rect(bx - boxW/2, arrayY, boxW, boxW, 6);
+              
+              fill(isProcessed && !isCurrent ? 150 : 50); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
+              text(NUMS[k], bx, arrayY + boxW/2);
+              textStyle(NORMAL);
+              
+              if (isCurrent && s.phase !== "DONE") {
+                  fill(249, 115, 22);
+                  triangle(bx - 6, arrayY - 12, bx + 6, arrayY - 12, bx, arrayY - 4);
+              }
+          }
+          
+          // --- 2. Draw Min-Heap Tree ---
+          let treeYBase = 220;
+          fill(150); noStroke(); textAlign(CENTER, BOTTOM); textSize(14); textStyle(BOLD);
+          text(`小顶堆 (Min-Heap, 最大容量 K=${K})`, w/2, treeYBase - 30);
+          textStyle(NORMAL);
+          
+          drawHeapTree(s.heap, w/2, treeYBase, s);
+          
+          // --- 3. Draw Done Result ---
+          if (s.phase === "DONE") {
+              let resY = treeYBase + 220;
+              fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2);
+              rect(w/2 - 120, resY, 240, 50, 8);
+              fill(21, 128, 61); noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+              text(`答案: ${s.result}`, w/2, resY + 25);
+              textStyle(NORMAL);
+          }
+      }
+      
+      function drawHeapTree(heap, startX, startY, s) {
+          if (!heap || heap.length === 0) return;
+          
+          let pos = [];
+          let levelHeight = 65;
+          let nodeRadius = 22; // 44 diameter
+          
+          // Calculate positions
+          for (let i = 0; i < heap.length; i++) {
+              let level = Math.floor(Math.log2(i + 1));
+              let levelNodes = Math.pow(2, level);
+              let indexInLevel = i - (levelNodes - 1);
+              
+              // We space them so they look like a proper binary tree.
+              // Top root is at startX.
+              // Level 1 spreads left and right by 100.
+              // Level 2 spreads by 50.
+              let spread = 120 / Math.max(1, level); // simple heuristic
+              let xOffset = 0;
+              if (levelNodes > 1) {
+                  let totalWidth = spread * (levelNodes - 1);
+                  xOffset = -totalWidth/2 + indexInLevel * spread;
+              }
+              
+              let x = startX + xOffset;
+              let y = startY + level * levelHeight;
+              pos.push({x, y});
+          }
+          
+          // Draw Edges
+          for (let i = 1; i < heap.length; i++) {
+              let parent = Math.floor((i - 1) / 2);
+              
+              let isComparingUp = (s.phase === "COMPARE_UP" && i === s.curr && parent === s.parent);
+              let isSwappingUp = (s.phase === "SWAP_UP" && i === s.prev && parent === s.curr);
+              let isComparingDown = (s.phase === "COMPARE_DOWN" && i === s.target && parent === s.curr);
+              let isSwappingDown = (s.phase === "SWAP_DOWN" && i === s.curr && parent === s.prev);
+              
+              if (isComparingUp || isComparingDown) {
+                  stroke(249, 115, 22); strokeWeight(4);
+              } else if (isSwappingUp || isSwappingDown) {
+                  stroke(34, 197, 94); strokeWeight(4);
+              } else {
+                  stroke(200); strokeWeight(2);
+              }
+              
+              line(pos[parent].x, pos[parent].y, pos[i].x, pos[i].y);
+          }
+          
+          // Draw Nodes
+          for (let i = 0; i < heap.length; i++) {
+              let isHighlight = false;
+              let isWarning = false;
+              
+              if (s.phase === "PUSH" && i === s.highlightIdx) isHighlight = true;
+              if (s.phase === "REPLACE_ROOT" && i === 0) isHighlight = true;
+              if ((s.phase === "COMPARE_UP" || s.phase === "SWAP_UP") && (i === s.curr || i === s.parent || i === s.prev)) isHighlight = true;
+              if ((s.phase === "COMPARE_DOWN" || s.phase === "SWAP_DOWN") && (i === s.curr || i === s.target || i === s.prev)) isHighlight = true;
+              
+              if (s.phase === "OVERFLOW" && i === 0) isWarning = true; // highlight root before popping
+              
+              if (isWarning) {
+                  fill(254, 202, 202); stroke(239, 68, 68);
+              } else if (isHighlight) {
+                  fill(254, 240, 138); stroke(202, 138, 4);
+              } else if (s.phase === "DONE" && i === 0) {
+                  fill(220, 252, 231); stroke(34, 197, 94);
+              } else {
+                  fill(255); stroke(150);
+              }
+              
+              strokeWeight(2);
+              ellipse(pos[i].x, pos[i].y, nodeRadius * 2, nodeRadius * 2);
+              
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
+              text(heap[i], pos[i].x, pos[i].y);
+              textStyle(NORMAL);
+              
+              // Small index label
+              fill(150); textSize(10);
+              text(i, pos[i].x + nodeRadius + 10, pos[i].y + nodeRadius);
+          }
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawVisuals();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          // Dynamically adjust wait time based on phase to make it look nicer
+          let waitLimit = 1.0;
+          if (state && (state.phase === "READ" || state.phase === "NO_SWAP_UP" || state.phase === "NO_SWAP_DOWN")) waitLimit = 0.6;
+          
+          if (p5Timer > waitLimit) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+        
+        let headerEl = document.getElementById("phase-header");
+
+        if (s.phase === "START") {
+            logMsg(s.msg, false);
+        } else if (s.phase === "READ") {
+            logMsg(`\n-- 第 ${s.i + 1} 步 --\n👀 ${s.msg}`, false);
+        } else if (s.phase === "PUSH") {
+            logMsg(`📥 ${s.msg}`, false);
+        } else if (s.phase === "COMPARE_UP" || s.phase === "COMPARE_DOWN") {
+            logMsg(`🤔 ${s.msg}`, false);
+        } else if (s.phase === "SWAP_UP" || s.phase === "SWAP_DOWN") {
+            logMsg(`🔄 ${s.msg}`, true);
+        } else if (s.phase === "NO_SWAP_UP" || s.phase === "NO_SWAP_DOWN") {
+            logMsg(`✅ ${s.msg}`, false);
+        } else if (s.phase === "OVERFLOW") {
+            logMsg(`⚠️ ${s.msg}`, true);
+        } else if (s.phase === "REPLACE_ROOT") {
+            logMsg(`🗑️ ${s.msg}`, false);
+        } else if (s.phase === "DONE") {
+            logMsg(`\n🎉 ${s.msg}`, true);
+            if (headerEl) headerEl.innerHTML = "🏁 遍历完成";
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>杨辉三角 - 算法可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Code Highlight Engine -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css" id="hljs-theme" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --danger: #c75f5f;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .preset-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--anthropic-light-gray); background: #fff; border-radius: 6px; padding: 7px 6px; font-family: "JetBrains Mono", monospace; cursor: pointer; color: #555; font-size: 12px; text-align: left; }
+      .preset:hover { border-color: var(--anthropic-orange); color: var(--anthropic-orange); }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>杨辉三角</h1>
+        <div class="subtitle">动态规划 (Dynamic Programming) · 二维转移</div>
+
+        <div class="control-section">
+          <h3>生成层数 (numRows)</h3>
+          <div class="preset-grid">
+            <button class="preset" onclick="setPreset(4)">生成 4 层 (基础观察)</button>
+            <button class="preset" onclick="setPreset(6)">生成 6 层 (标准测试)</button>
+            <button class="preset" onclick="setPreset(8)">生成 8 层 (宏大金字塔)</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N²)</span>
+            <span class="memo-badge space">□ O(N²)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **核心思想**：每个数字等于它**左上方**和**正上方**两个数字之和。这完美的契合了二维 DP 的本质。</div>
+            <div class="memo-tip g">状态转移方程：`dp[i][j] = dp[i-1][j-1] + dp[i-1][j]`</div>
+            <div class="memo-tip w">边界条件处理非常重要：每一行的第一个元素和最后一个元素永远是 `1`，不需要计算，直接初始化。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码 (二维状态推导)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行日志 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def generate(self, numRows: int) -> List[List[int]]:\n        triangle = []\n        \n        for i in range(numRows):\n            # 每一层的长度是 i + 1\n            # 初始化为全 1（自然包含了左右边界的 1）\n            row = [1] * (i + 1)\n            \n            # 计算中间的元素\n            for j in range(1, i):\n                # dp[i][j] = dp[i-1][j-1] + dp[i-1][j]\n                row[j] = triangle[i-1][j-1] + triangle[i-1][j]\n                \n            triangle.append(row)\n            \n        return triangle`,
+        ts: `// TypeScript\nfunction generate(numRows: number): number[][] {\n    const triangle: number[][] = [];\n    \n    for (let i = 0; i < numRows; i++) {\n        // 初始化当前行，长度为 i + 1，全部填充为 1\n        const row: number[] = new Array(i + 1).fill(1);\n        \n        // 只有当行数大于等于 3 (即 i >= 2) 时，内部才有元素需要计算\n        for (let j = 1; j < i; j++) {\n            // 核心状态转移方程\n            row[j] = triangle[i - 1][j - 1] + triangle[i - 1][j];\n        }\n        \n        triangle.push(row);\n    }\n    \n    return triangle;\n}`,
+        java: `// Java\nclass Solution {\n    public List<List<Integer>> generate(int numRows) {\n        List<List<Integer>> triangle = new ArrayList<>();\n        \n        for (int i = 0; i < numRows; i++) {\n            List<Integer> row = new ArrayList<>();\n            \n            for (int j = 0; j <= i; j++) {\n                // 左右边界直接填 1\n                if (j == 0 || j == i) {\n                    row.add(1);\n                } else {\n                    // 中间元素依赖上一层的两个值\n                    int left = triangle.get(i - 1).get(j - 1);\n                    int right = triangle.get(i - 1).get(j);\n                    row.add(left + right);\n                }\n            }\n            \n            triangle.add(row);\n        }\n        \n        return triangle;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    vector<vector<int>> generate(int numRows) {\n        vector<vector<int>> triangle;\n        \n        for (int i = 0; i < numRows; ++i) {\n            // 初始化当前行，并全赋值为 1\n            vector<int> row(i + 1, 1);\n            \n            // 遍历需要计算的内部节点\n            for (int j = 1; j < i; ++j) {\n                row[j] = triangle[i - 1][j - 1] + triangle[i - 1][j];\n            }\n            \n            triangle.push_back(row);\n        }\n        \n        return triangle;\n    }\n};`,
+        c: `// C\n/**\n * 注意：C 语言需要手动处理二维数组的内存分配\n */\nint** generate(int numRows, int* returnSize, int** returnColumnSizes) {\n    // 1. 分配第一层指针：存储每一行的起始地址\n    int** triangle = (int**)malloc(numRows * sizeof(int*));\n    *returnSize = numRows;\n    \n    // 2. 分配 returnColumnSizes：存储每一行的列数\n    *returnColumnSizes = (int*)malloc(numRows * sizeof(int));\n    \n    for (int i = 0; i < numRows; i++) {\n        // 每一层有 i + 1 个数字\n        (*returnColumnSizes)[i] = i + 1;\n        triangle[i] = (int*)malloc((i + 1) * sizeof(int));\n        \n        // 3. 边界处理：首尾赋值为 1\n        triangle[i][0] = 1;\n        triangle[i][i] = 1;\n        \n        // 4. 内部推导\n        for (int j = 1; j < i; j++) {\n            // 核心方程：当前格 = 上一层左肩上的数 + 上一层正头顶的数\n            triangle[i][j] = triangle[i - 1][j - 1] + triangle[i - 1][j];\n        }\n    }\n    \n    return triangle;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let NUM_ROWS = 6;
+      
+      let state = null;
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function deepCopy(arr) {
+          return arr.map(row => [...row]);
+      }
+
+      function* pascalGen() {
+          let triangle = [];
+          
+          yield { phase: "START", triangle: deepCopy(triangle), msg: `准备开始构建 <b>${NUM_ROWS} 层</b> 的杨辉三角。` };
+          
+          for (let i = 0; i < NUM_ROWS; i++) {
+              let row = new Array(i + 1).fill(0);
+              
+              row[0] = 1;
+              row[i] = 1;
+              
+              triangle.push([...row]); // Push a copy of current row with 1s
+              
+              if (i === 0) {
+                  yield { phase: "ROW_BOUNDS", triangle: deepCopy(triangle), r: i, msg: `构建第 1 层：点亮塔尖，只有 1 个元素。` };
+              } else {
+                  yield { phase: "ROW_BOUNDS", triangle: deepCopy(triangle), r: i, msg: `构建第 ${i+1} 层：先将左右边界的砖块初始化为 1。` };
+              }
+              
+              for (let j = 1; j < i; j++) {
+                  let left = triangle[i-1][j-1];
+                  let right = triangle[i-1][j];
+                  
+                  yield { phase: "CALC", triangle: deepCopy(triangle), r: i, c: j, left, right, msg: `准备计算内部砖块 [${i}][${j}]：依赖左上方(${left}) 和 右上方(${right})` };
+                  
+                  row[j] = left + right;
+                  triangle[i] = [...row];
+                  
+                  yield { phase: "WRITE", triangle: deepCopy(triangle), r: i, c: j, left, right, val: row[j], msg: `合并光束：dp[${i}][${j}] = ${left} + ${right} = <b>${row[j]}</b>` };
+              }
+          }
+          
+          yield { phase: "DONE", triangle: deepCopy(triangle), msg: `🎉 ${NUM_ROWS} 层金字塔构建完成！` };
+      }
+
+      function initializeSystem() {
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = pascalGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = `▶ 正在构建金字塔...`;
+        logMsg(`✅ 载入层数: numRows = ${NUM_ROWS}`, true);
+      }
+
+      function setPreset(n) {
+          NUM_ROWS = n;
+          initializeSystem();
+      }
+
+      function drawVisuals() {
+          let s = state;
+          if (!s) return;
+          
+          let w = width;
+          let h = height;
+          
+          let isLarge = NUM_ROWS >= 8;
+          let rRadius = isLarge ? 16 : 22;
+          let rSpacingX = isLarge ? 40 : 54;
+          let rSpacingY = isLarge ? 40 : 54;
+          let startY = 80;
+          
+          let cx = w / 2;
+          
+          // 1. Draw Links between nodes
+          if (s.triangle && s.triangle.length > 0) {
+              for (let i = 1; i < s.triangle.length; i++) {
+                  let rowLen = i + 1;
+                  let prevRowLen = i;
+                  for (let j = 0; j < rowLen; j++) {
+                      // Node coords
+                      let nx = cx - ((rowLen - 1) * rSpacingX) / 2 + j * rSpacingX;
+                      let ny = startY + i * rSpacingY;
+                      
+                      // Link to left parent
+                      if (j > 0) {
+                          let px1 = cx - ((prevRowLen - 1) * rSpacingX) / 2 + (j - 1) * rSpacingX;
+                          let py1 = startY + (i - 1) * rSpacingY;
+                          
+                          let isHighlight = (s.phase === "CALC" || s.phase === "WRITE") && s.r === i && s.c === j;
+                          
+                          strokeWeight(isHighlight ? 3 : 1);
+                          stroke(isHighlight ? color(234, 88, 12, 200) : color(220, 220, 220, 150));
+                          line(px1, py1, nx, ny);
+                      }
+                      
+                      // Link to right parent
+                      if (j < prevRowLen) {
+                          let px2 = cx - ((prevRowLen - 1) * rSpacingX) / 2 + j * rSpacingX;
+                          let py2 = startY + (i - 1) * rSpacingY;
+                          
+                          let isHighlight = (s.phase === "CALC" || s.phase === "WRITE") && s.r === i && s.c === j;
+                          
+                          strokeWeight(isHighlight ? 3 : 1);
+                          stroke(isHighlight ? color(234, 88, 12, 200) : color(220, 220, 220, 150));
+                          line(px2, py2, nx, ny);
+                      }
+                  }
+              }
+          }
+          
+          // 2. Animate energy balls (Calculation phase)
+          if (s.phase === "CALC" || s.phase === "WRITE") {
+              let i = s.r;
+              let j = s.c;
+              let rowLen = i + 1;
+              let prevRowLen = i;
+              
+              let nx = cx - ((rowLen - 1) * rSpacingX) / 2 + j * rSpacingX;
+              let ny = startY + i * rSpacingY;
+              
+              let px1 = cx - ((prevRowLen - 1) * rSpacingX) / 2 + (j - 1) * rSpacingX;
+              let py1 = startY + (i - 1) * rSpacingY;
+              let px2 = cx - ((prevRowLen - 1) * rSpacingX) / 2 + j * rSpacingX;
+              let py2 = startY + (i - 1) * rSpacingY;
+              
+              if (s.phase === "CALC") {
+                  // Energy balls moving down
+                  let progress = (p5Timer / 1.0) * 2; // speed up animation inside its 1.2s limit
+                  if (progress > 1) progress = 1;
+                  
+                  let bx1 = lerp(px1, nx, progress);
+                  let by1 = lerp(py1, ny, progress);
+                  let bx2 = lerp(px2, nx, progress);
+                  let by2 = lerp(py2, ny, progress);
+                  
+                  fill(253, 186, 116); noStroke();
+                  circle(bx1, by1, 10);
+                  circle(bx2, by2, 10);
+              }
+          }
+          
+          // 3. Draw Nodes (Bricks)
+          if (s.triangle && s.triangle.length > 0) {
+              for (let i = 0; i < s.triangle.length; i++) {
+                  let row = s.triangle[i];
+                  let rowLen = row.length;
+                  for (let j = 0; j < rowLen; j++) {
+                      let nx = cx - ((rowLen - 1) * rSpacingX) / 2 + j * rSpacingX;
+                      let ny = startY + i * rSpacingY;
+                      let val = row[j];
+                      
+                      let isCalculating = (s.phase === "CALC" || s.phase === "WRITE") && s.r === i && s.c === j;
+                      let isParent = (s.phase === "CALC" || s.phase === "WRITE") && s.r === i + 1 && (s.c === j || s.c === j + 1);
+                      let isNewlyBuiltBound = (s.phase === "ROW_BOUNDS") && s.r === i && (j === 0 || j === rowLen - 1);
+                      
+                      if (isCalculating) {
+                          if (s.phase === "CALC") { fill(255); stroke(234, 88, 12); strokeWeight(2); drawingContext.setLineDash([4,4]); }
+                          else { fill(254, 215, 170); stroke(234, 88, 12); strokeWeight(3); drawingContext.setLineDash([]); }
+                      }
+                      else if (isParent) { fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2); }
+                      else if (isNewlyBuiltBound) { fill(219, 234, 254); stroke(59, 130, 246); strokeWeight(2); }
+                      else { fill(250); stroke(200); strokeWeight(1); }
+                      
+                      drawingContext.setLineDash([]);
+                      
+                      // Draw hexagonal shape for a premium feel
+                      drawHexagon(nx, ny, rRadius);
+                      
+                      if (val > 0 || s.phase === "WRITE") {
+                          if (isParent) fill(21, 128, 61);
+                          else if (isNewlyBuiltBound) fill(29, 78, 216);
+                          else if (isCalculating && s.phase === "WRITE") fill(194, 65, 12);
+                          else fill(50);
+                          
+                          noStroke(); textAlign(CENTER, CENTER); textSize(isLarge ? 12 : 16); textStyle(BOLD);
+                          text(val === 0 ? "?" : val, nx, ny);
+                          textStyle(NORMAL);
+                      }
+                  }
+              }
+          }
+          
+          // Result Box
+          if (s.phase === "DONE") {
+              let statusY = startY + NUM_ROWS * rSpacingY + 30;
+              fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2);
+              rect(w/2 - 150, statusY, 300, 50, 8);
+              fill(21, 128, 61); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
+              text(`🎉 ${NUM_ROWS} 层杨辉三角构建成功！`, w/2, statusY + 25);
+              textStyle(NORMAL);
+          }
+      }
+      
+      function drawHexagon(x, y, r) {
+          beginShape();
+          for (let a = -PI/6; a < TWO_PI; a += TWO_PI/6) {
+              vertex(x + cos(a) * r, y + sin(a) * r);
+          }
+          endShape(CLOSE);
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawVisuals();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          let waitLimit = 1.0;
+          if (state && state.phase === "ROW_BOUNDS") waitLimit = 1.0;
+          if (state && state.phase === "CALC") waitLimit = 1.2;
+          if (state && state.phase === "WRITE") waitLimit = 1.0;
+          
+          if (p5Timer > waitLimit) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+
+        if (s.phase === "START") {
+            logMsg(s.msg, false);
+        } else if (s.phase === "ROW_BOUNDS") {
+            logMsg(`\n------------------\n🧱 ${s.msg}`, false);
+        } else if (s.phase === "CALC") {
+            logMsg(`🧮 ${s.msg}`, false);
+        } else if (s.phase === "WRITE") {
+            logMsg(`✨ ${s.msg}`, true);
+        } else if (s.phase === "DONE") {
+            logMsg(`\n🏆 ${s.msg}`, true);
+            let headerEl = document.getElementById("phase-header");
+            if (headerEl) headerEl.innerHTML = "🏁 金字塔落成";
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>
