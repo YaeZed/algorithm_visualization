@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>N 皇后 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>N 皇后</h1>
+        <div class="subtitle">回溯算法 - 棋盘上的极致剪枝</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <select id="scenario-select" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--anthropic-light-gray);" onchange="initializeSystem()">
+              <option value="4">4 皇后 (2 个解)</option>
+              <option value="5">5 皇后 (10 个解)</option>
+          </select>
+          <button class="button" onclick="initializeSystem()">重新演示回溯过程</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="10.0" step="0.1" value="1.5" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.5</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N!)</span>
+            <span class="memo-badge space">□ O(N)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **行优先策略**：不需要扫描整个棋盘，只要保证每一行放一个皇后，然后直接递归到下一行即可。</div>
+            <div class="memo-tip g">🎯 **快速判定冲突 (O(1))**：使用三个集合 `cols`、`diag1`、`diag2` 记录攻击范围。</div>
+            <div class="memo-tip w">📐 **对角线魔法**：主对角线（右上到左下）上所有格子的 `row - col` 是定值；副对角线（左上到右下）上所有格子的 `row + col` 是定值！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">N 皇后回溯：等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def solveNQueens(self, n: int) -> List[List[str]]:\n        res = []\n        board = [['.'] * n for _ in range(n)]\n        \n        # 利用三个集合分别记录已经有皇后的：列、主对角线、副对角线\n        cols = set()\n        diag1 = set() # 主对角线：row - col 为定值\n        diag2 = set() # 副对角线：row + col 为定值\n        \n        def backtrack(row):\n            # 找满 N 个皇后，记录当前合法解\n            if row == n:\n                res.append(["".join(r) for r in board])\n                return\n                \n            for col in range(n):\n                # 如果当前位置会被攻击，直接跳过（剪枝）\n                if col in cols or (row - col) in diag1 or (row + col) in diag2:\n                    continue\n                    \n                # 做选择：放置皇后，更新受击范围\n                board[row][col] = 'Q'\n                cols.add(col)\n                diag1.add(row - col)\n                diag2.add(row + col)\n                \n                # 进入下一行递归\n                backtrack(row + 1)\n                \n                # 撤销选择：拿走皇后，恢复受击范围（回溯）\n                cols.remove(col)\n                diag1.remove(row - col)\n                diag2.remove(row + col)\n                board[row][col] = '.'\n                \n        backtrack(0)\n        return res`,
+        ts: `// TypeScript\nfunction solveNQueens(n: number): string[][] {\n    const res: string[][] = [];\n    const board: string[][] = Array(n).fill(0).map(() => Array(n).fill('.'));\n    \n    const cols = new Set<number>();\n    const diag1 = new Set<number>(); // 主对角线 r - c\n    const diag2 = new Set<number>(); // 副对角线 r + c\n    \n    function backtrack(row: number) {\n        if (row === n) {\n            res.push(board.map(r => r.join('')));\n            return;\n        }\n        \n        for (let col = 0; col < n; col++) {\n            // O(1) 判定是否在攻击范围内\n            if (cols.has(col) || diag1.has(row - col) || diag2.has(row + col)) {\n                continue;\n            }\n            \n            // 放置皇后\n            board[row][col] = 'Q';\n            cols.add(col);\n            diag1.add(row - col);\n            diag2.add(row + col);\n            \n            // 递归下一行\n            backtrack(row + 1);\n            \n            // 回溯，撤销选择\n            board[row][col] = '.';\n            cols.delete(col);\n            diag1.delete(row - col);\n            diag2.delete(row + col);\n        }\n    }\n    \n    backtrack(0);\n    return res;\n}`,
+        java: `// Java\nclass Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> res = new ArrayList<>();\n        char[][] board = new char[n][n];\n        for (int i = 0; i < n; i++) {\n            Arrays.fill(board[i], '.');\n        }\n        \n        Set<Integer> cols = new HashSet<>();\n        Set<Integer> diag1 = new HashSet<>();\n        Set<Integer> diag2 = new HashSet<>();\n        \n        backtrack(0, n, board, cols, diag1, diag2, res);\n        return res;\n    }\n    \n    private void backtrack(int row, int n, char[][] board, \n                           Set<Integer> cols, Set<Integer> diag1, Set<Integer> diag2,\n                           List<List<String>> res) {\n        if (row == n) {\n            List<String> validBoard = new ArrayList<>();\n            for (char[] r : board) validBoard.add(new String(r));\n            res.add(validBoard);\n            return;\n        }\n        \n        for (int col = 0; col < n; col++) {\n            if (cols.contains(col) || diag1.contains(row - col) || diag2.contains(row + col)) {\n                continue;\n            }\n            \n            board[row][col] = 'Q';\n            cols.add(col);\n            diag1.add(row - col);\n            diag2.add(row + col);\n            \n            backtrack(row + 1, n, board, cols, diag1, diag2, res);\n            \n            board[row][col] = '.';\n            cols.remove(col);\n            diag1.remove(row - col);\n            diag2.remove(row + col);\n        }\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    vector<vector<string>> solveNQueens(int n) {\n        vector<vector<string>> res;\n        vector<string> board(n, string(n, '.'));\n        \n        unordered_set<int> cols;\n        unordered_set<int> diag1;\n        unordered_set<int> diag2;\n        \n        backtrack(0, n, board, cols, diag1, diag2, res);\n        return res;\n    }\n    \n    void backtrack(int row, int n, vector<string>& board, \n                   unordered_set<int>& cols, unordered_set<int>& diag1, unordered_set<int>& diag2,\n                   vector<vector<string>>& res) {\n        if (row == n) {\n            res.push_back(board);\n            return;\n        }\n        \n        for (int col = 0; col < n; ++col) {\n            if (cols.count(col) || diag1.count(row - col) || diag2.count(row + col)) {\n                continue;\n            }\n            \n            board[row][col] = 'Q';\n            cols.insert(col);\n            diag1.insert(row - col);\n            diag2.insert(row + col);\n            \n            backtrack(row + 1, n, board, cols, diag1, diag2, res);\n            \n            board[row][col] = '.';\n            cols.erase(col);\n            diag1.erase(row - col);\n            diag2.erase(row + col);\n        }\n    }\n};`,
+        c: `// C\nvoid backtrack(int row, int n, char** board, \n               int* cols, int* diag1, int* diag2,\n               char*** res, int* returnSize) {\n    if (row == n) {\n        res[*returnSize] = (char**)malloc(n * sizeof(char*));\n        for (int i = 0; i < n; ++i) {\n            res[*returnSize][i] = (char*)malloc((n + 1) * sizeof(char));\n            strcpy(res[*returnSize][i], board[i]);\n        }\n        (*returnSize)++;\n        return;\n    }\n    \n    for (int col = 0; col < n; ++col) {\n        // 在C中可以用数组替代哈希集合，2n的范围即可\n        if (cols[col] || diag1[row - col + n] || diag2[row + col]) {\n            continue;\n        }\n        \n        board[row][col] = 'Q';\n        cols[col] = 1;\n        diag1[row - col + n] = 1;\n        diag2[row + col] = 1;\n        \n        backtrack(row + 1, n, board, cols, diag1, diag2, res, returnSize);\n        \n        board[row][col] = '.';\n        cols[col] = 0;\n        diag1[row - col + n] = 0;\n        diag2[row + col] = 0;\n    }\n}\n\nchar*** solveNQueens(int n, int* returnSize, int** returnColumnSizes) {\n    int maxSolutions = 500;\n    char*** res = (char***)malloc(maxSolutions * sizeof(char**));\n    *returnSize = 0;\n    \n    char** board = (char**)malloc(n * sizeof(char*));\n    for (int i = 0; i < n; ++i) {\n        board[i] = (char*)malloc((n + 1) * sizeof(char));\n        memset(board[i], '.', n);\n        board[i][n] = '\\0';\n    }\n    \n    int* cols = (int*)calloc(n, sizeof(int));\n    int* diag1 = (int*)calloc(2 * n, sizeof(int));\n    int* diag2 = (int*)calloc(2 * n, sizeof(int));\n    \n    backtrack(0, n, board, cols, diag1, diag2, res, returnSize);\n    \n    *returnColumnSizes = (int*)malloc((*returnSize) * sizeof(int));\n    for (int i = 0; i < *returnSize; ++i) {\n        (*returnColumnSizes)[i] = n;\n    }\n    \n    return res;\n}`
+      };
+
+      let params = { speed: 1.5 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let N = 4;
+      let boardData = [];
+      let colsSet = new Set();
+      let diag1Set = new Set();
+      let diag2Set = new Set();
+
+      let gen = null;
+      let currentAnimState = null;
+      let collectedRes = 0;
+      
+      let tryState = null; // {r, c, phase, conflict: {c, d1, d2}}
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* solveGen(n) {
+          boardData = Array(n).fill(0).map(() => Array(n).fill('.'));
+          colsSet.clear(); diag1Set.clear(); diag2Set.clear();
+          
+          function* backtrack(row) {
+              if (row === n) {
+                  yield { phase: "RECORD", board: JSON.parse(JSON.stringify(boardData)) };
+                  return;
+              }
+              
+              for (let col = 0; col < n; col++) {
+                  yield { phase: "TRY", r: row, c: col };
+                  
+                  let conflict_c = colsSet.has(col);
+                  let conflict_d1 = diag1Set.has(row - col);
+                  let conflict_d2 = diag2Set.has(row + col);
+                  
+                  if (conflict_c || conflict_d1 || conflict_d2) {
+                      yield { phase: "CONFLICT", r: row, c: col, conflict: {c: conflict_c, d1: conflict_d1, d2: conflict_d2} };
+                      continue;
+                  }
+                  
+                  boardData[row][col] = 'Q';
+                  colsSet.add(col);
+                  diag1Set.add(row - col);
+                  diag2Set.add(row + col);
+                  
+                  yield { phase: "PLACE", r: row, c: col };
+                  
+                  yield* backtrack(row + 1);
+                  
+                  colsSet.delete(col);
+                  diag1Set.delete(row - col);
+                  diag2Set.delete(row + col);
+                  boardData[row][col] = '.';
+                  
+                  yield { phase: "BACKTRACK", r: row, c: col };
+              }
+          }
+          
+          yield* backtrack(0);
+      }
+
+      function initializeSystem() {
+        N = parseInt(document.getElementById("scenario-select").value);
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        collectedRes = 0;
+        tryState = null;
+
+        gen = solveGen(N);
+        currentAnimState = gen.next();
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = `正在计算 ${N} 皇后的所有解...`;
+        logMsg(`✅ 启动 N 皇后回溯！棋盘大小: ${N}x${N}`, true);
+      }
+
+      function drawGrid() {
+          let cellSize = N === 4 ? 80 : 65;
+          let gridW = N * cellSize;
+          let startX = width/2 - gridW/2;
+          let startY = 80;
+
+          // Draw conflict highlights
+          if (tryState && tryState.phase === "CONFLICT") {
+              let {r, c, conflict} = tryState;
+              fill(254, 226, 226, 150); noStroke();
+              
+              for (let i=0; i<N; i++) {
+                  for (let j=0; j<N; j++) {
+                      let isConf = false;
+                      if (conflict.c && j === c) isConf = true;
+                      if (conflict.d1 && i - j === r - c) isConf = true;
+                      if (conflict.d2 && i + j === r + c) isConf = true;
+                      
+                      if (isConf && i <= r) { // Only highlight up to current row visually
+                          rect(startX + j * cellSize, startY + i * cellSize, cellSize, cellSize);
+                      }
+                  }
+              }
+          }
+          
+          // Draw success background
+          if (tryState && tryState.phase === "RECORD") {
+              fill(220, 252, 231, 150); noStroke();
+              rect(startX, startY, gridW, gridW, 8);
+          }
+
+          // Draw cells
+          for (let r=0; r<N; r++) {
+              for (let c=0; c<N; c++) {
+                  let cx = startX + c * cellSize;
+                  let cy = startY + r * cellSize;
+                  
+                  if ((r + c) % 2 === 0) fill(250);
+                  else fill(220);
+                  
+                  // Flash current try
+                  if (tryState && tryState.r === r && tryState.c === c && tryState.phase !== "RECORD") {
+                      if (tryState.phase === "CONFLICT") {
+                          stroke(239, 68, 68); strokeWeight(3);
+                      } else {
+                          stroke(59, 130, 246); strokeWeight(3);
+                      }
+                  } else {
+                      noStroke();
+                  }
+                  
+                  rect(cx, cy, cellSize, cellSize);
+                  
+                  // Draw Queen
+                  let isSolid = boardData[r][c] === 'Q';
+                  let isGhost = (tryState && tryState.r === r && tryState.c === c && (tryState.phase === "TRY" || tryState.phase === "CONFLICT"));
+                  
+                  if (isSolid || isGhost) {
+                      textAlign(CENTER, CENTER);
+                      textSize(cellSize * 0.6);
+                      if (isSolid) {
+                          fill(217, 119, 87);
+                      } else {
+                          if (tryState.phase === "CONFLICT") fill(239, 68, 68, 150);
+                          else fill(59, 130, 246, 150);
+                      }
+                      noStroke();
+                      text("♛", cx + cellSize/2, cy + cellSize/2 + 4); // Unicode queen
+                  }
+              }
+          }
+          
+          // Draw outer border
+          noFill(); stroke(150); strokeWeight(4);
+          rect(startX, startY, gridW, gridW, 4);
+      }
+
+      function draw() {
+        background(255);
+        drawGrid();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // HUD
+        fill(250, 240, 230); stroke(220, 180, 150); strokeWeight(2);
+        rect(10, 10, 180, 45, 8);
+        fill(50); noStroke(); textAlign(LEFT, CENTER); textSize(13);
+        text(`已找到解法: ${collectedRes}`, 20, 32);
+      }
+
+      function performStep() {
+        if (currentAnimState && currentAnimState.done) {
+            if (!isDone) {
+                isDone = true;
+                tryState = null;
+            }
+            return;
+        }
+
+        let s = currentAnimState.value;
+        tryState = s;
+        let indent = " ".repeat((s.r || 0) * 2);
+
+        if (s.phase === "TRY") {
+            logMsg(`<span style="color:#888">${indent}</span> ➡️ 第 ${s.r} 行: 尝试在第 ${s.c} 列放置皇后...`, false);
+        } else if (s.phase === "CONFLICT") {
+            let reasons = [];
+            if (s.conflict.c) reasons.push("同列");
+            if (s.conflict.d1 || s.conflict.d2) reasons.push("对角线");
+            logMsg(`<span style="color:#888">${indent}</span> ❌ <span style="color:#ef4444">被攻击！(${reasons.join(',')})，剪枝。</span>`, false);
+        } else if (s.phase === "PLACE") {
+            logMsg(`<span style="color:#888">${indent}</span> ✅ <span style="color:var(--anthropic-blue);font-weight:bold">放置成功！记录受击范围，进入下一行。</span>`, true);
+        } else if (s.phase === "BACKTRACK") {
+            logMsg(`<span style="color:#888">${indent}</span> 🔙 回溯：拿走第 ${s.r} 行第 ${s.c} 列的皇后，解除受击范围。`, false);
+        } else if (s.phase === "RECORD") {
+            collectedRes++;
+            logMsg(`🌟 <span style="color:var(--anthropic-green);font-weight:bold;font-size:14px">成功填满 ${N} 行！记录第 ${collectedRes} 个合法解！</span>`, true);
+        }
+
+        currentAnimState = gen.next();
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

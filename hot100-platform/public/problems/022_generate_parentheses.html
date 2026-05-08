@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>括号生成 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>括号生成</h1>
+        <div class="subtitle">回溯算法 - 维护左/右括号的约束限制</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <select id="scenario-select" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--anthropic-light-gray);" onchange="initializeSystem()">
+              <option value="2">n = 2 (2对括号，共4个字符)</option>
+              <option value="3" selected>n = 3 (3对括号，共6个字符)</option>
+          </select>
+          <button class="button" onclick="initializeSystem()">重新生成回溯树</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="5.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(4^n/sqrt(n))</span>
+            <span class="memo-badge space">□ O(n)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **本质是二叉树搜索**：每个位置只有两种选择：加 `(` 还是加 `)`。</div>
+            <div class="memo-tip g">✅ **添加 '(' 的条件**：只要左括号数量还没用完（`open < n`），就可以随便加！</div>
+            <div class="memo-tip w">⚠️ **添加 ')' 的条件**：右括号的数量必须严格**小于**左括号（`close < open`）。如果右括号比左括号还多，括号就闭合不了了（如 `())` ）。</div>
+            <div class="memo-tip">💡 **隐式回溯**：我们在递归传递字符串参数时，比如 `backtrack(str + "(")`，在字符串拼接时产生了新对象，返回上一层时原来的 `str` 不变，因此不需要像数组那样显式地执行 `pop()`。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">递归状态树：等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def generateParenthesis(self, n: int) -> List[str]:\n        res = []\n        \n        # 状态参数：当前构造的字符串、左括号已用数量、右括号已用数量\n        def backtrack(current_str: str, open_count: int, close_count: int):\n            # 结束条件：所有括号都用完\n            if open_count == n and close_count == n:\n                res.append(current_str)\n                return\n            \n            # 分支 1：如果还能加左括号，就加左括号\n            if open_count < n:\n                backtrack(current_str + '(', open_count + 1, close_count)\n                \n            # 分支 2：右括号数量必须严格小于左括号数量，否则括号不合法\n            if close_count < open_count:\n                backtrack(current_str + ')', open_count, close_count + 1)\n                \n        backtrack("", 0, 0)\n        return res`,
+        ts: `// TypeScript\nfunction generateParenthesis(n: number): string[] {\n    const res: string[] = [];\n    \n    // 状态：当前字符串，左括号使用数，右括号使用数\n    function backtrack(currentStr: string, openCount: number, closeCount: number) {\n        // 左右括号均达到 n，则构成合法序列\n        if (openCount === n && closeCount === n) {\n            res.push(currentStr);\n            return;\n        }\n        \n        // 只要左括号还没用完，就可以随意加左括号\n        if (openCount < n) {\n            // 字符串凭借会产生新对象，自带了状态隔离，因此不需要手动弹栈回溯\n            backtrack(currentStr + '(', openCount + 1, closeCount);\n        }\n        \n        // 核心约束：右括号的数量绝不能超过左括号\n        if (closeCount < openCount) {\n            backtrack(currentStr + ')', openCount, closeCount + 1);\n        }\n    }\n    \n    backtrack("", 0, 0);\n    return res;\n}`,
+        java: `// Java\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<String> res = new ArrayList<>();\n        backtrack(res, new StringBuilder(), 0, 0, n);\n        return res;\n    }\n    \n    private void backtrack(List<String> res, StringBuilder currentStr, \n                           int openCount, int closeCount, int max) {\n        if (currentStr.length() == max * 2) {\n            res.add(currentStr.toString());\n            return;\n        }\n        \n        // 这里使用 StringBuilder，所以需要显式地添加和回溯（删除）\n        if (openCount < max) {\n            currentStr.append('(');\n            backtrack(res, currentStr, openCount + 1, closeCount, max);\n            currentStr.deleteCharAt(currentStr.length() - 1); // 撤销选择\n        }\n        \n        if (closeCount < openCount) {\n            currentStr.append(')');\n            backtrack(res, currentStr, openCount, closeCount + 1, max);\n            currentStr.deleteCharAt(currentStr.length() - 1); // 撤销选择\n        }\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    vector<string> generateParenthesis(int n) {\n        vector<string> res;\n        string currentStr = "";\n        backtrack(res, currentStr, 0, 0, n);\n        return res;\n    }\n    \n    void backtrack(vector<string>& res, string& currentStr, int openCount, int closeCount, int n) {\n        if (openCount == n && closeCount == n) {\n            res.push_back(currentStr);\n            return;\n        }\n        \n        // 引用传递需要显式 pop_back 回溯\n        if (openCount < n) {\n            currentStr.push_back('(');\n            backtrack(res, currentStr, openCount + 1, closeCount, n);\n            currentStr.pop_back();\n        }\n        \n        if (closeCount < openCount) {\n            currentStr.push_back(')');\n            backtrack(res, currentStr, openCount, closeCount + 1, n);\n            currentStr.pop_back();\n        }\n    }\n};`,
+        c: `// C\nvoid backtrack(char* currentStr, int index, int openCount, int closeCount, int n, \n               char** res, int* returnSize) {\n    if (openCount == n && closeCount == n) {\n        currentStr[index] = '\\0';\n        res[*returnSize] = (char*)malloc((2 * n + 1) * sizeof(char));\n        strcpy(res[*returnSize], currentStr);\n        (*returnSize)++;\n        return;\n    }\n    \n    // 覆盖写入即可隐式回溯\n    if (openCount < n) {\n        currentStr[index] = '(';\n        backtrack(currentStr, index + 1, openCount + 1, closeCount, n, res, returnSize);\n    }\n    \n    if (closeCount < openCount) {\n        currentStr[index] = ')';\n        backtrack(currentStr, index + 1, openCount, closeCount + 1, n, res, returnSize);\n    }\n}\n\nchar** generateParenthesis(int n, int* returnSize) {\n    // 卡特兰数估算最大容量，防止溢出。或者写死较大的数如 5000\n    int maxPossible = 5000;\n    char** res = (char**)malloc(maxPossible * sizeof(char*));\n    *returnSize = 0;\n    \n    char* currentStr = (char*)malloc((2 * n + 1) * sizeof(char));\n    backtrack(currentStr, 0, 0, 0, n, res, returnSize);\n    \n    free(currentStr);\n    return res;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let N = 3;
+      let treeRoot = null;
+      let activeNodes = new Set();
+      let gen = null;
+      let currentAnimState = null;
+      let collectedRes = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function buildStaticTree(n) {
+          let idCounter = 0;
+          let root = { id: idCounter++, str: "", open: 0, close: 0, children: [], depth: 0, x: 0, y: 0, parent: null };
+          let allNodes = [];
+          
+          function dfs(node) {
+              allNodes.push(node);
+              if (node.open === n && node.close === n) return;
+              
+              if (node.open < n) {
+                  let child1 = {
+                      id: idCounter++,
+                      str: node.str + "(",
+                      open: node.open + 1,
+                      close: node.close,
+                      children: [],
+                      depth: node.depth + 1,
+                      parent: node,
+                      edgeLabel: "("
+                  };
+                  node.children.push(child1);
+                  dfs(child1);
+              }
+              
+              if (node.close < node.open) {
+                  let child2 = {
+                      id: idCounter++,
+                      str: node.str + ")",
+                      open: node.open,
+                      close: node.close + 1,
+                      children: [],
+                      depth: node.depth + 1,
+                      parent: node,
+                      edgeLabel: ")"
+                  };
+                  node.children.push(child2);
+                  dfs(child2);
+              }
+          }
+          dfs(root);
+          return { root, allNodes };
+      }
+
+      function updateLayout(root, allNodes, viewWidth) {
+          let leaves = allNodes.filter(n => n.children.length === 0);
+          let leafW = viewWidth / (leaves.length || 1);
+          for (let i = 0; i < leaves.length; i++) {
+              leaves[i].x = leafW * (i + 0.5);
+          }
+          
+          function setX(node) {
+              if (node.children.length === 0) {
+                  return node.x;
+              }
+              let sumX = 0;
+              for (let c of node.children) {
+                  sumX += setX(c);
+              }
+              node.x = sumX / node.children.length;
+              return node.x;
+          }
+          setX(root);
+      }
+
+      function* backtrackGen(n, node) {
+          activeNodes.add(node.id);
+          yield { phase: "ENTER", node: node };
+          
+          if (node.open === n && node.close === n) {
+              yield { phase: "RECORD", node: node };
+          } else {
+              // try (
+              let leftChild = node.children.find(c => c.edgeLabel === "(");
+              if (leftChild) {
+                  yield { phase: "TRY_L_OK", node: node };
+                  yield* backtrackGen(n, leftChild);
+              }
+              
+              // try )
+              let rightChild = node.children.find(c => c.edgeLabel === ")");
+              if (rightChild) {
+                  yield { phase: "TRY_R_OK", node: node };
+                  yield* backtrackGen(n, rightChild);
+              }
+          }
+          
+          yield { phase: "BACKTRACK", node: node };
+          activeNodes.delete(node.id);
+      }
+
+      function initializeSystem() {
+        N = parseInt(document.getElementById("scenario-select").value);
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        collectedRes = 0;
+        activeNodes.clear();
+
+        let treeData = buildStaticTree(N);
+        treeRoot = treeData.root;
+        updateLayout(treeRoot, treeData.allNodes, width - 20);
+
+        gen = backtrackGen(N, treeRoot);
+        currentAnimState = gen.next();
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = `正在生成 n=${N} 的所有括号组合...`;
+        logMsg(`✅ 启动括号生成算法！括号对数 n=${N}`, true);
+      }
+
+      function drawSubTree(node) {
+          for (let child of node.children) {
+              let isActiveEdge = activeNodes.has(node.id) && activeNodes.has(child.id);
+              
+              if (isActiveEdge) {
+                  stroke(217, 119, 87); strokeWeight(3);
+              } else {
+                  stroke(230); strokeWeight(1);
+              }
+              line(node.x, node.y, child.x, child.y);
+              
+              if (isActiveEdge) {
+                  fill(217, 119, 87); noStroke();
+                  textSize(16); textStyle(BOLD);
+                  text(child.edgeLabel, (node.x + child.x)/2, (node.y + child.y)/2);
+                  textStyle(NORMAL);
+              }
+              
+              drawSubTree(child);
+          }
+          
+          let isActive = activeNodes.has(node.id);
+          
+          if (isActive) {
+              fill(254, 240, 138); stroke(202, 138, 4); strokeWeight(2);
+          } else {
+              fill(250); stroke(220); strokeWeight(1);
+          }
+          
+          let w = max(35, node.str.length * 12 + 10);
+          rectMode(CENTER);
+          rect(node.x, node.y, w, 24, 4);
+          rectMode(CORNER);
+          
+          if (isActive) fill(50);
+          else fill(180);
+          noStroke(); textAlign(CENTER, CENTER);
+          textSize(12);
+          
+          let dispStr = node.str === "" ? "''" : node.str;
+          text(dispStr, node.x, node.y);
+      }
+
+      function draw() {
+        background(255);
+
+        if (treeRoot && width > 0) {
+            let treeData = buildStaticTree(N);
+            updateLayout(treeData.root, treeData.allNodes, width - 40);
+            
+            let maxDepth = N * 2;
+            let levelHeight = N === 3 ? 75 : 90; // Adjust spacing based on N
+            let treeHeight = 60 + maxDepth * levelHeight;
+            let offsetY = max(0, (height - treeHeight) / 2);
+            
+            let q1 = [treeRoot];
+            let q2 = [treeData.root];
+            while(q1.length) {
+                let n1 = q1.shift(); let n2 = q2.shift();
+                n1.x = n2.x + 20; 
+                n1.y = 60 + n1.depth * levelHeight + offsetY; 
+                for(let i=0; i<n1.children.length; i++) {
+                    q1.push(n1.children[i]); q2.push(n2.children[i]);
+                }
+            }
+        }
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // HUD
+        fill(250, 240, 230); stroke(220, 180, 150); strokeWeight(2);
+        rect(10, 10, 180, 45, 8);
+        fill(50); noStroke(); textAlign(LEFT, CENTER); textSize(13);
+        text(`已生成括号: ${collectedRes}`, 20, 32);
+
+        if (treeRoot) drawSubTree(treeRoot);
+      }
+
+      function performStep() {
+        if (currentAnimState && currentAnimState.done) {
+            if (!isDone) {
+                isDone = true;
+                logMsg(`🏁 所有回溯分支探索完毕！共生成 ${collectedRes} 种合法括号组合。`, true);
+            }
+            return;
+        }
+
+        let s = currentAnimState.value;
+        let indent = " ".repeat(s.node.depth * 2);
+
+        if (s.phase === "ENTER") {
+            logMsg(`<span style="color:#888">${indent}</span> ⬇️ 当前字符串: "${s.node.str}" (左=${s.node.open}, 右=${s.node.close})`, false);
+        } else if (s.phase === "RECORD") {
+            collectedRes++;
+            logMsg(`<span style="color:#888">${indent}</span> 🌟 <span style="color:var(--anthropic-green);font-weight:bold">到达叶子节点！收集到合法字符串: "${s.node.str}"</span>`, true);
+        } else if (s.phase === "TRY_L_OK") {
+            logMsg(`<span style="color:#888">${indent}</span> ✅ 允许添加 '(', 因为 ${s.node.open} &lt; ${N}`, false);
+        } else if (s.phase === "TRY_R_OK") {
+            logMsg(`<span style="color:#888">${indent}</span> ✅ 允许添加 ')', 因为 ${s.node.close} &lt; ${s.node.open}`, false);
+        } else if (s.phase === "BACKTRACK") {
+            if (s.node.parent) {
+                logMsg(`<span style="color:#888">${indent}</span> 🔙 回溯返回上一层`, false);
+            }
+        }
+
+        currentAnimState = gen.next();
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

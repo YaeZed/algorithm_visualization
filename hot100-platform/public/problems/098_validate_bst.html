@@ -1,0 +1,725 @@
+<!-- 
+========================================================================
+ALGORITHM VISUALIZER: Validate Binary Search Tree (LeetCode 98)
+========================================================================
+-->
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>验证二叉搜索树可视化 - LeetCode 98</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --anthropic-red: #dc3545;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; margin-bottom: 8px; }
+      .button:hover { background: #c86641; }
+      .button.outline { background: transparent; border: 1px solid var(--anthropic-orange); color: var(--anthropic-orange); }
+      .button.outline:hover { background: var(--anthropic-orange); color: white; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between;}
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box */
+      .code-box { flex: 1.2; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.8; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.highlight-blue { border-left-color: var(--anthropic-blue); background: #f0f7ff; font-weight: 500; }
+      .log-item.highlight-green { border-left-color: var(--anthropic-green); background: #f5fbf4; font-weight: 500; }
+      .log-item.highlight-red { border-left-color: var(--anthropic-red); background: #fdf3f4; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; font-family: "JetBrains Mono", monospace; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* Memo Card */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #f6fbf4; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>验证二叉搜索树</h1>
+        <div class="subtitle">前序 DFS 与物理极值收缩机制</div>
+
+        <div class="control-section">
+          <h3>场景配置 (生成不同结构的树)</h3>
+          <button class="button" onclick="loadMode('valid')">生成合法 BST (Valid)</button>
+          <button class="button outline" onclick="loadMode('trap')">生成局部陷阱非法树 (Trap)</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>验证速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px; margin-bottom: 0;">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新执行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n) 时间</span>
+            <span class="memo-badge space">□ O(h) 栈空间</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip w">⚠️ <b>局部陷阱：</b>千万不能只判断 `node.val > node.left.val` 且 `< node.right.val`！因为右子树中可能藏着一个比全局根节点还要小的越界值。</div>
+            <div class="memo-tip">💡 <b>上下界限收缩：</b>必须自顶向下，把每个节点作为一个“约束域”传递下去。</div>
+            <div class="memo-tip g">🔍 <b>物理边界推演：</b>当指针向左走时，当前节点的值就成了它的<b>最高上限 (max)</b>；当指针向右走时，当前节点的值成了它的<b>最低下限 (min)</b>。</div>
+            <div class="memo-tip w">⚠️ <b>数值越界：</b>测试用例中可能出现值为 `2^31 - 1` 的节点，如果你用普通的 Integer 最大值作为初始上限，会被误判。必须使用 Long 型或者特定语言的空指针类型。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+          <span>内存区间约束 (Min, Max) 动态收缩视图</span>
+          <span id="result-status" style="font-weight: 600;">状态: 等待运行...</span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (上下界极值限制 DFS)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行流日志 (Execution Trace)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTILINGUAL DFS RANGE VALIDATION CODE
+      // ==========================================================
+      const SNIPPETS = {
+        ts: `// TypeScript
+class TreeNode {
+    val: number
+    left: TreeNode | null
+    right: TreeNode | null
+    constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) {
+        this.val = (val===undefined ? 0 : val)
+        this.left = (left===undefined ? null : left)
+        this.right = (right===undefined ? null : right)
+    }
+}
+
+function isValidBST(root: TreeNode | null): boolean {
+    // 引入辅助函数，传入无穷小和无穷大作为物理边界的初始值
+    return validate(root, -Infinity, Infinity);
+}
+
+function validate(node: TreeNode | null, min: number, max: number): boolean {
+    // 1. 空节点本身是一个合法的二叉搜索树
+    if (node === null) return true;
+
+    // 2. [核心物理检查]：当前节点的值是否溢出了给定的区间边界？
+    if (node.val <= min || node.val >= max) {
+        return false;
+    }
+
+    // 3. 将边界约束向下传递：
+    // - 走向左子树：左侧不能大于当前节点的值，因此把当前的 node.val 作为全新的物理上限 (max)
+    // - 走向右子树：右侧不能小于当前节点的值，因此把当前的 node.val 作为全新的物理下限 (min)
+    return validate(node.left, min, node.val) && validate(node.right, node.val, max);
+}`,
+        python: `# Python
+import math
+from typing import Optional
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class Solution:
+    def isValidBST(self, root: Optional[TreeNode]) -> bool:
+        # 使用闭包函数向下传递内存极值范围
+        def validate(node: TreeNode, low=-math.inf, high=math.inf) -> bool:
+            # 物理尽头，合法终止
+            if not node:
+                return True
+                
+            # 核心拦截逻辑：突破了上下界约束，树结构被污染
+            if node.val <= low or node.val >= high:
+                return False
+                
+            # 左路探测：将当前的 node.val 作为全新的高压线 (high)
+            # 右路探测：将当前的 node.val 作为全新的下限底线 (low)
+            return (validate(node.left, low, node.val) and 
+                    validate(node.right, node.val, high))
+
+        return validate(root)`,
+        java: `// Java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        // 必须使用包装类 Long，因为测试用例可能包含 Integer.MAX_VALUE 节点
+        // 这会导致使用 Integer.MAX_VALUE 初始化上限的方案直接失效
+        return validate(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+
+    private boolean validate(TreeNode node, long min, long max) {
+        if (node == null) {
+            return true;
+        }
+
+        // 越界触发熔断
+        if (node.val <= min || node.val >= max) {
+            return false;
+        }
+
+        // 沿物理指针向两侧施加挤压约束
+        return validate(node.left, min, node.val) && validate(node.right, node.val, max);
+    }
+}`,
+        cpp: `// C++
+#include <limits>
+using namespace std;
+
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+class Solution {
+public:
+    bool isValidBST(TreeNode* root) {
+        // C++ 使用 long long 防止与最大/最小 int 用例冲突
+        return validate(root, numeric_limits<long long>::min(), numeric_limits<long long>::max());
+    }
+
+private:
+    bool validate(TreeNode* node, long long minLimit, long long maxLimit) {
+        if (node == nullptr) return true;
+
+        // 检查当前节点是否违背了祖先节点设立的边界约束
+        if (node->val <= minLimit || node->val >= maxLimit) {
+            return false;
+        }
+
+        // 更新边界，并将约束下放
+        return validate(node->left, minLimit, node->val) && 
+               validate(node->right, node->val, maxLimit);
+    }
+};`,
+        c: `// C
+#include <stdbool.h>
+#include <limits.h>
+
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+// 使用 long long 类型来突破 32位整型 节点的边界限制
+bool validate(struct TreeNode* node, long long minLimit, long long maxLimit) {
+    if (node == NULL) {
+        return true;
+    }
+
+    // 突破边界：左子树存在超大节点，或右子树存在超小节点
+    if (node->val <= minLimit || node->val >= maxLimit) {
+        return false;
+    }
+
+    // C语言通过 && 实现短路运算，左边发现非法就不再验证右边
+    return validate(node->left, minLimit, node->val) && 
+           validate(node->right, node->val, maxLimit);
+}
+
+bool isValidBST(struct TreeNode* root) {
+    return validate(root, LLONG_MIN, LLONG_MAX);
+}`
+      };
+
+      // ==========================================================
+      // SIMULATION LOGIC & VISUALIZATION (p5.js)
+      // ==========================================================
+      let params = { speed: 1.0, currentMode: 'trap' };
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // Tree Data
+      class VisualTreeNode {
+        constructor(val) {
+          this.id = Math.random().toString(36).substr(2, 9);
+          this.val = val;
+          this.left = null;
+          this.right = null;
+          // Coordinates
+          this.x = 0;
+          this.y = 0;
+          
+          // Execution States
+          this.state = 'DEFAULT'; // DEFAULT, ACTIVE, VALID, INVALID
+          this.minBound = -Infinity;
+          this.maxBound = Infinity;
+        }
+      }
+
+      let rootNode = null;
+      let callStack = []; 
+      let activeFrame = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 500);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("ts");
+        loadMode('trap');
+      }
+
+      function buildValidBST() {
+          let root = new VisualTreeNode(10);
+          root.left = new VisualTreeNode(5);
+          root.right = new VisualTreeNode(15);
+          
+          root.left.left = new VisualTreeNode(2);
+          root.left.right = new VisualTreeNode(7);
+          
+          root.right.left = new VisualTreeNode(12);
+          root.right.right = new VisualTreeNode(20);
+          return root;
+      }
+
+      function buildTrapBST() {
+          // A tree that looks correct locally, but fails globally
+          let root = new VisualTreeNode(10);
+          root.left = new VisualTreeNode(5);
+          root.right = new VisualTreeNode(15);
+          
+          root.left.left = new VisualTreeNode(2);
+          // TRAP: 11 is greater than 5 (locally okay), but 11 > 10 (globally invalid for a left child!)
+          root.left.right = new VisualTreeNode(11); 
+          
+          root.right.left = new VisualTreeNode(12);
+          root.right.right = new VisualTreeNode(20);
+          return root;
+      }
+
+      function loadMode(mode) {
+          params.currentMode = mode;
+          initializeSystem();
+      }
+
+      function layoutTree(node, minX, maxX, depth) {
+        if (!node) return;
+        node.x = (minX + maxX) / 2;
+        node.y = 60 + depth * 80;
+        layoutTree(node.left, minX, node.x, depth + 1);
+        layoutTree(node.right, node.x, maxX, depth + 1);
+      }
+
+      function initializeSystem() {
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        if (params.currentMode === 'valid') {
+            rootNode = buildValidBST();
+        } else {
+            rootNode = buildTrapBST();
+        }
+        
+        layoutTree(rootNode, 40, width - 40, 0);
+
+        callStack = [];
+        if (rootNode) {
+            callStack.push({ node: rootNode, min: -Infinity, max: Infinity, phase: 'CHECK' });
+        }
+        
+        let statusEl = document.getElementById("result-status");
+        statusEl.innerText = "状态: 运行中...";
+        statusEl.style.color = "var(--anthropic-blue)";
+
+        document.getElementById("log-container").innerHTML = "";
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        
+        let typeStr = params.currentMode === 'valid' ? '合法的 BST' : '带局部陷阱的非法 BST';
+        logMsg(`✅ 加载 [${typeStr}]，初始化全局内存边界 (-∞, +∞)，启动深度验证。`, true);
+      }
+
+      function draw() {
+        background(253, 252, 249);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        drawEdges(rootNode);
+        drawNodes(rootNode);
+        drawCallStackUI();
+      }
+
+      function formatBound(val) {
+          if (val === -Infinity) return "-∞";
+          if (val === Infinity) return "+∞";
+          return val;
+      }
+
+      function drawEdges(node) {
+        if (!node) return;
+        
+        if (node.left) {
+            stroke(node.left.state === 'INVALID' ? color(220, 53, 69) : color(200));
+            strokeWeight(node.left.state === 'INVALID' ? 3 : 2);
+            line(node.x, node.y, node.left.x, node.left.y);
+            drawEdges(node.left);
+        }
+        if (node.right) {
+            stroke(node.right.state === 'INVALID' ? color(220, 53, 69) : color(200));
+            strokeWeight(node.right.state === 'INVALID' ? 3 : 2);
+            line(node.x, node.y, node.right.x, node.right.y);
+            drawEdges(node.right);
+        }
+      }
+
+      function drawNodes(node) {
+        if (!node) return;
+        
+        push();
+        let fillCol = color(255);
+        let borderCol = color(180);
+        let textCol = color(60);
+        let weight = 2;
+
+        if (node.state === 'ACTIVE') {
+            fillCol = color(240, 247, 255);
+            borderCol = color(106, 155, 204);
+            weight = 4;
+        } else if (node.state === 'VALID') {
+            fillCol = color(245, 251, 244);
+            borderCol = color(120, 140, 93);
+        } else if (node.state === 'INVALID') {
+            fillCol = color(253, 243, 244);
+            borderCol = color(220, 53, 69);
+            weight = 4;
+        }
+
+        // Draw node bounds tag if it has been visited
+        if (node.state !== 'DEFAULT') {
+            fill(250);
+            stroke(borderCol);
+            strokeWeight(1);
+            rectMode(CENTER);
+            rect(node.x, node.y - 32, 60, 20, 4);
+
+            fill(node.state === 'INVALID' ? color(220, 53, 69) : 80);
+            noStroke();
+            textSize(10);
+            textAlign(CENTER, CENTER);
+            textFont("JetBrains Mono");
+            let str = `(${formatBound(node.minBound)}, ${formatBound(node.maxBound)})`;
+            text(str, node.x, node.y - 32);
+        }
+
+        // Draw circle
+        fill(fillCol);
+        stroke(borderCol);
+        strokeWeight(weight);
+        circle(node.x, node.y, 36);
+
+        noStroke();
+        fill(textCol);
+        textAlign(CENTER, CENTER);
+        textSize(14);
+        textFont("JetBrains Mono");
+        text(node.val, node.x, node.y);
+        pop();
+
+        drawNodes(node.left);
+        drawNodes(node.right);
+      }
+
+      function drawCallStackUI() {
+        push();
+        let sx = width - 90;
+        let sy = height - 50; 
+        let sw = 120;
+        let sh = 25;
+
+        fill(150);
+        noStroke();
+        textSize(12);
+        textAlign(CENTER, BOTTOM);
+        text("约束区间调用栈", sx, height - 10);
+
+        stroke(200);
+        strokeWeight(2);
+        line(sx - sw/2, sy + sh/2, sx - sw/2, 50);
+        line(sx + sw/2, sy + sh/2, sx + sw/2, 50);
+        line(sx - sw/2, sy + sh/2, sx + sw/2, sy + sh/2);
+
+        for (let i = 0; i < callStack.length; i++) {
+            let frame = callStack[i];
+            let yPos = sy - i * (sh + 5);
+            
+            fill(250);
+            stroke(106, 155, 204);
+            rectMode(CENTER);
+            rect(sx, yPos, sw - 8, sh, 4);
+            
+            fill(60);
+            noStroke();
+            textAlign(CENTER, CENTER);
+            textFont("JetBrains Mono");
+            
+            let phaseStr = frame.phase === 'CHECK' ? "Check" : (frame.phase === 'DISPATCH_L' ? "Push L" : "Push R");
+            text(`${frame.node.val} | ${phaseStr}`, sx, yPos);
+        }
+        pop();
+      }
+
+      function performStep() {
+          if (callStack.length === 0) {
+              isDone = true;
+              let statusEl = document.getElementById("result-status");
+              statusEl.innerText = "状态: TRUE (全局合法 BST)";
+              statusEl.style.color = "var(--anthropic-green)";
+              logMsg(`🏁 所有节点均通过全局内存边界校验。此树是一棵合法的二叉搜索树！`, true);
+              return;
+          }
+
+          let frame = callStack[callStack.length - 1];
+          let node = frame.node;
+
+          if (frame.phase === 'CHECK') {
+              node.state = 'ACTIVE';
+              node.minBound = frame.min;
+              node.maxBound = frame.max;
+
+              let strMin = formatBound(frame.min);
+              let strMax = formatBound(frame.max);
+
+              // Perform Validation
+              let isLeftValid = node.val > frame.min;
+              let isRightValid = node.val < frame.max;
+
+              if (!isLeftValid || !isRightValid) {
+                  node.state = 'INVALID';
+                  let statusEl = document.getElementById("result-status");
+                  statusEl.innerText = "状态: FALSE (越界熔断)";
+                  statusEl.style.color = "var(--anthropic-red)";
+                  
+                  let failReason = !isLeftValid ? `违背了下限 (${node.val} <= ${strMin})` : `违背了上限 (${node.val} >= ${strMax})`;
+                  logMsg(`❌ <b>算法熔断！</b> 节点 <b>${node.val}</b> 的局部子树看似合法，但它在物理区间 (${strMin}, ${strMax}) 校验中${failReason}。<br/>这证明它处于错误的全局分支上。`, false, true);
+                  
+                  isDone = true; // Halt simulation
+                  return;
+              }
+
+              logMsg(`🔍 校验节点 <b>${node.val}</b>：处于区间 (${strMin}, ${strMax}) 内，当前节点合法。`);
+              frame.phase = 'DISPATCH_L';
+
+          } else if (frame.phase === 'DISPATCH_L') {
+              frame.phase = 'DISPATCH_R';
+              if (node.left) {
+                  logMsg(`🔽 向左探底：由于必须小于父节点，将当前值 <b>${node.val}</b> 压缩为左子树的全新上限 (Max)。`);
+                  callStack.push({ node: node.left, min: frame.min, max: node.val, phase: 'CHECK' });
+              }
+          } else if (frame.phase === 'DISPATCH_R') {
+              frame.phase = 'RETURN';
+              if (node.right) {
+                  logMsg(`🔽 向右探底：由于必须大于父节点，将当前值 <b>${node.val}</b> 提升为右子树的全新下限 (Min)。`);
+                  callStack.push({ node: node.right, min: node.val, max: frame.max, phase: 'CHECK' });
+              }
+          } else if (frame.phase === 'RETURN') {
+              node.state = 'VALID';
+              callStack.pop();
+          }
+      }
+
+      function logMsg(msg, isHighlight = false, isWarn = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item";
+        if (isWarn) {
+             item.className += " highlight-red";
+        } else if (isHighlight) {
+             item.className += " highlight-green";
+        }
+
+        let time = new Date().toLocaleTimeString("zh-CN", {hour12: false, hour: "2-digit", minute:"2-digit", second:"2-digit"});
+        item.innerHTML = `<div class="time">[${time}]</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      let currentLang = "ts";
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c"
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id === 'speed') {
+            params.speed = parseFloat(val);
+            let display = document.getElementById(id + "-value");
+            if (display) display.textContent = val;
+        }
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

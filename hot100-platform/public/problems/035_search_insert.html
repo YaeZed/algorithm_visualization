@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>搜索插入位置 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        height: 100vh;
+        padding: 15px;
+        gap: 15px;
+      }
+
+      /* Left Sidebar - Controls */
+      .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto;
+        border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 {
+        font-family: "Lora", serif;
+        font-size: 18px;
+        margin-bottom: 4px;
+        color: var(--anthropic-orange);
+      }
+      .subtitle {
+        color: var(--anthropic-mid-gray);
+        font-size: 11px;
+        margin-bottom: 20px;
+      }
+      .control-section {
+        margin-bottom: 20px;
+      }
+      .control-section h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: var(--anthropic-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .control-section h3::before {
+        content: "";
+        width: 4px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 2px;
+      }
+      .control-group {
+        margin-bottom: 12px;
+      }
+      .control-group label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 4px;
+        color: #666;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      input[type="range"] {
+        flex: 1;
+        height: 4px;
+        background: var(--anthropic-light-gray);
+        border-radius: 2px;
+        appearance: none;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        min-width: 25px;
+        text-align: right;
+      }
+      .button {
+        background: var(--anthropic-orange);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        width: 100%;
+        cursor: pointer;
+        font-size: 13px;
+        transition: 0.2s;
+        font-weight: 500;
+      }
+      .button:hover {
+        background: #c86641;
+      }
+      .seed-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--anthropic-light-gray);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+
+      /* Middle - Canvas */
+      .canvas-area {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .canvas-header {
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--anthropic-light-gray);
+        font-size: 13px;
+        font-weight: 500;
+        color: #888;
+      }
+      #canvas-container {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Right Panel - Logic & Code */
+      .right-panel {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      /* Code Box (VS Code Dark+ Style) */
+      .code-box {
+        flex: 1.1;
+        background: #1e1e1e;
+        border-radius: 12px;
+        border: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .box-header {
+        padding: 8px 15px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .box-header.dark {
+        background: #282828;
+        border-bottom: 1px solid #1e1e1e;
+        padding: 10px 15px 0 15px;
+      }
+      .box-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+      }
+      .box-title.dark {
+        color: #ccc;
+        padding-bottom: 10px;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+      }
+      .tabs.dark {
+        gap: 1px;
+        align-items: flex-end;
+      }
+      .tabs.dark .tab {
+        padding: 8px 16px;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        background: #2d2d2d;
+        transition: 0.2s;
+        color: #888;
+        font-weight: 500;
+        font-size: 11px;
+        font-family: "Poppins", sans-serif;
+      }
+      .tabs.dark .tab:hover {
+        background: #3c3c3c;
+        color: #ddd;
+      }
+      .tabs.dark .tab.active {
+        background: #1e1e1e;
+        color: #4ec9b0;
+        border-top: 2px solid #007acc;
+      }
+
+      .code-content {
+        flex: 1;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        background: #1e1e1e;
+        border-radius: 0 0 12px 12px;
+      }
+      #code-viewer {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 15px;
+        line-height: 1.6;
+        display: block;
+        padding: 15px;
+        background: transparent;
+        color: #d4d4d4;
+      }
+
+      /* Highlight.js CSS Overrides for precise Dark+ accuracy */
+      .hljs {
+        background: transparent !important;
+        padding: 0 !important;
+        color: #d4d4d4 !important;
+      }
+      .hljs-keyword,
+      .hljs-literal,
+      .hljs-selector-tag {
+        color: #569cd6 !important;
+      }
+      .hljs-type,
+      .hljs-title.class_,
+      .hljs-class .hljs-title,
+      .hljs-built_in {
+        color: #4ec9b0 !important;
+      }
+      .hljs-variable,
+      .hljs-variable.language_,
+      .hljs-property,
+      .hljs-attr,
+      .hljs-params {
+        color: #9cdcfe !important;
+      }
+      .hljs-number {
+        color: #b5cea8 !important;
+      }
+      .hljs-punctuation,
+      .hljs-operator {
+        color: #d4d4d4 !important;
+      }
+      .hljs-string,
+      .hljs-char {
+        color: #ce9178 !important;
+      }
+      .hljs-comment {
+        color: #6a9955 !important;
+      }
+      .hljs-title.function_,
+      .hljs-function .hljs-title,
+      .hljs-title.function_.invoke__ {
+        color: #dcdcaa !important;
+      }
+
+      /* Logic Log Box */
+      .logic-box {
+        flex: 0.9;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--anthropic-light-gray);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+
+      .data-viz {
+        padding: 12px;
+        background: #fffcf9;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .data-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--anthropic-orange);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .data-array {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-height: 30px;
+      }
+      .data-node {
+        width: 22px;
+        height: 22px;
+        background: var(--anthropic-orange);
+        color: white;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: bold;
+      }
+
+      /* Auto-scrolling Log */
+      .log-area {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 11.5px;
+        background: #fff;
+      }
+      .log-item {
+        padding: 5px 10px;
+        border-radius: 4px;
+        background: #fcfcfc;
+        border-left: 2px solid #ddd;
+        border-bottom: 1px solid #f5f5f5;
+        line-height: 1.4;
+        color: #444;
+      }
+      .log-item.highlight {
+        border-left-color: var(--anthropic-orange);
+        background: #fff9f5;
+        font-weight: 500;
+      }
+      .log-item .time {
+        font-size: 9px;
+        color: #bbb;
+        margin-bottom: 2px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #e0e0e0;
+        border-radius: 3px;
+      }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- LEFT: Sidebar -->
+      <div class="sidebar">
+        <h1>搜索插入位置</h1>
+        <div class="subtitle">二分查找过程演示</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input
+            type="number"
+            id="seed-input"
+            class="seed-input"
+            value="42"
+            onchange="updateSeed()"
+          />
+          <button class="button" onclick="randomSeedAndUpdate()">
+            生成新随机场景
+          </button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="speed"
+                min="0.1"
+                max="2.5"
+                step="0.1"
+                value="1.0"
+                oninput="updateParam('speed', this.value)"
+              />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>数组长度 (n)</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="n"
+                min="5"
+                max="20"
+                step="1"
+                value="12"
+                oninput="updateParam('n', this.value)"
+              />
+              <span class="value-display" id="n-value">12</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button
+            id="pause-btn"
+            class="button"
+            style="background: var(--anthropic-dark)"
+            onclick="togglePause()"
+          >
+            ⏸ 暂停
+          </button>
+          <button
+            class="button"
+            style="background: var(--anthropic-blue)"
+            onclick="resetAnimation()"
+          >
+            🔄 重新运行
+          </button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(log n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心：利用数组的有序性，每次排除一半的搜索区间。</div>
+            <div class="memo-tip">💡 当找不到目标值时，最后的 left 指针位置就是该值按顺序插入的位置。</div>
+            <div class="memo-tip g">🔍 为什么返回 left？循环结束时 left > right，这意味着 left 指向了第一个大于 target 的元素，正合适作为插入位置。</div>
+            <div class="memo-tip w">⚠️ 计算中点用 `left + (right - left) / 2`，防止 `left + right` 溢出。</div>
+            <div class="memo-tip w">⚠️ 边界条件一定要写 `left <= right`，否则可能漏掉只有一个元素的区间。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE: Canvas -->
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <!-- RIGHT: Code & Logistics -->
+      <div class="right-panel">
+        <!-- Code Viewer -->
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre
+            class="code-content"
+          ><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <!-- Execution Logs -->
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\ndef searchInsert(nums: list[int], target: int) -> int:\n    # 左右双指针分别指向数组两端\n    left, right = 0, len(nums) - 1\n    # 当左指针超过右指针时循环结束\n    while left <= right:\n        # 计算中间位置，防止溢出\n        mid = left + (right - left) // 2\n        # 如果找到目标值，直接返回中间位置\n        if nums[mid] == target:\n            return mid\n        # 目标值在右半部分，移动左指针\n        elif nums[mid] < target:\n            left = mid + 1\n        # 目标值在左半部分，移动右指针\n        else:\n            right = mid - 1\n    # 如果没找到，left指向的位置就是按顺序插入的位置\n    return left`,
+        ts: `// TypeScript\nfunction searchInsert(nums: number[], target: number): number {\n    // 初始化二分查找的左右边界指针\n    let left = 0;\n    let right = nums.length - 1;\n    \n    // 只要左边界不大于右边界，就继续搜索\n    while (left <= right) {\n        // 无符号右移相当于除以2向下取整，处理大整数防溢出\n        const mid = (left + right) >>> 1;\n        \n        if (nums[mid] === target) {\n            return mid; // 命中目标，直接返回索引\n        } else if (nums[mid] < target) {\n            // 中点值小于目标值，说明目标值在右半部分\n            left = mid + 1;\n        } else {\n            // 中点值大于目标值，说明目标值在左半部分\n            right = mid - 1;\n        }\n    }\n    \n    // 循环结束时，left 恰好指向第一个大于 target 的元素位置（即插入位置）\n    return left;\n}`,
+        java: `// Java\nclass Solution {\n    public int searchInsert(int[] nums, int target) {\n        int left = 0, right = nums.length - 1;\n        \n        while (left <= right) {\n            // 使用减法和右移位运算来防加法溢出，且运算速度更快\n            int mid = left + ((right - left) >> 1);\n            \n            if (nums[mid] == target) {\n                return mid; // 找到了目标值，返回对应的位置\n            } else if (nums[mid] < target) {\n                // 目标值偏大，收缩左边界\n                left = mid + 1;\n            } else {\n                // 目标值偏小，收缩右边界\n                right = mid - 1;\n            }\n        }\n        \n        // 如果在数组中没有找到，跳出循环时 left 就是目标值应该插入的正确位置\n        return left;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    int searchInsert(vector<int>& nums, int target) {\n        int left = 0, right = nums.size() - 1;\n        \n        while (left <= right) {\n            // 标准的防溢出中点计算方式\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] == target) {\n                return mid; // 恰好匹配目标值\n            } else if (nums[mid] < target) {\n                left = mid + 1; // 目标值存在于右区间\n            } else {\n                right = mid - 1; // 目标值存在于左区间\n            }\n        }\n        \n        // 未找到时，left 是第一个严格大于 target 的位置\n        return left;\n    }\n};`,
+        c: `// C\nint searchInsert(int* nums, int numsSize, int target) {\n    int left = 0;\n    int right = numsSize - 1;\n    \n    while (left <= right) {\n        // 防止极端情况下 left + right 导致的整型溢出\n        int mid = left + (right - left) / 2;\n        \n        if (nums[mid] == target) {\n            return mid;\n        } else if (nums[mid] < target) {\n            left = mid + 1; // 缩小范围至右半区\n        } else {\n            right = mid - 1; // 缩小范围至左半区\n        }\n    }\n    \n    // 搜索完毕未找到匹配元素，left 就是合法的插入位置\n    return left;\n}`,
+      };
+
+      const LANG_VARS = {
+        python: { left: "left", right: "right", mid: "mid" },
+        ts: { left: "left", right: "right", mid: "mid" },
+        java: { left: "left", right: "right", mid: "mid" },
+        cpp: { left: "left", right: "right", mid: "mid" },
+        c: { left: "left", right: "right", mid: "mid" }
+      };
+
+      let params = {
+        seed: 42,
+        speed: 1.0,
+        n: 12,
+      };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+      let currentLang = "python";
+
+      // Algorithm State
+      let arr = [];
+      let target = 0;
+      let left = 0;
+      let right = 0;
+      let mid = 0;
+      let stepPhase = 0; // 0: Check While, 1: Calc Mid, 2: Compare & Move
+
+      // Rendering Variables
+      let cellW = 40;
+      let cellH = 40;
+      let startX = 0;
+      let startY = 0;
+      
+      let dispLeftIdx = 0;
+      let dispRightIdx = 0;
+      let dispMidIdx = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(
+          container.offsetWidth || 500,
+          container.offsetHeight || 600,
+        );
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () =>
+          resizeCanvas(container.offsetWidth, container.offsetHeight),
+        );
+
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        stepPhase = 0;
+
+        // Generate sorted array
+        arr = [];
+        let val = floor(random(1, 10));
+        for (let i = 0; i < params.n; i++) {
+            arr.push(val);
+            val += floor(random(2, 8));
+        }
+
+        // Determine target
+        let r = random();
+        if (r < 0.3) {
+            // Target is in the array
+            target = arr[floor(random(0, params.n))];
+        } else if (r < 0.6) {
+            // Target is not in the array
+            target = arr[floor(random(0, params.n - 1))] + 1;
+        } else if (r < 0.8) {
+            target = arr[0] - 2;
+        } else {
+            target = arr[params.n - 1] + 2;
+        }
+
+        left = 0;
+        right = params.n - 1;
+        mid = floor((left + right) / 2);
+
+        dispLeftIdx = left;
+        dispRightIdx = right;
+        dispMidIdx = mid;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ 演示环境准备就绪，生成有序数组长度 ${params.n}`, true);
+        logMsg(`🎯 目标查找值：${target}`, true);
+      }
+
+      function draw() {
+        background(255);
+
+        // Frame-based execution trigger
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // Setup geometry
+        let padding = 30;
+        let totalW = params.n * cellW;
+        startX = (width - totalW) / 2;
+        startY = height / 2 - cellH / 2;
+
+        // Target Value UI
+        fill(250, 240, 230);
+        stroke(220, 180, 150);
+        strokeWeight(2);
+        rect(width / 2 - 60, 40, 120, 50, 8);
+        fill(100, 60, 40);
+        noStroke();
+        textSize(16);
+        textAlign(CENTER, CENTER);
+        text(`Target: ${target}`, width / 2, 65);
+
+        // Draw array
+        for (let i = 0; i < params.n; i++) {
+            let x = startX + i * cellW;
+            let y = startY;
+
+            // Determine cell background
+            if (i >= left && i <= right) {
+                if (stepPhase >= 1 && i === mid) {
+                    fill(255, 230, 150); // Mid is yellowish
+                } else {
+                    fill(245, 245, 245); // Active range
+                }
+            } else {
+                fill(220, 220, 220); // Outside active range
+            }
+
+            // Draw box
+            stroke(150);
+            strokeWeight(1);
+            rect(x, y, cellW, cellH, 4);
+
+            // Draw value
+            fill(40);
+            noStroke();
+            textSize(14);
+            textAlign(CENTER, CENTER);
+            if (i < left || i > right) fill(150);
+            text(arr[i], x + cellW / 2, y + cellH / 2);
+
+            // Draw index below
+            fill(120);
+            textSize(10);
+            text(i, x + cellW / 2, y + cellH + 15);
+        }
+
+        // Calculate visual pointer positions via lerp
+        dispLeftIdx = lerp(dispLeftIdx, left, 0.1 * params.speed);
+        dispRightIdx = lerp(dispRightIdx, right, 0.1 * params.speed);
+        
+        let ptrX_left = startX + dispLeftIdx * cellW + cellW / 2;
+        let ptrX_right = startX + dispRightIdx * cellW + cellW / 2;
+
+        let vNames = LANG_VARS[currentLang];
+
+        // Draw Left Pointer
+        fill(106, 155, 204);
+        noStroke();
+        textSize(12);
+        textAlign(CENTER, BOTTOM);
+        text(vNames.left, ptrX_left, startY - 25);
+        drawArrow(ptrX_left, startY - 20, ptrX_left, startY - 5, color(106, 155, 204));
+
+        // Draw Right Pointer
+        fill(217, 119, 87);
+        noStroke();
+        text(vNames.right, ptrX_right, startY + cellH + 45);
+        drawArrow(ptrX_right, startY + cellH + 25, ptrX_right, startY + cellH + 5, color(217, 119, 87));
+
+        if (stepPhase >= 1) {
+            dispMidIdx = lerp(dispMidIdx, mid, 0.1 * params.speed);
+            let ptrX_mid = startX + dispMidIdx * cellW + cellW / 2;
+            fill(200, 150, 50);
+            noStroke();
+            text(vNames.mid, ptrX_mid, startY - 55);
+            drawArrow(ptrX_mid, startY - 50, ptrX_mid, startY - 5, color(200, 150, 50));
+        }
+
+        if (isDone) {
+            let resX = startX + left * cellW + cellW / 2;
+            fill(120, 140, 93);
+            noStroke();
+            rect(resX - cellW / 2, startY, cellW, cellH, 4);
+            fill(255);
+            textSize(14);
+            textAlign(CENTER, CENTER);
+            if (left < params.n) {
+                text(arr[left], resX, startY + cellH / 2);
+            }
+            fill(120, 140, 93);
+            textSize(14);
+            textAlign(CENTER, BOTTOM);
+            text("插入/查找到此位置", resX, startY - 75);
+            drawArrow(resX, startY - 70, resX, startY - 5, color(120, 140, 93));
+        }
+      }
+
+      function drawArrow(x1, y1, x2, y2, c) {
+        stroke(c);
+        strokeWeight(2);
+        line(x1, y1, x2, y2);
+        push();
+        translate(x2, y2);
+        let a = atan2(y1 - y2, x1 - x2);
+        rotate(a);
+        fill(c);
+        noStroke();
+        triangle(0, 0, 5, 3, 5, -3);
+        pop();
+      }
+
+      function performStep() {
+        if (isDone) return;
+
+        let vNames = LANG_VARS[currentLang];
+
+        if (stepPhase === 0) {
+            if (left <= right) {
+                logMsg(`🔍 搜索区间 [${left}, ${right}], 继续查找...`, false);
+                stepPhase = 1;
+            } else {
+                logMsg(`🏁 循环结束，目标未找到。`, false);
+                logMsg(`✨ 返回插入位置 ${left}。`, true);
+                isDone = true;
+            }
+        } else if (stepPhase === 1) {
+            mid = Math.floor(left + (right - left) / 2);
+            logMsg(`🧮 计算中间位置 ${vNames.mid} = ${mid}，对应值为 ${arr[mid]}`, true);
+            stepPhase = 2;
+        } else if (stepPhase === 2) {
+            if (arr[mid] === target) {
+                logMsg(`🎉 找到目标值 ${target} 在位置 ${mid}，直接返回！`, true);
+                left = mid; // For final visualization marker
+                isDone = true;
+            } else if (arr[mid] < target) {
+                logMsg(`📉 ${arr[mid]} < ${target}，目标在右半区，移动 ${vNames.left} = ${mid} + 1`, false);
+                left = mid + 1;
+                stepPhase = 0;
+            } else {
+                logMsg(`📈 ${arr[mid]} > ${target}，目标在左半区，移动 ${vNames.right} = ${mid} - 1`, false);
+                right = mid - 1;
+                stepPhase = 0;
+            }
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python",
+          ts: "language-typescript",
+          java: "language-java",
+          cpp: "language-cpp",
+          c: "language-c",
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function") {
+          initializeSystem();
+        }
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed =
+          parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+        logMsg("🔄 随机化生成新场景。", true);
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

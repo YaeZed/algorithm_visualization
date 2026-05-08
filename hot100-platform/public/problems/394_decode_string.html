@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>字符串解码 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+        --danger: #c75f5f;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .preset-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--anthropic-light-gray); background: #fff; border-radius: 6px; padding: 7px 6px; font-family: "JetBrains Mono", monospace; cursor: pointer; color: #555; font-size: 12px; text-align: left; }
+      .preset:hover { border-color: var(--anthropic-orange); color: var(--anthropic-orange); }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>字符串解码</h1>
+        <div class="subtitle">栈 - 处理嵌套上下文和展开操作</div>
+
+        <div class="control-section">
+          <h3>预设输入</h3>
+          <div class="preset-grid">
+            <button class="preset" onclick="setPreset('3[a]2[bc]')">3[a]2[bc]</button>
+            <button class="preset" onclick="setPreset('3[a2[c]]')">3[a2[c]]</button>
+            <button class="preset" onclick="setPreset('2[abc]3[cd]ef')">2[abc]3[cd]ef</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(N)</span>
+            <span class="memo-badge space">□ O(N)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">遇到嵌套结构（括号内还有括号），就是栈的拿手好戏。</div>
+            <div class="memo-tip g">遇到 `[` 时，说明要进入新环境了。把当前的 `(字符串, 乘数)` **封存入栈**，然后清空变量，准备接收新环境的内容。</div>
+            <div class="memo-tip w">遇到 `]` 时，说明当前环境结束。从栈中弹出老环境的 `(旧字符串, 乘数)`，将当前字符串乘以乘数后，**拼接回旧字符串**！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行日志 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def decodeString(self, s: str) -> str:\n        stack = []\n        curr_str = ""\n        curr_num = 0\n        \n        for c in s:\n            if c.isdigit():\n                # 处理多位数\n                curr_num = curr_num * 10 + int(c)\n            elif c == '[':\n                # 遇到左括号，把当前积攒的上下文 (curr_str, curr_num) 压栈\n                # 然后重置它们，去解析括号里的新上下文\n                stack.append((curr_str, curr_num))\n                curr_str = ""\n                curr_num = 0\n            elif c == ']':\n                # 遇到右括号，弹出上一层的上下文\n                prev_str, num = stack.pop()\n                # 将当前的子串放大 num 倍，然后拼接到上一层的 prev_str 后面\n                curr_str = prev_str + curr_str * num\n            else:\n                # 遇到字母，直接拼接到当前子串\n                curr_str += c\n                \n        return curr_str`,
+        ts: `// TypeScript\nfunction decodeString(s: string): string {\n    let stack: [string, number][] = [];\n    let currStr = "";\n    let currNum = 0;\n\n    for (let i = 0; i < s.length; i++) {\n        let c = s[i];\n        if (c >= '0' && c <= '9') {\n            currNum = currNum * 10 + parseInt(c);\n        } else if (c === '[') {\n            // 保存上下文\n            stack.push([currStr, currNum]);\n            currStr = "";\n            currNum = 0;\n        } else if (c === ']') {\n            // 还原并拼接\n            let [prevStr, num] = stack.pop()!;\n            currStr = prevStr + currStr.repeat(num);\n        } else {\n            currStr += c;\n        }\n    }\n\n    return currStr;\n}`,
+        java: `// Java\nclass Solution {\n    public String decodeString(String s) {\n        Deque<String> strStack = new LinkedList<>();\n        Deque<Integer> numStack = new LinkedList<>();\n        StringBuilder currStr = new StringBuilder();\n        int currNum = 0;\n        \n        for (char c : s.toCharArray()) {\n            if (Character.isDigit(c)) {\n                currNum = currNum * 10 + (c - '0');\n            } else if (c == '[') {\n                strStack.push(currStr.toString());\n                numStack.push(currNum);\n                currStr = new StringBuilder();\n                currNum = 0;\n            } else if (c == ']') {\n                StringBuilder prevStr = new StringBuilder(strStack.pop());\n                int num = numStack.pop();\n                for (int i = 0; i < num; i++) {\n                    prevStr.append(currStr);\n                }\n                currStr = prevStr;\n            } else {\n                currStr.append(c);\n            }\n        }\n        \n        return currStr.toString();\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    string decodeString(string s) {\n        stack<pair<string, int>> st;\n        string curr_str = "";\n        int curr_num = 0;\n        \n        for (char c : s) {\n            if (isdigit(c)) {\n                curr_num = curr_num * 10 + (c - '0');\n            } else if (c == '[') {\n                st.push({curr_str, curr_num});\n                curr_str = "";\n                curr_num = 0;\n            } else if (c == ']') {\n                auto [prev_str, num] = st.top();\n                st.pop();\n                string temp = prev_str;\n                for (int i = 0; i < num; i++) {\n                    temp += curr_str;\n                }\n                curr_str = temp;\n            } else {\n                curr_str += c;\n            }\n        }\n        return curr_str;\n    }\n};`,
+        c: `// C (略复杂，核心思想相同)\n// C 语言处理字符串扩容和栈操作较为繁琐，通常也是双栈法`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let INPUT_STR = "3[a2[c]]";
+      
+      let state = null;
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* decodeGen() {
+          let stack = [];
+          let curr_str = "";
+          let curr_num = 0;
+          
+          yield { phase: "START", s: INPUT_STR, stack: [...stack], curr_str, curr_num, i: -1, msg: "开始解析字符串" };
+          
+          for (let i = 0; i < INPUT_STR.length; i++) {
+              let c = INPUT_STR[i];
+              yield { phase: "READ", c, i, stack: [...stack], curr_str, curr_num, msg: `读取字符 '${c}'` };
+              
+              if (c >= '0' && c <= '9') {
+                  curr_num = curr_num * 10 + parseInt(c);
+                  yield { phase: "UPDATE_NUM", c, i, stack: [...stack], curr_str, curr_num, msg: "遇到数字，更新 curr_num" };
+              } else if (c === '[') {
+                  stack.push({ str: curr_str, num: curr_num });
+                  yield { phase: "PUSH", c, i, stack: [...stack], curr_str, curr_num, msg: `遇到 '['，把当前上下文 ('${curr_str}', ${curr_num}) 封存入栈` };
+                  curr_str = "";
+                  curr_num = 0;
+                  yield { phase: "RESET", c, i, stack: [...stack], curr_str, curr_num, msg: "清空变量，准备记录括号里的新字符串" };
+              } else if (c === ']') {
+                  let popped = stack.pop();
+                  let prev_str = popped.str;
+                  let num = popped.num;
+                  yield { phase: "POP", c, i, stack: [...stack], curr_str, curr_num, prev_str, num, msg: "遇到 ']'，当前括号结束，弹出上一层上下文" };
+                  
+                  let repeated = "";
+                  for(let k=0; k<num; k++) repeated += curr_str;
+                  
+                  yield { phase: "MULTIPLY", c, i, stack: [...stack], curr_str, curr_num, prev_str, num, repeated, msg: `将当前串 '${curr_str}' 放大 ${num} 倍变成 '${repeated}'` };
+                  
+                  curr_str = prev_str + repeated;
+                  yield { phase: "COMBINE", c, i, stack: [...stack], curr_str, curr_num, prev_str, num, repeated, msg: `拼接到旧串后面：'${prev_str}' + '${repeated}' = '${curr_str}'` };
+              } else {
+                  curr_str += c;
+                  yield { phase: "UPDATE_STR", c, i, stack: [...stack], curr_str, curr_num, msg: "遇到字母，拼接到 curr_str 后" };
+              }
+          }
+          yield { phase: "DONE", stack: [...stack], curr_str, curr_num, i: INPUT_STR.length, msg: `解析完成！最终结果: '${curr_str}'` };
+      }
+
+      function initializeSystem() {
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = decodeGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = "▶ 阶段：读取并解析字符串";
+        logMsg(`✅ 开始解析：<b>${INPUT_STR}</b>`, true);
+      }
+
+      function setPreset(s) {
+          INPUT_STR = s;
+          initializeSystem();
+      }
+
+      function drawVisuals() {
+          let s = state;
+          if (!s) return;
+          
+          let w = width;
+          let h = height;
+          
+          // 1. Draw input string at the top
+          let charBoxW = 35;
+          let startX = w/2 - (INPUT_STR.length * charBoxW)/2;
+          let yStr = 80;
+          
+          fill(150); noStroke(); textAlign(CENTER, BOTTOM); textSize(12);
+          text("输入字符串 s", w/2, yStr - 25);
+          
+          for(let k=0; k<INPUT_STR.length; k++) {
+              let cx = startX + k * charBoxW;
+              
+              if (k === s.i) {
+                  fill(255, 237, 213); stroke(249, 115, 22); strokeWeight(2);
+              } else if (k < s.i) {
+                  fill(245); stroke(220); strokeWeight(1);
+              } else {
+                  fill(255); stroke(200); strokeWeight(1);
+              }
+              
+              rect(cx, yStr, charBoxW - 2, 40, 4);
+              
+              if (k < s.i) fill(150); else fill(50);
+              noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+              text(INPUT_STR[k], cx + charBoxW/2 - 1, yStr + 20);
+              textStyle(NORMAL);
+              
+              if (k === s.i) {
+                  fill(249, 115, 22);
+                  triangle(cx + charBoxW/2 - 5, yStr + 50, cx + charBoxW/2 + 5, yStr + 50, cx + charBoxW/2, yStr + 42);
+              }
+          }
+          
+          // 2. Current State Panel (Right)
+          let panelX = w/2 + 60;
+          let panelY = 200;
+          
+          fill(250, 250, 250); stroke(220); strokeWeight(1);
+          rect(panelX, panelY, 200, 150, 8);
+          
+          fill(150); noStroke(); textAlign(LEFT, TOP); textSize(12);
+          text("当前上下文状态 (Current Context)", panelX + 15, panelY + 15);
+          
+          // curr_num
+          fill(50); textSize(14);
+          text("curr_num:", panelX + 15, panelY + 50);
+          fill(255, 243, 205); stroke(255, 193, 7); strokeWeight(1);
+          rect(panelX + 90, panelY + 45, 90, 30, 4);
+          fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
+          text(s.curr_num, panelX + 135, panelY + 60);
+          textStyle(NORMAL);
+          
+          // curr_str
+          textAlign(LEFT, TOP); fill(50); textSize(14);
+          text("curr_str:", panelX + 15, panelY + 100);
+          fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(1);
+          rect(panelX + 90, panelY + 95, 90, 30, 4);
+          fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
+          let displayStr = s.curr_str;
+          if (displayStr.length > 8) displayStr = "..." + displayStr.substring(displayStr.length - 7);
+          text(displayStr || '""', panelX + 135, panelY + 110);
+          textStyle(NORMAL);
+          
+          // 3. Stack Visual (Left)
+          let stackX = w/2 - 200;
+          let stackYBase = 450;
+          let stackW = 160;
+          let stackH = 50;
+          
+          fill(150); noStroke(); textAlign(CENTER, BOTTOM); textSize(14);
+          text("上下文栈 (Stack)", stackX, stackYBase + 30);
+          
+          stroke(200); strokeWeight(3); noFill();
+          beginShape();
+          vertex(stackX - stackW/2, stackYBase - 4 * stackH);
+          vertex(stackX - stackW/2, stackYBase);
+          vertex(stackX + stackW/2, stackYBase);
+          vertex(stackX + stackW/2, stackYBase - 4 * stackH);
+          endShape();
+          
+          for(let idx = 0; idx < (s.stack || []).length; idx++) {
+              let item = s.stack[idx];
+              let cy = stackYBase - idx * stackH - stackH/2;
+              
+              let highlight = (idx === s.stack.length - 1 && s.phase === "PUSH");
+              
+              fill(highlight ? 224 : 240, highlight ? 242 : 248, highlight ? 254 : 255);
+              stroke(highlight ? 59 : 150, highlight ? 130 : 200, highlight ? 246 : 255);
+              strokeWeight(2);
+              rect(stackX - stackW/2 + 4, cy - stackH/2 + 4, stackW - 8, stackH - 8, 4);
+              
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(14);
+              let sDisp = item.str.length > 5 ? item.str.substring(0, 4) + ".." : item.str;
+              text(`('${sDisp || ""}', ${item.num})`, stackX, cy);
+          }
+          
+          // 4. Action floaters
+          if (s.phase === "MULTIPLY" || s.phase === "COMBINE") {
+              let fy = panelY + 180;
+              fill(254, 215, 170); stroke(234, 88, 12); strokeWeight(2);
+              rect(panelX, fy, 200, 60, 6);
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(13);
+              if (s.phase === "MULTIPLY") {
+                  text(`放大: '${s.curr_str}' × ${s.num}`, panelX + 100, fy + 20);
+                  textStyle(BOLD); fill(234, 88, 12);
+                  text(`=> '${s.repeated}'`, panelX + 100, fy + 40);
+                  textStyle(NORMAL);
+              } else {
+                  text(`拼接: '${s.prev_str}' + '${s.repeated}'`, panelX + 100, fy + 20);
+                  textStyle(BOLD); fill(34, 197, 94);
+                  text(`=> '${s.curr_str}'`, panelX + 100, fy + 40);
+                  textStyle(NORMAL);
+              }
+          }
+      }
+      
+      function varColor(name) {
+          return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawVisuals();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+
+        if (s.phase === "START") {
+            logMsg(s.msg, false);
+        } else if (s.phase === "UPDATE_NUM") {
+            logMsg(`🔢 ${s.msg} => <b>${s.curr_num}</b>`, false);
+        } else if (s.phase === "PUSH") {
+            logMsg(`📥 ${s.msg}`, true);
+        } else if (s.phase === "RESET") {
+            logMsg(`🧹 ${s.msg}`, false);
+        } else if (s.phase === "POP") {
+            logMsg(`📤 ${s.msg} => 提取旧环境: <b>str='${s.prev_str}', num=${s.num}</b>`, true);
+        } else if (s.phase === "MULTIPLY") {
+            logMsg(`✨ ${s.msg}`, false);
+        } else if (s.phase === "COMBINE") {
+            logMsg(`🔗 ${s.msg}`, true);
+        } else if (s.phase === "UPDATE_STR") {
+            logMsg(`📝 ${s.msg} => <b>'${s.curr_str}'</b>`, false);
+        } else if (s.phase === "DONE") {
+            logMsg(`\n🎉 ${s.msg}`, true);
+            let headerEl = document.getElementById("phase-header");
+            if (headerEl) headerEl.innerHTML = "🏁 解码完成";
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

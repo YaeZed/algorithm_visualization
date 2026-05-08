@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>二叉树层序遍历可视化 - LeetCode 102</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; margin-bottom: 8px; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between;}
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box */
+      .code-box { flex: 1.2; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.8; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.highlight-blue { border-left-color: var(--anthropic-blue); background: #f0f7ff; font-weight: 500; }
+      .log-item.highlight-green { border-left-color: var(--anthropic-green); background: #f5fbf4; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; font-family: "JetBrains Mono", monospace; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* Memo Card */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #f6fbf4; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>二叉树的层序遍历</h1>
+        <div class="subtitle">队列广度优先 (BFS) 与二维数组切割</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="102" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成随机树形结构</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>扫描速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>节点数量 (N)</label>
+            <div class="slider-container">
+              <input type="range" id="nodesCount" min="5" max="15" step="1" value="10" oninput="updateParam('nodesCount', this.value)" />
+              <span class="value-display" id="nodesCount-value">10</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px; margin-bottom: 0;">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新执行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n) 时间</span>
+            <span class="memo-badge space">□ O(w) 空间</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 <b>二维切割原理：</b>虽然队列里存着扁平的所有节点，但在进入 `while` 循环的一瞬间，捕获 `queue.length`，以此作为这一层的“固定批处理数量”。</div>
+            <div class="memo-tip">💡 <b>子节点延迟入队：</b>在处理当前层的 `for` 循环内部，将下一层的子节点推入队列。它们会在队列尾部排队，直到下一轮 `while` 循环才被处理。</div>
+            <div class="memo-tip g">🔍 <b>空间复杂度：</b>最坏情况下（完美二叉树），最后一层包含 N/2 个节点，因此队列的最大长度（空间复杂度）为 O(w)，w 为树的最大宽度。</div>
+            <div class="memo-tip w">⚠️ <b>前端性能陷阱：</b>在 JS/TS 中，如果你使用原生的 `Array.shift()`，其时间复杂度是 O(n)，导致整体时间复杂度退化为 O(n²)。严格的工业代码需要手写链表队列，但在 LeetCode 数据规模下通常直接用数组模拟即可。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+          <span>层序扫描雷达与物理队列联动视图</span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优 BFS)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行流日志 (Execution Trace)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTILINGUAL BFS CODE SNIPPETS
+      // ==========================================================
+      const SNIPPETS = {
+        ts: `// TypeScript
+class TreeNode {
+    val: number
+    left: TreeNode | null
+    right: TreeNode | null
+    constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) {
+        this.val = (val===undefined ? 0 : val)
+        this.left = (left===undefined ? null : left)
+        this.right = (right===undefined ? null : right)
+    }
+}
+
+function levelOrder(root: TreeNode | null): number[][] {
+    const res: number[][] = [];
+    if (!root) return res;
+
+    // 声明物理队列，首层压入根节点
+    const queue: TreeNode[] = [root];
+
+    // 当队列不为空，说明还有下一层需要处理
+    while (queue.length > 0) {
+        // 【关键】冻结当前队列的长度，作为本层要处理的节点数量边界
+        const currentLevelSize = queue.length;
+        const currentLevelArray: number[] = [];
+
+        // 精确执行 currentLevelSize 次出队，绝不多拿
+        for (let i = 0; i < currentLevelSize; i++) {
+            const node = queue.shift()!; // FIFO 出队
+            currentLevelArray.push(node.val); // 收集该节点的值
+
+            // 发现下一层的子节点，将其推入队列尾部排队
+            if (node.left) queue.push(node.left);
+            if (node.right) queue.push(node.right);
+        }
+
+        // 当前层批处理结束，作为一个完整的一维数组推入结果集
+        res.push(currentLevelArray);
+    }
+
+    return res;
+}`,
+        python: `# Python
+from collections import deque
+from typing import List, Optional
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class Solution:
+    def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+        res = []
+        if not root:
+            return res
+            
+        # 使用 deque 保证 O(1) 的物理出队性能
+        queue = deque([root])
+        
+        while queue:
+            # 获取当前层的固定大小
+            level_size = len(queue)
+            current_level = []
+            
+            # 严格按照 level_size 进行本层元素的切割收集
+            for _ in range(level_size):
+                node = queue.popleft()
+                current_level.append(node.val)
+                
+                # 下一层的子节点压入队尾，不会干扰当前层的循环
+                if node.left:
+                    queue.append(node.left)
+                if node.right:
+                    queue.append(node.right)
+            
+            # 记录当前层结果
+            res.append(current_level)
+            
+        return res`,
+        java: `// Java
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+
+class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null) return res;
+        
+        // Java 工业界标准的 BFS 队列实现
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        
+        while (!queue.isEmpty()) {
+            int levelSize = queue.size(); // 捕获当前层宽度
+            List<Integer> currentLevel = new ArrayList<>();
+            
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode node = queue.poll(); // 获取并移除队首
+                currentLevel.add(node.val);
+                
+                if (node.left != null) queue.offer(node.left);
+                if (node.right != null) queue.offer(node.right);
+            }
+            
+            res.add(currentLevel);
+        }
+        
+        return res;
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+#include <queue>
+using namespace std;
+
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        vector<vector<int>> res;
+        if (!root) return res;
+        
+        queue<TreeNode*> q;
+        q.push(root);
+        
+        while (!q.empty()) {
+            int levelSize = q.size();
+            vector<int> currentLevel;
+            
+            // C++ 中由于不能在迭代时动态改变 vector 容量而不失效迭代器
+            // 这里我们固定了循环次数，巧妙避开了后加进队列元素的干扰
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode* node = q.front();
+                q.pop();
+                currentLevel.push_back(node->val);
+                
+                if (node->left) q.push(node->left);
+                if (node->right) q.push(node->right);
+            }
+            
+            res.push_back(currentLevel);
+        }
+        
+        return res;
+    }
+};`,
+        c: `// C
+#include <stdlib.h>
+
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+// C语言解法需要手动管理复杂的动态二维数组内存
+int** levelOrder(struct TreeNode* root, int* returnSize, int** returnColumnSizes) {
+    if (root == NULL) {
+        *returnSize = 0;
+        *returnColumnSizes = NULL;
+        return NULL;
+    }
+    
+    // 初始化最大容量的二维数组和队列
+    int** res = (int**)malloc(sizeof(int*) * 2000);
+    *returnColumnSizes = (int*)malloc(sizeof(int) * 2000);
+    *returnSize = 0;
+    
+    struct TreeNode** queue = (struct TreeNode**)malloc(sizeof(struct TreeNode*) * 2000);
+    int head = 0, tail = 0;
+    
+    queue[tail++] = root; // 根节点入队
+    
+    while (head < tail) {
+        // tail - head 是队列中当前的元素个数
+        int levelSize = tail - head;
+        res[*returnSize] = (int*)malloc(sizeof(int) * levelSize);
+        (*returnColumnSizes)[*returnSize] = levelSize;
+        
+        for (int i = 0; i < levelSize; i++) {
+            struct TreeNode* node = queue[head++];
+            res[*returnSize][i] = node->val;
+            
+            if (node->left) queue[tail++] = node->left;
+            if (node->right) queue[tail++] = node->right;
+        }
+        
+        (*returnSize)++;
+    }
+    
+    free(queue);
+    return res;
+}`
+      };
+
+      // ==========================================================
+      // SIMULATION LOGIC & VISUALIZATION (p5.js)
+      // ==========================================================
+      let params = { seed: 102, speed: 1.0, nodesCount: 10 };
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // Tree Data
+      class VisualTreeNode {
+        constructor(val) {
+          this.id = Math.random().toString(36).substr(2, 9);
+          this.val = val;
+          this.left = null;
+          this.right = null;
+          // Render Coordinates
+          this.x = 0;
+          this.y = 0;
+          // Render States
+          this.inQueue = false;
+          this.processing = false;
+          this.visited = false;
+          this.layer = 0; 
+        }
+      }
+
+      let rootNode = null;
+      
+      // Algorithm State Machine variables
+      let queue = [];
+      let result2D = []; // Array of Arrays
+      let currentLevelArray = [];
+      
+      let depthCounter = 0;
+      let currentLevelSize = 0;
+      let processedInLevel = 0;
+      let algoPhase = 'START'; // START, START_LEVEL, PROCESS_NODE, END_LEVEL, DONE
+      let activeNode = null;
+      let targetScanY = 0;
+      let currentScanY = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 500);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("ts");
+        initializeSystem();
+      }
+
+      function buildRandomTree(n) {
+          let values = [];
+          for (let i = 0; i < n; i++) {
+              values.push(floor(random(1, 99)));
+          }
+          // Remove duplicates
+          values = [...new Set(values)];
+          values.sort(() => random() - 0.5);
+
+          let r = null;
+          for (let v of values) {
+              r = insertBST(r, v, 0);
+          }
+          return r;
+      }
+
+      function insertBST(node, val, layer) {
+          if (!node) {
+              let n = new VisualTreeNode(val);
+              n.layer = layer;
+              return n;
+          }
+          if (val < node.val) node.left = insertBST(node.left, val, layer + 1);
+          else if (val > node.val) node.right = insertBST(node.right, val, layer + 1);
+          return node;
+      }
+
+      function layoutTree(node, minX, maxX) {
+        if (!node) return;
+        node.x = (minX + maxX) / 2;
+        node.y = 50 + node.layer * 65;
+        layoutTree(node.left, minX, node.x);
+        layoutTree(node.right, node.x, maxX);
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        // Build Tree
+        rootNode = buildRandomTree(params.nodesCount);
+        layoutTree(rootNode, 40, width - 40);
+        
+        // Reset Algorithm State
+        queue = [];
+        result2D = [];
+        currentLevelArray = [];
+        
+        if (rootNode) {
+            queue.push(rootNode);
+            rootNode.inQueue = true;
+        }
+        
+        depthCounter = 0;
+        currentLevelSize = 0;
+        processedInLevel = 0;
+        algoPhase = 'START_LEVEL';
+        activeNode = null;
+        targetScanY = 20;
+        currentScanY = 20;
+        
+        document.getElementById("log-container").innerHTML = "";
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        
+        logMsg("✅ 树形结构构建完毕，根节点入队。准备进行分层二维切割。", true);
+      }
+
+      function draw() {
+        background(253, 252, 249);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        currentScanY = lerp(currentScanY, targetScanY, 0.1 * params.speed);
+        drawScanLine();
+        
+        drawEdges(rootNode);
+        drawNodes(rootNode);
+        
+        drawResultArray();
+        drawQueue();
+      }
+
+      function drawScanLine() {
+        if (depthCounter >= 0 && !isDone) {
+            push();
+            fill(106, 155, 204, 20);
+            noStroke();
+            rectMode(CORNER);
+            rect(0, currentScanY - 30, width, 60); 
+            
+            stroke(106, 155, 204, 150);
+            strokeWeight(1);
+            drawingContext.setLineDash([5, 5]);
+            line(0, currentScanY, width, currentScanY);
+            drawingContext.setLineDash([]);
+            
+            fill(106, 155, 204);
+            noStroke();
+            textSize(12);
+            textAlign(LEFT, BOTTOM);
+            text(`Level ${depthCounter}`, 10, currentScanY - 5);
+            pop();
+        }
+      }
+
+      function drawEdges(node) {
+        if (!node) return;
+        stroke(200);
+        strokeWeight(2);
+        if (node.left) {
+            line(node.x, node.y, node.left.x, node.left.y);
+            drawEdges(node.left);
+        }
+        if (node.right) {
+            line(node.x, node.y, node.right.x, node.right.y);
+            drawEdges(node.right);
+        }
+      }
+
+      function drawNodes(node) {
+        if (!node) return;
+        
+        push();
+        let fillCol = color(255);
+        let borderCol = color(180);
+        let textCol = color(60);
+        let weight = 2;
+
+        if (node.processing) {
+            fillCol = color(255, 243, 238);
+            borderCol = color(217, 119, 87);
+            weight = 4;
+        } else if (node.visited) {
+            fillCol = color(245, 251, 244);
+            borderCol = color(120, 140, 93);
+        } else if (node.inQueue) {
+            fillCol = color(240, 247, 255); 
+            borderCol = color(106, 155, 204);
+            weight = 3;
+        }
+
+        fill(fillCol);
+        stroke(borderCol);
+        strokeWeight(weight);
+        circle(node.x, node.y, 36);
+
+        noStroke();
+        fill(textCol);
+        textAlign(CENTER, CENTER);
+        textSize(14);
+        textFont("JetBrains Mono");
+        text(node.val, node.x, node.y);
+        pop();
+
+        drawNodes(node.left);
+        drawNodes(node.right);
+      }
+
+      // ==========================================
+      // UI FIX: Center and isolate the Result Array
+      // ==========================================
+      function drawResultArray() {
+        push();
+        // 居中放置结果集，并且起始 Y 轴距离底部的 Queue 有足够的安全间距 (140px)
+        let startX = width / 2 - 150; 
+        let startY = height - 220; 
+
+        fill(150);
+        noStroke();
+        textSize(12);
+        textAlign(LEFT, BOTTOM);
+        text("二维结果集 res = [", startX, startY - 5);
+        
+        let cx = startX + 15;
+        let cy = startY;
+
+        for(let i=0; i < result2D.length; i++) {
+            fill(80);
+            text(`[${result2D[i].join(', ')}],`, cx, cy + 15);
+            cy += 20;
+        }
+
+        if (algoPhase === 'PROCESS_NODE' || algoPhase === 'START_LEVEL') {
+             fill(217, 119, 87); // Active building array
+             text(`[${currentLevelArray.join(', ')}${currentLevelArray.length < currentLevelSize ? '...' : ''}] ← 构建中`, cx, cy + 15);
+             cy += 20;
+        }
+        
+        fill(150);
+        text("]", startX, cy + 15);
+        pop();
+      }
+
+      // ==========================================
+      // UI FIX: Center and isolate the Queue Array
+      // ==========================================
+      function drawQueue() {
+        push();
+        let qHeight = 40;
+        let qWidth = 400; // 固定物理宽度以便居中
+        let startX = width / 2 - qWidth / 2; // 严格在画布中轴线对齐
+        let startY = height - 80; 
+
+        fill(150);
+        noStroke();
+        textSize(12);
+        textAlign(LEFT, BOTTOM);
+        text("物理内存队列 (queue):", startX, startY - 5);
+
+        stroke(200);
+        strokeWeight(2);
+        fill(255);
+        rect(startX, startY, qWidth, qHeight, 4);
+        
+        fill(150);
+        noStroke();
+        textSize(11);
+        text("← Shift", startX - 2, startY + qHeight + 15);
+        textAlign(RIGHT);
+        text("Push ←", startX + qWidth + 2, startY + qHeight + 15);
+
+        let boxW = 35;
+        for (let i = 0; i < queue.length; i++) {
+            let n = queue[i];
+            let bx = startX + 10 + i * (boxW + 8);
+            
+            if (bx + boxW > startX + qWidth) {
+                fill(150);
+                noStroke();
+                text("...", bx + 10, startY + 25);
+                break;
+            }
+
+            // 区分当前批处理层 和 下一层的新元素，视觉更直观
+            let isNextBatch = (i >= (currentLevelSize - processedInLevel)) && algoPhase === 'PROCESS_NODE';
+            
+            fill(n.processing ? color(255, 243, 238) : (isNextBatch ? color(245) : color(240, 247, 255)));
+            stroke(n.processing ? color(217, 119, 87) : (isNextBatch ? color(200) : color(106, 155, 204)));
+            strokeWeight(2);
+            rect(bx, startY + 5, boxW, 30, 4);
+
+            fill(60);
+            noStroke();
+            textAlign(CENTER, CENTER);
+            textFont("JetBrains Mono");
+            text(n.val, bx + boxW/2, startY + 20);
+        }
+        pop();
+      }
+
+      function performStep() {
+        if (algoPhase === 'START_LEVEL') {
+            if (queue.length === 0) {
+                algoPhase = 'DONE';
+                isDone = true;
+                logMsg(`🏁 队列为空，所有层级二维化切割完毕。`, false, true);
+                return;
+            }
+            
+            // 核心逻辑：冻结当前层的长度
+            currentLevelSize = queue.length;
+            processedInLevel = 0;
+            currentLevelArray = [];
+            
+            // 动画对齐
+            let repNode = queue[0];
+            depthCounter = repNode.layer;
+            targetScanY = 50 + depthCounter * 65; 
+            
+            logMsg(`📡 <b>Level ${depthCounter} 开始</b>：冻结物理队列长度。本层包含 <b>${currentLevelSize}</b> 个节点需要处理`, true);
+            
+            algoPhase = 'PROCESS_NODE';
+
+        } else if (algoPhase === 'PROCESS_NODE') {
+            if (processedInLevel < currentLevelSize) {
+                // Dequeue
+                if (activeNode) {
+                    activeNode.processing = false;
+                    activeNode.visited = true;
+                }
+
+                activeNode = queue.shift();
+                activeNode.inQueue = false;
+                activeNode.processing = true;
+
+                // 收集值
+                currentLevelArray.push(activeNode.val);
+
+                logMsg(`  ↳ 队首出队 [<b>${activeNode.val}</b>] 加入本层数组。如果有子节点，推入队尾等待下一层。`);
+
+                // 子节点压入队尾
+                if (activeNode.left) {
+                    activeNode.left.inQueue = true;
+                    queue.push(activeNode.left);
+                }
+                if (activeNode.right) {
+                    activeNode.right.inQueue = true;
+                    queue.push(activeNode.right);
+                }
+
+                processedInLevel++;
+            } else {
+                // Finished the batch
+                if (activeNode) {
+                    activeNode.processing = false;
+                    activeNode.visited = true;
+                    activeNode = null;
+                }
+                algoPhase = 'END_LEVEL';
+            }
+        } else if (algoPhase === 'END_LEVEL') {
+             // 核心逻辑：收集完成的一维数组推入二维大数组
+             result2D.push([...currentLevelArray]);
+             logMsg(`✅ 本层 ${currentLevelSize} 个节点处理完毕，生成一维数组推入总结果集 res。`, true);
+             algoPhase = 'START_LEVEL';
+        }
+      }
+
+      function logMsg(msg, isHighlight = false, isWarn = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item";
+        if (isWarn) {
+             item.style.borderLeftColor = "#e8a838";
+             item.style.background = "#fffdf2";
+        } else if (isHighlight) {
+             item.className += " highlight-blue";
+        }
+
+        let time = new Date().toLocaleTimeString("zh-CN", {hour12: false, hour: "2-digit", minute:"2-digit", second:"2-digit"});
+        item.innerHTML = `<div class="time">[${time}]</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      let currentLang = "ts";
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c"
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== 'speed') {
+            initializeSystem();
+        }
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 102;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

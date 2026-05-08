@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>搜索旋转排序数组 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>搜索旋转排序数组</h1>
+        <div class="subtitle">二分查找 - 判断哪一半是有序的</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <select id="scenario-select" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--anthropic-light-gray);" onchange="initializeSystem()">
+              <option value="1">nums = [4,5,6,7,0,1,2], target = 0</option>
+              <option value="2">nums = [4,5,6,7,0,1,2], target = 5</option>
+              <option value="3">nums = [5,1,3], target = 5</option>
+              <option value="4">nums = [4,5,6,7,0,1,2], target = 3 (不存在)</option>
+          </select>
+          <button class="button" onclick="initializeSystem()">重新演示二分查找</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(log n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **核心洞察**：旋转数组从中间切开，**必然有一半是完全有序的**！这是二分能起作用的前提。</div>
+            <div class="memo-tip g">🌟 **找规律**：如果 `nums[l] <= nums[mid]`，说明**左半边**是有序的（一条向上的直线）；否则，**右半边**必然是有序的。</div>
+            <div class="memo-tip w">🎯 **定位目标**：确定了哪一半是有序的，就可以用普通的 `<` 和 `>` 检查 target 是否落在这一半的**区间**里。如果落在里面，就在这里找；如果没落在里面，就去另一半找！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def search(self, nums: List[int], target: int) -> int:\n        l, r = 0, len(nums) - 1\n        \n        while l <= r:\n            mid = (l + r) // 2\n            \n            if nums[mid] == target:\n                return mid\n                \n            # 判断哪一半是有序的\n            if nums[l] <= nums[mid]:\n                # 左半部分 [l, mid] 是严格升序的\n                if nums[l] <= target < nums[mid]:\n                    # target 落在这个升序区间内\n                    r = mid - 1\n                else:\n                    # 不在左半边，只能去右半边找\n                    l = mid + 1\n            else:\n                # 右半部分 [mid, r] 是严格升序的\n                if nums[mid] < target <= nums[r]:\n                    # target 落在这个升序区间内\n                    l = mid + 1\n                else:\n                    # 不在右半边，只能去左半边找\n                    r = mid - 1\n                    \n        return -1`,
+        ts: `// TypeScript\nfunction search(nums: number[], target: number): number {\n    let l = 0, r = nums.length - 1;\n    \n    while (l <= r) {\n        const mid = Math.floor((l + r) / 2);\n        \n        if (nums[mid] === target) {\n            return mid;\n        }\n        \n        // 左半边有序\n        if (nums[l] <= nums[mid]) {\n            // 判断 target 是否在有序区间内\n            if (target >= nums[l] && target < nums[mid]) {\n                r = mid - 1;\n            } else {\n                l = mid + 1;\n            }\n        } \n        // 右半边有序\n        else {\n            // 判断 target 是否在有序区间内\n            if (target > nums[mid] && target <= nums[r]) {\n                l = mid + 1;\n            } else {\n                r = mid - 1;\n            }\n        }\n    }\n    \n    return -1;\n}`,
+        java: `// Java\nclass Solution {\n    public int search(int[] nums, int target) {\n        int l = 0, r = nums.length - 1;\n        \n        while (l <= r) {\n            int mid = l + (r - l) / 2;\n            \n            if (nums[mid] == target) {\n                return mid;\n            }\n            \n            // 左半边是否有序\n            if (nums[l] <= nums[mid]) {\n                if (target >= nums[l] && target < nums[mid]) {\n                    r = mid - 1; // 目标在左半边\n                } else {\n                    l = mid + 1; // 否则只能在右半边\n                }\n            } \n            // 否则右半边一定有序\n            else {\n                if (target > nums[mid] && target <= nums[r]) {\n                    l = mid + 1; // 目标在右半边\n                } else {\n                    r = mid - 1; // 否则只能在左半边\n                }\n            }\n        }\n        return -1;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    int search(vector<int>& nums, int target) {\n        int l = 0, r = nums.size() - 1;\n        \n        while (l <= r) {\n            int mid = l + (r - l) / 2;\n            if (nums[mid] == target) return mid;\n            \n            if (nums[l] <= nums[mid]) {\n                if (target >= nums[l] && target < nums[mid]) {\n                    r = mid - 1;\n                } else {\n                    l = mid + 1;\n                }\n            } else {\n                if (target > nums[mid] && target <= nums[r]) {\n                    l = mid + 1;\n                } else {\n                    r = mid - 1;\n                }\n            }\n        }\n        return -1;\n    }\n};`,
+        c: `// C\nint search(int* nums, int numsSize, int target) {\n    int l = 0, r = numsSize - 1;\n    \n    while (l <= r) {\n        int mid = l + (r - l) / 2;\n        if (nums[mid] == target) return mid;\n        \n        if (nums[l] <= nums[mid]) {\n            if (target >= nums[l] && target < nums[mid]) {\n                r = mid - 1;\n            } else {\n                l = mid + 1;\n            }\n        } else {\n            if (target > nums[mid] && target <= nums[r]) {\n                l = mid + 1;\n            } else {\n                r = mid - 1;\n            }\n        }\n    }\n    return -1;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let NUMS = [4,5,6,7,0,1,2];
+      let TARGET = 0;
+      
+      let state = null; // Contains current phase, l, r, mid
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* searchRotatedGen() {
+          let l = 0, r = NUMS.length - 1;
+          yield { phase: "START", l, r, mid: null, msg: "开始在旋转数组中寻找 target" };
+          
+          while (l <= r) {
+              let mid = Math.floor((l + r) / 2);
+              yield { phase: "CHECK", l, r, mid };
+              
+              if (NUMS[mid] === TARGET) {
+                  yield { phase: "MATCH", l, r, mid, msg: "找到目标值！" };
+                  return mid;
+              }
+              
+              if (NUMS[l] <= NUMS[mid]) {
+                  // Left is sorted
+                  yield { phase: "LEFT_SORTED", l, r, mid, sortedHalf: [l, mid], msg: "左侧 <b>[L, Mid]</b> 是完全有序的！" };
+                  if (TARGET >= NUMS[l] && TARGET < NUMS[mid]) {
+                      yield { phase: "IN_LEFT", l, r, mid, sortedHalf: [l, mid], msg: "检查：Target 落在该有序范围内。因此丢弃右半边，向左收缩！" };
+                      r = mid - 1;
+                  } else {
+                      yield { phase: "NOT_IN_LEFT", l, r, mid, sortedHalf: [l, mid], msg: "检查：Target <b>不在</b>该有序范围内。因此只能去无序的右半边找，向右收缩！" };
+                      l = mid + 1;
+                  }
+              } else {
+                  // Right is sorted
+                  yield { phase: "RIGHT_SORTED", l, r, mid, sortedHalf: [mid, r], msg: "右侧 <b>[Mid, R]</b> 是完全有序的！" };
+                  if (TARGET > NUMS[mid] && TARGET <= NUMS[r]) {
+                      yield { phase: "IN_RIGHT", l, r, mid, sortedHalf: [mid, r], msg: "检查：Target 落在该有序范围内。因此丢弃左半边，向右收缩！" };
+                      l = mid + 1;
+                  } else {
+                      yield { phase: "NOT_IN_RIGHT", l, r, mid, sortedHalf: [mid, r], msg: "检查：Target <b>不在</b>该有序范围内。因此只能去无序的左半边找，向左收缩！" };
+                      r = mid - 1;
+                  }
+              }
+          }
+          yield { phase: "NOT_FOUND", l, r, mid: null, msg: "未找到目标值，返回 -1" };
+      }
+
+      function initializeSystem() {
+        let sc = document.getElementById("scenario-select").value;
+        if (sc === "1") { NUMS = [4,5,6,7,0,1,2]; TARGET = 0; }
+        else if (sc === "2") { NUMS = [4,5,6,7,0,1,2]; TARGET = 5; }
+        else if (sc === "3") { NUMS = [5,1,3]; TARGET = 5; }
+        else { NUMS = [4,5,6,7,0,1,2]; TARGET = 3; }
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = searchRotatedGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ 启动算法：在旋转数组 [${NUMS.join(',')}] 中查找 target=${TARGET}`, true);
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = "▶ 阶段：旋转数组的二分查找";
+      }
+
+      function drawArray() {
+          let n = NUMS.length;
+          let boxW = min(60, (width - 60) / n);
+          let boxH = 45;
+          let totalW = n * boxW;
+          let startX = width/2 - totalW/2;
+          let startY = height/2 + 60; // Shifted down to leave room for graph
+
+          // Draw target info
+          fill(50); noStroke(); textAlign(CENTER, CENTER);
+          textSize(18); textStyle(BOLD);
+          text(`Target = ${TARGET}`, width/2, startY + 90);
+          textStyle(NORMAL);
+          
+          let resText = "寻找中...";
+          if (state.phase === "MATCH") resText = `找到啦！索引 = ${state.mid}`;
+          else if (state.phase === "NOT_FOUND") resText = "结果：-1 (不存在)";
+          textSize(14);
+          if (state.phase === "MATCH") fill(varColor("--anthropic-green"));
+          else if (state.phase === "NOT_FOUND") fill(varColor("--anthropic-orange"));
+          else fill(150);
+          text(resText, width/2, startY + 120);
+          
+          // Draw Bar Graph above array to show "rotation"
+          let maxVal = Math.max(...NUMS);
+          let minVal = Math.min(...NUMS);
+          let graphH = 150;
+          let graphYBase = startY - 20;
+          
+          // Draw connecting lines to show sorted parts
+          stroke(200); strokeWeight(2); noFill();
+          beginShape();
+          for (let i = 0; i < n; i++) {
+              let cx = startX + i * boxW + boxW/2;
+              let cy = graphYBase - (NUMS[i]/Math.max(1, maxVal)) * graphH;
+              vertex(cx, cy);
+          }
+          endShape();
+
+          for (let i = 0; i < n; i++) {
+              let cx = startX + i * boxW;
+              let cy = startY;
+              
+              let isTarget = NUMS[i] === TARGET;
+              let inRange = (state.l !== undefined && i >= state.l && i <= state.r);
+              let isMid = (state.mid !== undefined && i === state.mid);
+              
+              let isSortedPart = false;
+              if (state.sortedHalf && i >= state.sortedHalf[0] && i <= state.sortedHalf[1]) {
+                  isSortedPart = true;
+              }
+
+              // Value Bar
+              let barCx = cx + boxW/2;
+              let barY = graphYBase - (NUMS[i]/Math.max(1, maxVal)) * graphH;
+              
+              if (!inRange && state.phase !== "START" && state.phase !== "NOT_FOUND") {
+                  fill(240); stroke(220); // Eliminated
+              } else if (isSortedPart) {
+                  fill(220, 252, 231); stroke(34, 197, 94); // Green for sorted half
+              } else if (isMid) {
+                  fill(254, 240, 138); stroke(202, 138, 4); // Yellow for mid
+              } else {
+                  fill(224, 242, 254); stroke(59, 130, 246); // Blue for active range
+              }
+              
+              strokeWeight(isSortedPart || isMid ? 3 : 2);
+              ellipse(barCx, barY, 12, 12);
+              
+              // Box background
+              if (!inRange && state.phase !== "START" && state.phase !== "NOT_FOUND") {
+                  fill(245); stroke(230); // Eliminated
+              } else if (isSortedPart) {
+                  fill(220, 252, 231); stroke(34, 197, 94); // Green for sorted half
+              } else if (isMid) {
+                  if (state.phase === "MATCH") fill(254, 240, 138); // Yellow for match
+                  else fill(224, 242, 254); // Blue for visiting
+                  stroke(isTarget ? 202 : 150, 138, 4);
+              } else {
+                  fill(255); stroke(200);
+              }
+
+              strokeWeight(isMid || isSortedPart ? 3 : 2);
+              rect(cx, cy, boxW - 4, boxH, 6);
+
+              // Array text
+              if (!inRange && state.phase !== "START" && state.phase !== "NOT_FOUND") fill(200);
+              else fill(50);
+              noStroke(); textAlign(CENTER, CENTER);
+              textSize(18);
+              text(NUMS[i], cx + boxW/2 - 2, cy + boxH/2);
+              
+              // Pointers
+              textSize(12); textStyle(BOLD);
+              if (isMid) {
+                  fill(varColor("--anthropic-orange"));
+                  text("mid", cx + boxW/2 - 2, cy - 10);
+              }
+              
+              let ptrY = cy + boxH + 20;
+              if (i === state.l && i === state.r) {
+                  fill(varColor("--anthropic-dark")); noStroke();
+                  text("L, R", cx + boxW/2 - 2, ptrY);
+              } else {
+                  if (i === state.l) {
+                      fill(varColor("--anthropic-blue")); noStroke();
+                      text("L", cx + boxW/2 - 2, ptrY);
+                  }
+                  if (i === state.r) {
+                      fill(varColor("--anthropic-blue")); noStroke();
+                      text("R", cx + boxW/2 - 2, ptrY);
+                  }
+              }
+              textStyle(NORMAL);
+          }
+      }
+      
+      function varColor(name) {
+          return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawArray();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+
+        if (s.phase === "CHECK") {
+            logMsg(`计算 mid = (${s.l}+${s.r})/2 = ${s.mid}。当前 nums[mid] = ${NUMS[s.mid]}。`, false);
+        } else if (s.phase === "MATCH") {
+            logMsg(`✅ <span style="color:var(--anthropic-green);font-weight:bold">太棒了！nums[mid] == target！返回索引 ${s.mid}。</span>`, true);
+        } else if (s.phase === "LEFT_SORTED") {
+            logMsg(`👉 比较 nums[l]=${NUMS[s.l]} 和 nums[mid]=${NUMS[s.mid]}，因为 \`<=\`，所以左半边是有序的！`, false);
+        } else if (s.phase === "RIGHT_SORTED") {
+            logMsg(`👉 比较 nums[l]=${NUMS[s.l]} 和 nums[mid]=${NUMS[s.mid]}，因为 \`>\`，所以右半边是有序的！`, false);
+        } else if (s.phase.startsWith("IN_") || s.phase.startsWith("NOT_IN_")) {
+            // These contain the msg logic inside generator
+            logMsg(`<span style="color:#888">&gt;</span> ${s.msg}`, s.phase.startsWith("IN_"));
+        } else if (s.phase === "NOT_FOUND") {
+            logMsg(`❌ 区间缩小为空，依然没找到，返回 -1。`, true);
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

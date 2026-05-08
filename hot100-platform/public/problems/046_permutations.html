@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>全排列 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>全排列</h1>
+        <div class="subtitle">回溯算法 (Backtracking) 的经典入门</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <select id="scenario-select" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--anthropic-light-gray);" onchange="initializeSystem()">
+              <option value="1">[1, 2, 3] (3个元素，6种排列)</option>
+              <option value="2">[A, B, C, D] (4个元素，24种排列)</option>
+          </select>
+          <button class="button" onclick="initializeSystem()">重新演示回溯树</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="5.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n * n!)</span>
+            <span class="memo-badge space">□ O(n)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 回溯本质上是一种穷举搜索，用一棵状态树来呈现。</div>
+            <div class="memo-tip">💡 **做选择**：遍历未被使用（`!used[i]`）的元素，加入当前路径。</div>
+            <div class="memo-tip">💡 **向下递归**：深入下一层，继续做选择。直到 `path.length == nums.length`，即到达叶子节点，记录一个排列。</div>
+            <div class="memo-tip w">⚠️ **撤销选择 (Backtrack)**：从深层返回时，要把刚才加入的元素从路径中弹出，并且标记为未使用，这样才能让同一层的其它分支继续尝试。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">递归状态树：等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def permute(self, nums: List[int]) -> List[List[int]]:\n        res = []\n        path = []\n        used = [False] * len(nums)\n        \n        def backtrack():\n            # 触发结束条件：如果走到了叶子节点\n            if len(path) == len(nums):\n                res.append(path[:])\n                return\n                \n            for i in range(len(nums)):\n                if not used[i]:\n                    # 做选择\n                    used[i] = True\n                    path.append(nums[i])\n                    \n                    # 递归进入下一层\n                    backtrack()\n                    \n                    # 撤销选择，回溯\n                    path.pop()\n                    used[i] = False\n                    \n        backtrack()\n        return res`,
+        ts: `// TypeScript\nfunction permute(nums: number[]): number[][] {\n    const res: number[][] = [];\n    const path: number[] = [];\n    const used: boolean[] = new Array(nums.length).fill(false);\n    \n    function backtrack() {\n        // 触发结束条件\n        if (path.length === nums.length) {\n            res.push([...path]); // 拷贝一份路径加入结果集\n            return;\n        }\n        \n        for (let i = 0; i < nums.length; i++) {\n            if (!used[i]) {\n                // 1. 做选择\n                used[i] = true;\n                path.push(nums[i]);\n                \n                // 2. 向下递归进入下一层\n                backtrack();\n                \n                // 3. 撤销选择（回溯）\n                path.pop();\n                used[i] = false;\n            }\n        }\n    }\n    \n    backtrack();\n    return res;\n}`,
+        java: `// Java\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        List<List<Integer>> res = new ArrayList<>();\n        List<Integer> path = new ArrayList<>();\n        boolean[] used = new boolean[nums.length];\n        backtrack(nums, used, path, res);\n        return res;\n    }\n    \n    private void backtrack(int[] nums, boolean[] used, List<Integer> path, List<List<Integer>> res) {\n        // 叶子节点，收集结果\n        if (path.size() == nums.length) {\n            res.add(new ArrayList<>(path));\n            return;\n        }\n        \n        for (int i = 0; i < nums.length; i++) {\n            // 排除不合法的选择（已经被当前分支使用过的）\n            if (!used[i]) {\n                used[i] = true;\n                path.add(nums[i]); // 做选择\n                \n                backtrack(nums, used, path, res); // 递归\n                \n                path.remove(path.size() - 1); // 撤销选择\n                used[i] = false;\n            }\n        }\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    vector<vector<int>> permute(vector<int>& nums) {\n        vector<vector<int>> res;\n        vector<int> path;\n        vector<bool> used(nums.size(), false);\n        backtrack(nums, used, path, res);\n        return res;\n    }\n    \n    void backtrack(const vector<int>& nums, vector<bool>& used, vector<int>& path, vector<vector<int>>& res) {\n        if (path.size() == nums.size()) {\n            res.push_back(path);\n            return;\n        }\n        \n        for (int i = 0; i < nums.size(); ++i) {\n            if (!used[i]) {\n                // 做选择\n                used[i] = true;\n                path.push_back(nums[i]);\n                \n                // 递归\n                backtrack(nums, used, path, res);\n                \n                // 撤销选择，状态回退\n                path.pop_back();\n                used[i] = false;\n            }\n        }\n    }\n};`,
+        c: `// C\nvoid backtrack(int* nums, int numsSize, int* used, int* path, int pathSize, int** res, int* returnSize, int** returnColumnSizes) {\n    if (pathSize == numsSize) {\n        res[*returnSize] = (int*)malloc(numsSize * sizeof(int));\n        for (int i = 0; i < numsSize; ++i) {\n            res[*returnSize][i] = path[i];\n        }\n        (*returnColumnSizes)[*returnSize] = numsSize;\n        (*returnSize)++;\n        return;\n    }\n    \n    for (int i = 0; i < numsSize; ++i) {\n        if (!used[i]) {\n            used[i] = 1;               // 标记使用\n            path[pathSize] = nums[i];  // 加入路径\n            \n            // 递归，深度加1\n            backtrack(nums, numsSize, used, path, pathSize + 1, res, returnSize, returnColumnSizes);\n            \n            used[i] = 0;               // 回溯，撤销使用状态\n        }\n    }\n}\n\nint** permute(int* nums, int numsSize, int* returnSize, int** returnColumnSizes) {\n    int total = 1;\n    for (int i = 2; i <= numsSize; ++i) total *= i; // n的阶乘\n    \n    int** res = (int**)malloc(total * sizeof(int*));\n    *returnColumnSizes = (int*)malloc(total * sizeof(int));\n    *returnSize = 0;\n    \n    int* path = (int*)malloc(numsSize * sizeof(int));\n    int* used = (int*)calloc(numsSize, sizeof(int));\n    \n    backtrack(nums, numsSize, used, path, 0, res, returnSize, returnColumnSizes);\n    \n    free(path);\n    free(used);\n    return res;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let elements = [];
+      let treeRoot = null;
+      let activeNodes = new Set();
+      let gen = null;
+      let currentAnimState = null;
+      let collectedRes = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function buildStaticTree(nums) {
+          let idCounter = 0;
+          let root = { id: idCounter++, path: [], used: [], children: [], depth: 0, x: 0, y: 0, parent: null };
+          let leaves = [];
+          
+          function dfs(node) {
+              if (node.path.length === nums.length) {
+                  leaves.push(node);
+                  return;
+              }
+              for (let i = 0; i < nums.length; i++) {
+                  if (!node.used.includes(nums[i])) {
+                      let child = {
+                          id: idCounter++,
+                          path: [...node.path, nums[i]],
+                          used: [...node.used, nums[i]],
+                          children: [],
+                          depth: node.depth + 1,
+                          parent: node,
+                          edgeLabel: nums[i],
+                          x: 0, y: 0
+                      };
+                      node.children.push(child);
+                      dfs(child);
+                  }
+              }
+          }
+          dfs(root);
+          return { root, leaves };
+      }
+
+      function updateLayout(root, leaves, viewWidth) {
+          let leafW = viewWidth / (leaves.length || 1);
+          for (let i = 0; i < leaves.length; i++) {
+              leaves[i].x = leafW * (i + 0.5);
+              leaves[i].y = 80 + leaves[i].depth * 90;
+          }
+          
+          function setX(node) {
+              if (node.children.length === 0) return node.x;
+              let sumX = 0;
+              for (let c of node.children) {
+                  sumX += setX(c);
+              }
+              node.x = sumX / node.children.length;
+              node.y = 80 + node.depth * 90;
+              return node.x;
+          }
+          setX(root);
+      }
+
+      function* backtrackGen(nums, node) {
+          // Add to active
+          activeNodes.add(node.id);
+          yield { phase: "ENTER", node: node };
+          
+          if (node.path.length === nums.length) {
+              yield { phase: "RECORD", node: node };
+              // We don't remove leaf from active yet, wait for backtrack
+          } else {
+              for (let i = 0; i < nums.length; i++) {
+                  let child = node.children.find(c => c.edgeLabel === nums[i]);
+                  if (child) {
+                      yield { phase: "TRY_OK", node: node, val: nums[i] };
+                      yield* backtrackGen(nums, child);
+                  } else {
+                      yield { phase: "TRY_FAIL", node: node, val: nums[i] };
+                  }
+              }
+          }
+          
+          yield { phase: "BACKTRACK", node: node };
+          activeNodes.delete(node.id);
+      }
+
+      function initializeSystem() {
+        let sc = document.getElementById("scenario-select").value;
+        if (sc === "1") elements = [1, 2, 3];
+        else elements = ['A', 'B', 'C', 'D'];
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        collectedRes = 0;
+        activeNodes.clear();
+
+        let treeData = buildStaticTree(elements);
+        treeRoot = treeData.root;
+        updateLayout(treeRoot, treeData.leaves, width - 20);
+
+        gen = backtrackGen(elements, treeRoot);
+        currentAnimState = gen.next();
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = `正在计算 permutations([${elements.join(', ')}]) 的所有排列...`;
+        logMsg(`✅ 启动全排列算法！元素集合: [${elements.join(', ')}]`, true);
+      }
+
+      function drawSubTree(node) {
+          // Only draw if node is active or has been active (path is known)
+          // Since we want the tree to "reveal" itself, we shouldn't draw unvisited.
+          // Or we draw the skeleton very faintly. Let's draw skeleton faintly!
+          
+          for (let child of node.children) {
+              let isActiveEdge = activeNodes.has(node.id) && activeNodes.has(child.id);
+              if (isActiveEdge) {
+                  stroke(217, 119, 87); strokeWeight(3);
+              } else {
+                  stroke(230); strokeWeight(1);
+              }
+              line(node.x, node.y, child.x, child.y);
+              
+              // Draw edge label
+              if (isActiveEdge) {
+                  fill(217, 119, 87); noStroke();
+                  textSize(14);
+                  text(child.edgeLabel, (node.x + child.x)/2, (node.y + child.y)/2);
+              }
+              
+              drawSubTree(child);
+          }
+          
+          let isActive = activeNodes.has(node.id);
+          if (isActive) {
+              fill(254, 240, 138); stroke(202, 138, 4); strokeWeight(2);
+          } else {
+              fill(250); stroke(220); strokeWeight(1);
+          }
+          
+          // Draw node
+          let w = elements.length === 4 ? 35 : 45;
+          rectMode(CENTER);
+          rect(node.x, node.y, w * Math.max(1, node.path.length), 26, 6);
+          rectMode(CORNER);
+          
+          if (isActive) fill(50);
+          else fill(180);
+          noStroke(); textAlign(CENTER, CENTER);
+          textSize(elements.length === 4 ? 11 : 14);
+          text(`[${node.path.join(',')}]`, node.x, node.y);
+      }
+
+      function draw() {
+        background(255);
+
+        // Resize hook
+        if (treeRoot && width > 0) {
+            let treeData = buildStaticTree(elements);
+            updateLayout(treeData.root, treeData.leaves, width - 40);
+            
+            // Calculate vertical offset to center the tree
+            let maxDepth = elements.length;
+            let treeHeight = 80 + maxDepth * 90;
+            let offsetY = max(0, (height - treeHeight) / 2);
+            
+            // Apply layout to real tree
+            let q1 = [treeRoot];
+            let q2 = [treeData.root];
+            while(q1.length) {
+                let n1 = q1.shift(); let n2 = q2.shift();
+                n1.x = n2.x + 20; 
+                n1.y = n2.y + offsetY;
+                for(let i=0; i<n1.children.length; i++) {
+                    q1.push(n1.children[i]); q2.push(n2.children[i]);
+                }
+            }
+        }
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // HUD
+        fill(250, 240, 230); stroke(220, 180, 150); strokeWeight(2);
+        rect(10, 10, 180, 45, 8);
+        fill(50); noStroke(); textAlign(LEFT, CENTER); textSize(13);
+        text(`已收集排列: ${collectedRes}`, 20, 32);
+
+        if (treeRoot) drawSubTree(treeRoot);
+      }
+
+      function performStep() {
+        if (currentAnimState && currentAnimState.done) {
+            if (!isDone) {
+                isDone = true;
+                logMsg(`🏁 所有回溯分支探索完毕！共找到 ${collectedRes} 种全排列。`, true);
+            }
+            return;
+        }
+
+        let s = currentAnimState.value;
+        let indent = " ".repeat(s.node.depth * 2);
+
+        if (s.phase === "ENTER") {
+            logMsg(`<span style="color:#888">${indent}</span> ⬇️ 递归层级 ${s.node.depth}: 当前路径 path=[${s.node.path.join(',')}]`, false);
+        } else if (s.phase === "TRY_FAIL") {
+            logMsg(`<span style="color:#888">${indent}</span> ❌ 尝试选择 ${s.val}：失败！已被使用 (used=True)`, false);
+        } else if (s.phase === "TRY_OK") {
+            logMsg(`<span style="color:#888">${indent}</span> ✅ 尝试选择 ${s.val}：成功！将进入下一层`, false);
+        } else if (s.phase === "RECORD") {
+            collectedRes++;
+            logMsg(`<span style="color:#888">${indent}</span> 🌟 <span style="color:var(--anthropic-green);font-weight:bold">到达叶子节点！收集到一个排列：[${s.node.path.join(',')}]</span>`, true);
+        } else if (s.phase === "BACKTRACK") {
+            if (s.node.parent) {
+                let popped = s.node.path[s.node.path.length-1];
+                logMsg(`<span style="color:#888">${indent}</span> 🔙 撤销选择 (Backtrack): 弹出 ${popped} 并标记为未使用`, false);
+            }
+        }
+
+        currentAnimState = gen.next();
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

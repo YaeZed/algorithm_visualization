@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>寻找两个正序数组的中位数 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>寻找两个正序数组的中位数</h1>
+        <div class="subtitle">终极二分 - 寻找完美的“切分线”</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <select id="scenario-select" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--anthropic-light-gray);" onchange="initializeSystem()">
+              <option value="1">nums1=[1,3,8], nums2=[7,9,10,11] (总长 7, 奇数)</option>
+              <option value="2">nums1=[1,2], nums2=[3,4] (总长 4, 偶数)</option>
+              <option value="3">nums1=[1,10,20], nums2=[2,3,4] (总长 6, 偶数)</option>
+          </select>
+          <button class="button" onclick="initializeSystem()">重新演示切分过程</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(log(min(m,n)))</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **切分思想**：中位数的作用是将数组分成等长的左右两半。既然有两个数组，只要我们切两刀，保证“左边元素总数 = 右边元素总数（或多1）”即可。</div>
+            <div class="memo-tip g">🔪 **一刀定音**：因为总长度固定，只要确定了 `nums1` 切在哪（记为 `i`），`nums2` 的切分位置（记为 `j`）就**自动确定**了！因此我们只需要对较短的那个数组进行二分查找 `i` 即可。</div>
+            <div class="memo-tip w">🎯 **交叉校验**：合法的切分线必须满足交叉小于等于，即 `L1 <= R2` 并且 `L2 <= R1`。只要发现 `L1 > R2`，说明我们在 `nums1` 切得太靠右了，需要向左逼近。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:\n        # 始终确保在较短的数组上进行二分查找，使得时间复杂度为 O(log(min(m,n)))\n        if len(nums1) > len(nums2):\n            nums1, nums2 = nums2, nums1\n            \n        m, n = len(nums1), len(nums2)\n        l, r = 0, m\n        \n        # 无论是奇数还是偶数长度，都期望左半部分总数为 (m+n+1)//2\n        # 如果是奇数，左边会比右边多 1 个元素\n        half_len = (m + n + 1) // 2\n        \n        while l <= r:\n            i = (l + r) // 2\n            j = half_len - i\n            \n            # 获取切分线两侧的 4 个元素，处理越界为 Infinity\n            left1 = nums1[i-1] if i > 0 else float('-inf')\n            right1 = nums1[i] if i < m else float('inf')\n            left2 = nums2[j-1] if j > 0 else float('-inf')\n            right2 = nums2[j] if j < n else float('inf')\n            \n            # 判断切分线是否有效（交叉小于等于）\n            if left1 <= right2 and left2 <= right1:\n                # 找到完美的切分线！\n                if (m + n) % 2 == 1:\n                    return max(left1, left2)\n                else:\n                    return (max(left1, left2) + min(right1, right2)) / 2.0\n                    \n            elif left1 > right2:\n                # nums1 左侧元素太大了，切分线 i 必须左移\n                r = i - 1\n            else:\n                # nums2 左侧元素（left2）比 right1 还大，说明切分线 i 太小，右移\n                l = i + 1`,
+        ts: `// TypeScript\nfunction findMedianSortedArrays(nums1: number[], nums2: number[]): number {\n    if (nums1.length > nums2.length) {\n        [nums1, nums2] = [nums2, nums1];\n    }\n    \n    const m = nums1.length;\n    const n = nums2.length;\n    let l = 0, r = m;\n    const halfLen = Math.floor((m + n + 1) / 2);\n    \n    while (l <= r) {\n        let i = Math.floor((l + r) / 2);\n        let j = halfLen - i;\n        \n        let left1 = i === 0 ? -Infinity : nums1[i - 1];\n        let right1 = i === m ? Infinity : nums1[i];\n        let left2 = j === 0 ? -Infinity : nums2[j - 1];\n        let right2 = j === n ? Infinity : nums2[j];\n        \n        if (left1 <= right2 && left2 <= right1) {\n            if ((m + n) % 2 === 1) {\n                return Math.max(left1, left2);\n            }\n            return (Math.max(left1, left2) + Math.min(right1, right2)) / 2;\n        } else if (left1 > right2) {\n            r = i - 1; // i 切得太靠右\n        } else {\n            l = i + 1; // i 切得太靠左\n        }\n    }\n    \n    throw new Error("No median found");\n}`,
+        java: `// Java\nclass Solution {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        if (nums1.length > nums2.length) {\n            int[] temp = nums1; nums1 = nums2; nums2 = temp;\n        }\n        \n        int m = nums1.length, n = nums2.length;\n        int l = 0, r = m;\n        int halfLen = (m + n + 1) / 2;\n        \n        while (l <= r) {\n            int i = l + (r - l) / 2;\n            int j = halfLen - i;\n            \n            int left1 = (i == 0) ? Integer.MIN_VALUE : nums1[i - 1];\n            int right1 = (i == m) ? Integer.MAX_VALUE : nums1[i];\n            int left2 = (j == 0) ? Integer.MIN_VALUE : nums2[j - 1];\n            int right2 = (j == n) ? Integer.MAX_VALUE : nums2[j];\n            \n            if (left1 <= right2 && left2 <= right1) {\n                if ((m + n) % 2 == 1) {\n                    return Math.max(left1, left2);\n                } else {\n                    return (Math.max(left1, left2) + Math.min(right1, right2)) / 2.0;\n                }\n            } else if (left1 > right2) {\n                r = i - 1;\n            } else {\n                l = i + 1;\n            }\n        }\n        \n        return 0.0;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {\n        if (nums1.size() > nums2.size()) {\n            swap(nums1, nums2);\n        }\n        \n        int m = nums1.size(), n = nums2.size();\n        int l = 0, r = m;\n        int halfLen = (m + n + 1) / 2;\n        \n        while (l <= r) {\n            int i = l + (r - l) / 2;\n            int j = halfLen - i;\n            \n            int left1 = (i == 0) ? INT_MIN : nums1[i - 1];\n            int right1 = (i == m) ? INT_MAX : nums1[i];\n            int left2 = (j == 0) ? INT_MIN : nums2[j - 1];\n            int right2 = (j == n) ? INT_MAX : nums2[j];\n            \n            if (left1 <= right2 && left2 <= right1) {\n                if ((m + n) % 2 == 1) {\n                    return max(left1, left2);\n                } else {\n                    return (max(left1, left2) + min(right1, right2)) / 2.0;\n                }\n            } else if (left1 > right2) {\n                r = i - 1;\n            } else {\n                l = i + 1;\n            }\n        }\n        return 0.0;\n    }\n};`,
+        c: `// C\ndouble findMedianSortedArrays(int* nums1, int nums1Size, int* nums2, int nums2Size) {\n    if (nums1Size > nums2Size) {\n        int* temp = nums1; nums1 = nums2; nums2 = temp;\n        int tSize = nums1Size; nums1Size = nums2Size; nums2Size = tSize;\n    }\n    \n    int m = nums1Size, n = nums2Size;\n    int l = 0, r = m;\n    int halfLen = (m + n + 1) / 2;\n    \n    while (l <= r) {\n        int i = l + (r - l) / 2;\n        int j = halfLen - i;\n        \n        int left1 = (i == 0) ? INT_MIN : nums1[i - 1];\n        int right1 = (i == m) ? INT_MAX : nums1[i];\n        int left2 = (j == 0) ? INT_MIN : nums2[j - 1];\n        int right2 = (j == n) ? INT_MAX : nums2[j];\n        \n        if (left1 <= right2 && left2 <= right1) {\n            if ((m + n) % 2 == 1) {\n                return left1 > left2 ? left1 : left2;\n            } else {\n                int leftMax = left1 > left2 ? left1 : left2;\n                int rightMin = right1 < right2 ? right1 : right2;\n                return (leftMax + rightMin) / 2.0;\n            }\n        } else if (left1 > right2) {\n            r = i - 1;\n        } else {\n            l = i + 1;\n        }\n    }\n    return 0.0;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let NUMS1 = [1,3,8];
+      let NUMS2 = [7,9,10,11];
+      
+      let state = null; // Contains l, r, i, j, L1, R1, L2, R2, phase, median
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* medianGen() {
+          let n1 = NUMS1, n2 = NUMS2;
+          let swapped = false;
+          if (n1.length > n2.length) {
+              [n1, n2] = [n2, n1];
+              swapped = true;
+          }
+          
+          let m = n1.length, n = n2.length;
+          let halfLen = Math.floor((m + n + 1) / 2);
+          let l = 0, r = m;
+          
+          yield { phase: "START", msg: `总长为 ${m+n}。切分线需保证左侧共有 halfLen = ${halfLen} 个元素。始终对较短数组 nums1 进二分查找！`, n1, n2, swapped };
+          
+          while (l <= r) {
+              let i = Math.floor((l + r) / 2);
+              let j = halfLen - i;
+              
+              let L1 = i === 0 ? -Infinity : n1[i - 1];
+              let R1 = i === m ? Infinity : n1[i];
+              let L2 = j === 0 ? -Infinity : n2[j - 1];
+              let R2 = j === n ? Infinity : n2[j];
+              
+              yield { phase: "CHECK", l, r, i, j, L1, R1, L2, R2, n1, n2, msg: `尝试切分：nums1 取 ${i} 个，nums2 取 ${j} 个。` };
+              
+              if (L1 <= R2 && L2 <= R1) {
+                  let maxLeft = Math.max(L1 === -Infinity ? -Infinity : L1, L2 === -Infinity ? -Infinity : L2);
+                  let minRight = Math.min(R1 === Infinity ? Infinity : R1, R2 === Infinity ? Infinity : R2);
+                  
+                  let median;
+                  if ((m + n) % 2 === 1) {
+                      median = maxLeft;
+                  } else {
+                      median = (maxLeft + minRight) / 2;
+                  }
+                  
+                  yield { phase: "MATCH", l, r, i, j, L1, R1, L2, R2, n1, n2, median, maxLeft, minRight, msg: `完美！交叉比较 L1 <= R2 且 L2 <= R1 都成立。` };
+                  return median;
+              } else if (L1 > R2) {
+                  yield { phase: "MOVE_L", l, r, i, j, L1, R1, L2, R2, n1, n2, msg: `交叉冲突：L1(${L1}) > R2(${R2})。nums1 左边元素太大了，切分线 i 必须左移 (r = i - 1)` };
+                  r = i - 1;
+              } else {
+                  yield { phase: "MOVE_R", l, r, i, j, L1, R1, L2, R2, n1, n2, msg: `交叉冲突：L2(${L2}) > R1(${R1})。nums1 取的太少了，切分线 i 必须右移 (l = i + 1)` };
+                  l = i + 1;
+              }
+          }
+      }
+
+      function initializeSystem() {
+        let sc = document.getElementById("scenario-select").value;
+        if (sc === "1") { NUMS1 = [1,3,8]; NUMS2 = [7,9,10,11]; }
+        else if (sc === "2") { NUMS1 = [1,2]; NUMS2 = [3,4]; }
+        else { NUMS1 = [1,10,20]; NUMS2 = [2,3,4]; }
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = medianGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = "▶ 阶段：对较短数组进行二分猜切分线";
+        logMsg(`✅ 启动算法：寻找双数组的中位数`, true);
+      }
+
+      function drawArray() {
+          let s = state;
+          let n1 = s.n1 || NUMS1;
+          let n2 = s.n2 || NUMS2;
+          
+          let m = n1.length, n = n2.length;
+          let maxLen = Math.max(m, n);
+          let boxW = 55;
+          let boxH = 45;
+          let startX = width/2 - (maxLen * boxW)/2;
+          let startY1 = height/2 - 70;
+          let startY2 = height/2 + 30;
+
+          // Info
+          fill(50); noStroke(); textAlign(CENTER, CENTER);
+          textSize(18); textStyle(BOLD);
+          text(`寻找中位数 (总长度: ${m+n})`, width/2, startY1 - 80);
+          textStyle(NORMAL);
+          
+          let resText = "二分逼近切分点...";
+          if (s.phase === "MATCH") resText = `🎉 找到啦！中位数 = ${s.median}`;
+          textSize(15);
+          if (s.phase === "MATCH") fill(varColor("--anthropic-green"));
+          else fill(150);
+          text(resText, width/2, startY1 - 50);
+
+          function renderRow(arr, rowY, cutIdx, labelStr) {
+              // Draw label
+              fill(150); noStroke(); textAlign(RIGHT, CENTER); textSize(12);
+              text(labelStr, startX - 20, rowY + boxH/2);
+              
+              for (let idx = 0; idx < arr.length; idx++) {
+                  let cx = startX + idx * boxW;
+                  let cy = rowY;
+                  
+                  let isLeftPart = idx < cutIdx;
+                  
+                  // Color backgrounds based on left/right part of cut
+                  if (s.phase === "START") {
+                      fill(250); stroke(200);
+                  } else {
+                      if (isLeftPart) {
+                          fill(220, 252, 231, 150); stroke(100, 200, 100);
+                      } else {
+                          fill(254, 240, 138, 100); stroke(220, 180, 100);
+                      }
+                  }
+                  
+                  // Highlight L1/R1/L2/R2 specifically
+                  if (s.phase !== "START") {
+                      if (arr === n1) {
+                          if (idx === s.i - 1) { fill(187, 247, 208); stroke(34, 197, 94); strokeWeight(3); } // L1
+                          if (idx === s.i) { fill(254, 240, 138); stroke(202, 138, 4); strokeWeight(3); } // R1
+                      } else {
+                          if (idx === s.j - 1) { fill(187, 247, 208); stroke(34, 197, 94); strokeWeight(3); } // L2
+                          if (idx === s.j) { fill(254, 240, 138); stroke(202, 138, 4); strokeWeight(3); } // R2
+                      }
+                  } else {
+                      strokeWeight(2);
+                  }
+
+                  rect(cx, cy, boxW - 4, boxH, 6);
+
+                  fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(18);
+                  text(arr[idx], cx + boxW/2 - 2, cy + boxH/2);
+              }
+              
+              // Draw cut line
+              if (s.phase !== "START" && cutIdx !== undefined) {
+                  let cutX = startX + cutIdx * boxW - 2;
+                  stroke(varColor("--anthropic-orange")); strokeWeight(4); drawingContext.setLineDash([6, 6]);
+                  line(cutX, rowY - 15, cutX, rowY + boxH + 15);
+                  drawingContext.setLineDash([]);
+                  
+                  // Cut labels
+                  noStroke(); fill(varColor("--anthropic-orange")); textSize(12); textStyle(BOLD);
+                  if (arr === n1) {
+                      text("i=" + cutIdx, cutX, rowY - 25);
+                      // Draw L1/R1 markers
+                      fill(34, 197, 94); if (cutIdx > 0) text("L1", cutX - boxW/2, rowY - 5);
+                      fill(202, 138, 4); if (cutIdx < arr.length) text("R1", cutX + boxW/2, rowY - 5);
+                  } else {
+                      text("j=" + cutIdx, cutX, rowY + boxH + 25);
+                      fill(34, 197, 94); if (cutIdx > 0) text("L2", cutX - boxW/2, rowY + boxH + 5);
+                      fill(202, 138, 4); if (cutIdx < arr.length) text("R2", cutX + boxW/2, rowY + boxH + 5);
+                  }
+                  textStyle(NORMAL);
+              }
+          }
+
+          renderRow(n1, startY1, s.i, "nums1 (较短)");
+          renderRow(n2, startY2, s.j, "nums2 (较长)");
+          
+          // Draw crossover arrows
+          if (s.phase !== "START" && s.phase !== "DONE") {
+              let iX = startX + s.i * boxW - 2;
+              let jX = startX + s.j * boxW - 2;
+              
+              // L1 -> R2
+              if (s.i > 0 && s.j < n) {
+                  let l1x = iX - boxW/2, l1y = startY1 + boxH;
+                  let r2x = jX + boxW/2, r2y = startY2;
+                  drawCurvedArrow(l1x, l1y, r2x, r2y, s.L1 <= s.R2, 30);
+              }
+              
+              // L2 -> R1
+              if (s.j > 0 && s.i < m) {
+                  let l2x = jX - boxW/2, l2y = startY2;
+                  let r1x = iX + boxW/2, r1y = startY1 + boxH;
+                  drawCurvedArrow(l2x, l2y, r1x, r1y, s.L2 <= s.R1, -30);
+              }
+          }
+      }
+
+      function drawCurvedArrow(x1, y1, x2, y2, isGood, bend) {
+          if (isGood) { stroke(34, 197, 94, 200); fill(34, 197, 94, 200); }
+          else { stroke(239, 68, 68, 200); fill(239, 68, 68, 200); }
+          
+          strokeWeight(2);
+          noFill();
+          
+          let cx1 = x1;
+          let cy1 = y1 + bend;
+          let cx2 = x2;
+          let cy2 = y2 - bend;
+          
+          bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+          
+          let tx = bezierTangent(x1, cx1, cx2, x2, 1);
+          let ty = bezierTangent(y1, cy1, cy2, y2, 1);
+          let angle = atan2(ty, tx);
+          
+          push();
+          translate(x2, y2);
+          rotate(angle);
+          if (isGood) fill(34, 197, 94, 200);
+          else fill(239, 68, 68, 200);
+          noStroke();
+          let headSize = 6;
+          triangle(-headSize*1.5, headSize, -headSize*1.5, -headSize, 0, 0);
+          pop();
+      }
+      
+      function varColor(name) {
+          return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawArray();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1.5) { // Slower for median
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+
+        if (s.phase === "START") {
+            logMsg(s.msg, true);
+        } else if (s.phase === "CHECK") {
+            logMsg(`\n${s.msg} 获得 <b>L1=${s.L1===-Infinity?'-∞':s.L1}, R1=${s.R1===Infinity?'∞':s.R1}</b> 和 <b>L2=${s.L2===-Infinity?'-∞':s.L2}, R2=${s.R2===Infinity?'∞':s.R2}</b>。检查交叉大小关系...`, false);
+        } else if (s.phase === "MOVE_L" || s.phase === "MOVE_R") {
+            logMsg(`🚨 <b>${s.msg}</b>`, false);
+        } else if (s.phase === "MATCH") {
+            logMsg(`\n✅ <span style="color:var(--anthropic-green);font-weight:bold">${s.msg}</span> 此时左半边最大值为 ${s.maxLeft}，右半边最小值为 ${s.minRight}。`, true);
+            let tot = s.n1.length + s.n2.length;
+            if (tot % 2 === 1) {
+                logMsg(`👉 总长度为奇数，中位数为左半部分的最大值: <b>${s.median}</b>`, true);
+            } else {
+                logMsg(`👉 总长度为偶数，中位数为 (左最大 + 右最小) / 2 = (${s.maxLeft} + ${s.minRight}) / 2 = <b>${s.median}</b>`, true);
+            }
+            isDone = true;
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

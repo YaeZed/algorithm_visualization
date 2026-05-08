@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>寻找旋转排序数组中的最小值 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>寻找旋转排序数组中的最小值</h1>
+        <div class="subtitle">二分查找 - 寻找折线下降点 (断崖点)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <select id="scenario-select" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--anthropic-light-gray);" onchange="initializeSystem()">
+              <option value="1">nums = [3,4,5,1,2] (旋转过)</option>
+              <option value="2">nums = [4,5,6,7,0,1,2] (旋转过)</option>
+              <option value="3">nums = [11,13,15,17] (未旋转)</option>
+          </select>
+          <button class="button" onclick="initializeSystem()">重新演示寻找最小值</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(log n)</span>
+            <span class="memo-badge space">□ O(1)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **关键在于 nums[mid] 与 nums[r] 的较量**！最小值（断崖点）破坏了整体的单调性，我们需要通过比较中点和右端点来判断断崖在哪边。</div>
+            <div class="memo-tip g">📉 **情况 1**：如果 `nums[mid] > nums[r]`，说明中间比右边高！这违背了有序数组的规律，说明**断崖一定在 mid 的右边**。因此 `l = mid + 1`。</div>
+            <div class="memo-tip w">📈 **情况 2**：如果 `nums[mid] < nums[r]`，说明 `[mid, r]` 这一段是正常爬坡的。既然正常，断崖就不可能在这段。但由于 `mid` 本身可能就是那个最低点，所以收缩时不能加 1，必须保留 `r = mid`。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def findMin(self, nums: List[int]) -> int:\n        l, r = 0, len(nums) - 1\n        \n        # 注意这里是 l < r 而不是 l <= r\n        # 因为我们要找的是存在于数组中的一个极小值点，\n        # 当 l == r 时，它们指向的就是那个唯一的最小值，循环自然终止\n        while l < r:\n            mid = (l + r) // 2\n            \n            # 如果 mid 的值大于右端点的值，说明"断崖"(最小值)在 mid 的右侧\n            # 且 mid 绝对不可能是最小值\n            if nums[mid] > nums[r]:\n                l = mid + 1\n            # 如果 mid 的值小于右端点的值，说明右半侧是正常升序的\n            # 断崖(最小值)在 mid 的左侧，或者 mid 自己就是最小值\n            else:\n                r = mid\n                \n        return nums[l]`,
+        ts: `// TypeScript\nfunction findMin(nums: number[]): number {\n    let l = 0, r = nums.length - 1;\n    \n    while (l < r) {\n        const mid = Math.floor((l + r) / 2);\n        \n        if (nums[mid] > nums[r]) {\n            // 最小值在右半部分，且 mid 不可能是最小值\n            l = mid + 1;\n        } else {\n            // 最小值在左半部分，或者 mid 就是最小值\n            // 注意：不能写 r = mid - 1，否则可能会跳过最小值\n            r = mid;\n        }\n    }\n    \n    return nums[l];\n}`,
+        java: `// Java\nclass Solution {\n    public int findMin(int[] nums) {\n        int l = 0, r = nums.length - 1;\n        \n        while (l < r) {\n            int mid = l + (r - l) / 2;\n            \n            if (nums[mid] > nums[r]) {\n                // 中间值大于右端点，说明发生了旋转，最小数在右侧\n                l = mid + 1;\n            } else {\n                // 中间值小于等于右端点，右半边是有序的，最小数在左侧（包含 mid）\n                r = mid;\n            }\n        }\n        \n        // 当 l == r 时，定位到最小值\n        return nums[l];\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    int findMin(vector<int>& nums) {\n        int l = 0, r = nums.size() - 1;\n        \n        while (l < r) {\n            int mid = l + (r - l) / 2;\n            \n            if (nums[mid] > nums[r]) {\n                l = mid + 1;\n            } else {\n                r = mid;\n            }\n        }\n        \n        return nums[l];\n    }\n};`,
+        c: `// C\nint findMin(int* nums, int numsSize) {\n    int l = 0, r = numsSize - 1;\n    \n    while (l < r) {\n        int mid = l + (r - l) / 2;\n        \n        if (nums[mid] > nums[r]) {\n            l = mid + 1;\n        } else {\n            r = mid;\n        }\n    }\n    \n    return nums[l];\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let NUMS = [3,4,5,1,2];
+      
+      let state = null; // Contains current phase, l, r, mid
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* findMinGen() {
+          let l = 0, r = NUMS.length - 1;
+          yield { phase: "START", l, r, mid: null, msg: "开始寻找旋转排序数组的最小值" };
+          
+          while (l < r) {
+              let mid = Math.floor((l + r) / 2);
+              yield { phase: "CHECK", l, r, mid };
+              
+              if (NUMS[mid] > NUMS[r]) {
+                  yield { phase: "DROP_RIGHT", l, r, mid, msg: "nums[mid] > nums[r]，说明断崖在右侧，向右收缩：l = mid + 1" };
+                  l = mid + 1;
+              } else {
+                  yield { phase: "NORMAL_RIGHT", l, r, mid, msg: "nums[mid] <= nums[r]，说明右侧是正常升序，断崖在左侧（或就是mid）。向左收缩：r = mid" };
+                  r = mid;
+              }
+          }
+          yield { phase: "DONE", l, r, mid: null, minVal: NUMS[l], minIdx: l, msg: `l 和 r 相遇，找到最小值 ${NUMS[l]}！` };
+      }
+
+      function initializeSystem() {
+        let sc = document.getElementById("scenario-select").value;
+        if (sc === "1") { NUMS = [3,4,5,1,2]; }
+        else if (sc === "2") { NUMS = [4,5,6,7,0,1,2]; }
+        else { NUMS = [11,13,15,17]; }
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = findMinGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        logMsg(`✅ 启动算法：在数组 [${NUMS.join(',')}] 中查找最小值`, true);
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = "▶ 阶段：寻找最小值折线下降点";
+      }
+
+      function drawArray() {
+          let n = NUMS.length;
+          let boxW = min(60, (width - 60) / n);
+          let boxH = 45;
+          let totalW = n * boxW;
+          let startX = width/2 - totalW/2;
+          let startY = height/2 + 60; // Shifted down to leave room for graph
+          
+          // Draw Bar Graph above array to show "rotation"
+          let maxVal = Math.max(...NUMS);
+          let minVal = Math.min(...NUMS);
+          let graphH = 150;
+          let graphYBase = startY - 20;
+          
+          // Background for range
+          if (state.l !== undefined && state.r !== undefined && state.phase !== "DONE") {
+              let lX = startX + state.l * boxW;
+              let rX = startX + state.r * boxW + boxW;
+              fill(240, 248, 255); noStroke();
+              rect(lX, graphYBase - graphH - 20, rX - lX, graphH + 40, 8);
+          }
+          
+          // Draw connecting lines
+          stroke(200); strokeWeight(2); noFill();
+          beginShape();
+          for (let i = 0; i < n; i++) {
+              let cx = startX + i * boxW + boxW/2;
+              let cy = graphYBase - ((NUMS[i] - minVal + 1)/Math.max(1, maxVal - minVal + 2)) * graphH;
+              vertex(cx, cy);
+          }
+          endShape();
+          
+          // Draw comparison line
+          if ((state.phase === "DROP_RIGHT" || state.phase === "NORMAL_RIGHT") && state.mid !== null) {
+              let mx = startX + state.mid * boxW + boxW/2;
+              let my = graphYBase - ((NUMS[state.mid] - minVal + 1)/Math.max(1, maxVal - minVal + 2)) * graphH;
+              let rx = startX + state.r * boxW + boxW/2;
+              let ry = graphYBase - ((NUMS[state.r] - minVal + 1)/Math.max(1, maxVal - minVal + 2)) * graphH;
+              
+              if (state.phase === "DROP_RIGHT") stroke(239, 68, 68); // Red downward
+              else stroke(34, 197, 94); // Green upward
+              
+              strokeWeight(3);
+              drawingContext.setLineDash([5, 5]);
+              line(mx, my, rx, ry);
+              drawingContext.setLineDash([]);
+          }
+
+          for (let i = 0; i < n; i++) {
+              let cx = startX + i * boxW;
+              let cy = startY;
+              
+              let inRange = (state.l !== undefined && i >= state.l && i <= state.r);
+              let isMid = (state.mid !== undefined && i === state.mid);
+              let isRight = (state.r !== undefined && i === state.r);
+              let isMin = (state.phase === "DONE" && i === state.minIdx);
+
+              // Value Bar Node
+              let barCx = cx + boxW/2;
+              let barY = graphYBase - ((NUMS[i] - minVal + 1)/Math.max(1, maxVal - minVal + 2)) * graphH;
+              
+              if (!inRange && state.phase !== "START" && state.phase !== "DONE") {
+                  fill(240); stroke(220); // Eliminated
+              } else if (isMin) {
+                  fill(254, 240, 138); stroke(202, 138, 4);
+              } else if (isMid) {
+                  fill(254, 215, 170); stroke(234, 88, 12);
+              } else if (isRight && state.phase !== "DONE") {
+                  fill(220, 252, 231); stroke(34, 197, 94);
+              } else {
+                  fill(255); stroke(200);
+                  if (inRange) { fill(224, 242, 254); stroke(59, 130, 246); }
+              }
+              
+              strokeWeight(isMid || isMin || isRight ? 3 : 2);
+              ellipse(barCx, barY, 12, 12);
+              
+              // Box background
+              if (!inRange && state.phase !== "START" && state.phase !== "DONE") {
+                  fill(245); stroke(230); // Eliminated
+              } else if (isMin) {
+                  fill(254, 240, 138); stroke(202, 138, 4);
+              } else if (isMid) {
+                  fill(254, 215, 170); stroke(234, 88, 12);
+              } else {
+                  fill(255); stroke(200);
+              }
+
+              strokeWeight(isMid || isMin ? 3 : 2);
+              rect(cx, cy, boxW - 4, boxH, 6);
+
+              // Array text
+              if (!inRange && state.phase !== "START" && state.phase !== "DONE") fill(200);
+              else fill(50);
+              noStroke(); textAlign(CENTER, CENTER);
+              textSize(18);
+              text(NUMS[i], cx + boxW/2 - 2, cy + boxH/2);
+              
+              // Pointers
+              textSize(12); textStyle(BOLD);
+              if (isMid) {
+                  fill(varColor("--anthropic-orange"));
+                  text("mid", cx + boxW/2 - 2, cy - 10);
+              }
+              if (isMin) {
+                  fill(varColor("--anthropic-green"));
+                  text("min!", cx + boxW/2 - 2, cy - 10);
+              }
+              
+              let ptrY = cy + boxH + 20;
+              if (i === state.l && i === state.r) {
+                  fill(varColor("--anthropic-dark")); noStroke();
+                  text("L, R", cx + boxW/2 - 2, ptrY);
+              } else {
+                  if (i === state.l) {
+                      fill(varColor("--anthropic-blue")); noStroke();
+                      text("L", cx + boxW/2 - 2, ptrY);
+                  }
+                  if (i === state.r) {
+                      fill(varColor("--anthropic-blue")); noStroke();
+                      text("R", cx + boxW/2 - 2, ptrY);
+                  }
+              }
+              textStyle(NORMAL);
+          }
+      }
+      
+      function varColor(name) {
+          return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawArray();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+
+        if (s.phase === "CHECK") {
+            logMsg(`👉 取中间索引 mid = ${s.mid}，比较 <b>nums[mid]=${NUMS[s.mid]}</b> 和 <b>nums[r]=${NUMS[s.r]}</b>`, false);
+        } else if (s.phase === "DROP_RIGHT") {
+            logMsg(`🚨 发现 nums[mid] > nums[r] (${NUMS[s.mid]} > ${NUMS[s.r]})！这说明折线在向右走的过程中发生了断崖（跌落）。<span style="color:var(--anthropic-orange)">最小值一定在右边且不包括mid。</span> l = ${s.mid} + 1`, false);
+        } else if (s.phase === "NORMAL_RIGHT") {
+            logMsg(`✅ 发现 nums[mid] <= nums[r] (${NUMS[s.mid]} <= ${NUMS[s.r]})。右半边是正常爬坡，没有断崖。<span style="color:var(--anthropic-green)">最小值一定在左侧（或者就是mid）。</span> r = ${s.mid}`, false);
+        } else if (s.phase === "DONE") {
+            logMsg(`\n🌟 循环结束，l 和 r 相遇于索引 ${s.minIdx}。找到数组的最小值为：<b>${s.minVal}</b>`, true);
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

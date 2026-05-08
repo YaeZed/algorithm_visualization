@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>单词搜索 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>单词搜索</h1>
+        <div class="subtitle">二维网格的回溯搜索 (DFS)</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <select id="scenario-select" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--anthropic-light-gray);" onchange="initializeSystem()">
+              <option value="1">单词: "ABCCED" (存在)</option>
+              <option value="2">单词: "SEE" (存在)</option>
+              <option value="3">单词: "ABCB" (不存在)</option>
+          </select>
+          <button class="button" onclick="initializeSystem()">重新演示搜索</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="5.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(m*n*3^L)</span>
+            <span class="memo-badge space">□ O(L)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **多源起点**：因为单词的首字母可能在网格的任何地方，所以要用两层 for 循环寻找所有潜在的起点。</div>
+            <div class="memo-tip g">📍 **图论中的回溯**：上下左右 4 个方向构成选择树。当前格子标记为已访问（例如写成 `#`），相当于全排列中的 `used[i] = true`。</div>
+            <div class="memo-tip w">⚠️ **还原现场**：当 4 个方向都走不通，从递归函数返回时，必须把格子里的字母变回来，让其他可能的搜索路径继续使用！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+            <span id="phase-header">网格搜索：等待开始...</span>
+            <span id="target-word-display" style="font-family:'JetBrains Mono',monospace; font-weight: bold; color: var(--anthropic-orange);"></span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def exist(self, board: List[List[str]], word: str) -> bool:\n        rows, cols = len(board), len(board[0])\n        \n        def backtrack(r, c, index):\n            # 所有字符都匹配成功，找到结果\n            if index == len(word): return True\n            \n            # 越界或字符不匹配，直接剪枝\n            if r < 0 or r >= rows or c < 0 or c >= cols or board[r][c] != word[index]:\n                return False\n                \n            # 做选择：记录当前字符并标记为已访问（防止走回头路）\n            temp = board[r][c]\n            board[r][c] = '#'\n            \n            # 向四个方向探索（只要有一个成功即可返回 True）\n            res = (backtrack(r + 1, c, index + 1) or\n                   backtrack(r - 1, c, index + 1) or\n                   backtrack(r, c + 1, index + 1) or\n                   backtrack(r, c - 1, index + 1))\n                   \n            # 撤销选择，恢复原状（回溯），供其他可能路径继续使用\n            board[r][c] = temp\n            return res\n            \n        # 遍历网格，寻找所有可能的起点\n        for r in range(rows):\n            for c in range(cols):\n                if board[r][c] == word[0]:\n                    if backtrack(r, c, 0): return True\n        return False`,
+        ts: `// TypeScript\nfunction exist(board: string[][], word: string): boolean {\n    const rows = board.length, cols = board[0].length;\n    \n    function backtrack(r: number, c: number, index: number): boolean {\n        if (index === word.length) return true;\n        \n        // 越界、不匹配，或者已经访问过了（由于做了标记，不会再次匹配）\n        if (r < 0 || r >= rows || c < 0 || c >= cols || board[r][c] !== word[index]) {\n            return false;\n        }\n        \n        // 标记已访问\n        const temp = board[r][c];\n        board[r][c] = '#';\n        \n        // 四个方向继续深搜\n        const res = backtrack(r + 1, c, index + 1) ||\n                    backtrack(r - 1, c, index + 1) ||\n                    backtrack(r, c + 1, index + 1) ||\n                    backtrack(r, c - 1, index + 1);\n                    \n        // 回溯：还原现场\n        board[r][c] = temp;\n        return res;\n    }\n    \n    for (let r = 0; r < rows; r++) {\n        for (let c = 0; c < cols; c++) {\n            if (board[r][c] === word[0]) {\n                if (backtrack(r, c, 0)) return true;\n            }\n        }\n    }\n    return false;\n}`,
+        java: `// Java\nclass Solution {\n    public boolean exist(char[][] board, String word) {\n        int rows = board.length;\n        int cols = board[0].length;\n        \n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                if (board[r][c] == word.charAt(0)) {\n                    if (backtrack(board, word, r, c, 0)) return true;\n                }\n            }\n        }\n        return false;\n    }\n    \n    private boolean backtrack(char[][] board, String word, int r, int c, int index) {\n        if (index == word.length()) return true;\n        \n        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length \n            || board[r][c] != word.charAt(index)) {\n            return false;\n        }\n        \n        char temp = board[r][c];\n        board[r][c] = '#'; // 标记已访问\n        \n        boolean res = backtrack(board, word, r + 1, c, index + 1) ||\n                      backtrack(board, word, r - 1, c, index + 1) ||\n                      backtrack(board, word, r, c + 1, index + 1) ||\n                      backtrack(board, word, r, c - 1, index + 1);\n                      \n        board[r][c] = temp; // 撤销标记\n        return res;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    bool exist(vector<vector<char>>& board, string word) {\n        int rows = board.size(), cols = board[0].size();\n        for (int r = 0; r < rows; ++r) {\n            for (int c = 0; c < cols; ++c) {\n                if (board[r][c] == word[0]) {\n                    if (backtrack(board, word, r, c, 0)) return true;\n                }\n            }\n        }\n        return false;\n    }\n    \n    bool backtrack(vector<vector<char>>& board, const string& word, int r, int c, int index) {\n        if (index == word.size()) return true;\n        \n        if (r < 0 || r >= board.size() || c < 0 || c >= board[0].size() \n            || board[r][c] != word[index]) {\n            return false;\n        }\n        \n        char temp = board[r][c];\n        board[r][c] = '#';\n        \n        bool res = backtrack(board, word, r + 1, c, index + 1) ||\n                   backtrack(board, word, r - 1, c, index + 1) ||\n                   backtrack(board, word, r, c + 1, index + 1) ||\n                   backtrack(board, word, r, c - 1, index + 1);\n                   \n        board[r][c] = temp;\n        return res;\n    }\n};`,
+        c: `// C\nbool backtrack(char** board, int boardSize, int* boardColSize, char* word, int r, int c, int index) {\n    if (word[index] == '\\0') return true;\n    \n    if (r < 0 || r >= boardSize || c < 0 || c >= boardColSize[0] \n        || board[r][c] != word[index]) {\n        return false;\n    }\n    \n    char temp = board[r][c];\n    board[r][c] = '#';\n    \n    bool res = backtrack(board, boardSize, boardColSize, word, r + 1, c, index + 1) ||\n               backtrack(board, boardSize, boardColSize, word, r - 1, c, index + 1) ||\n               backtrack(board, boardSize, boardColSize, word, r, c + 1, index + 1) ||\n               backtrack(board, boardSize, boardColSize, word, r, c - 1, index + 1);\n               \n    board[r][c] = temp;\n    return res;\n}\n\nbool exist(char** board, int boardSize, int* boardColSize, char* word) {\n    for (int r = 0; r < boardSize; ++r) {\n        for (int c = 0; c < boardColSize[0]; ++c) {\n            if (board[r][c] == word[0]) {\n                if (backtrack(board, boardSize, boardColSize, word, r, c, 0)) return true;\n            }\n        }\n    }\n    return false;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let boardData = [
+        ['A','B','C','E'],
+        ['S','F','C','S'],
+        ['A','D','E','E']
+      ];
+      let word = "ABCCED";
+
+      let visited = [];
+      let pathStack = []; // Array of {r, c, idx}
+      let failFlash = null; // {r, c, time}
+      let tryHead = null; // {r, c}
+
+      let gen = null;
+      let currentAnimState = null;
+      let foundResult = false;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* solveGen() {
+          for (let r=0; r<boardData.length; r++) {
+              for (let c=0; c<boardData[0].length; c++) {
+                  if (boardData[r][c] === word[0]) {
+                      yield { phase: "START", r, c };
+                      let found = yield* backtrackGen(r, c, 0);
+                      if (found) {
+                          yield { phase: "FOUND_ALL" };
+                          return true;
+                      }
+                  }
+              }
+          }
+          yield { phase: "NOT_FOUND_ALL" };
+          return false;
+      }
+
+      function* backtrackGen(r, c, idx) {
+          if (r < 0 || r >= boardData.length || c < 0 || c >= boardData[0].length) {
+              yield { phase: "FAIL_BOUND", r, c };
+              return false;
+          }
+          
+          if (visited[r][c]) {
+              yield { phase: "FAIL_VISITED", r, c };
+              return false;
+          }
+          
+          if (boardData[r][c] !== word[idx]) {
+              yield { phase: "FAIL_CHAR", r, c, actual: boardData[r][c], target: word[idx] };
+              return false;
+          }
+          
+          // Match!
+          visited[r][c] = true;
+          pathStack.push({r, c, idx});
+          yield { phase: "MATCH", r, c, char: boardData[r][c], idx: idx };
+          
+          if (idx === word.length - 1) { 
+              return true;
+          }
+          
+          const dirs = [[1,0], [-1,0], [0,1], [0,-1]];
+          for (let [dr, dc] of dirs) {
+              yield { phase: "TRY_DIR", r: r+dr, c: c+dc, parent: {r,c} };
+              let found = yield* backtrackGen(r+dr, c+dc, idx+1);
+              if (found) return true;
+          }
+          
+          // Backtrack
+          visited[r][c] = false;
+          pathStack.pop();
+          yield { phase: "BACKTRACK", r, c, char: boardData[r][c] };
+          return false;
+      }
+
+      function initializeSystem() {
+        let sc = document.getElementById("scenario-select").value;
+        if (sc === "1") word = "ABCCED";
+        else if (sc === "2") word = "SEE";
+        else word = "ABCB";
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        foundResult = false;
+        
+        visited = Array(3).fill(0).map(() => Array(4).fill(false));
+        pathStack = [];
+        failFlash = null;
+        tryHead = null;
+
+        gen = solveGen();
+        currentAnimState = gen.next();
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = `正在搜索单词:`;
+        
+        let wordEl = document.getElementById("target-word-display");
+        if (wordEl) wordEl.innerHTML = word;
+        
+        logMsg(`✅ 启动图遍历回溯，目标单词：[${word}]`, true);
+      }
+
+      function drawGrid() {
+          let rows = boardData.length;
+          let cols = boardData[0].length;
+          let cellSize = 60;
+          let gridW = cols * cellSize;
+          let gridH = rows * cellSize;
+          let startX = width/2 - gridW/2;
+          let startY = 80;
+
+          // Draw grid cells
+          for (let r=0; r<rows; r++) {
+              for (let c=0; c<cols; c++) {
+                  let cx = startX + c * cellSize + cellSize/2;
+                  let cy = startY + r * cellSize + cellSize/2;
+                  
+                  let isVisited = visited[r][c];
+                  let inPath = pathStack.find(p => p.r === r && p.c === c);
+                  
+                  if (inPath) {
+                      fill(254, 240, 138); stroke(202, 138, 4); strokeWeight(3);
+                  } else {
+                      fill(250); stroke(220); strokeWeight(2);
+                  }
+                  
+                  // Flash red for fail
+                  if (failFlash && failFlash.r === r && failFlash.c === c && p5Timer < 0.8) {
+                      fill(254, 226, 226); stroke(220, 38, 38);
+                  }
+                  
+                  // Flash gray for try (if in bounds)
+                  if (tryHead && tryHead.r === r && tryHead.c === c && !inPath) {
+                      stroke(100, 150, 200); strokeWeight(3);
+                      if (!failFlash) fill(240, 248, 255);
+                  }
+
+                  rectMode(CENTER);
+                  rect(cx, cy, cellSize-6, cellSize-6, 8);
+                  
+                  // Draw char
+                  if (inPath) fill(217, 119, 87);
+                  else fill(100);
+                  noStroke(); textAlign(CENTER, CENTER);
+                  textSize(22); textStyle(BOLD);
+                  text(boardData[r][c], cx, cy);
+                  textStyle(NORMAL);
+                  
+                  // Draw index in path
+                  if (inPath) {
+                      fill(150, 100, 50); textSize(10);
+                      text(inPath.idx, cx + 18, cy + 18);
+                  }
+              }
+          }
+          
+          // Draw connecting snake path
+          noFill(); stroke(217, 119, 87); strokeWeight(4);
+          beginShape();
+          for (let p of pathStack) {
+              let cx = startX + p.c * cellSize + cellSize/2;
+              let cy = startY + p.r * cellSize + cellSize/2;
+              vertex(cx, cy);
+          }
+          endShape();
+          
+          // Word Target Progress at bottom
+          let wordY = startY + gridH + 60;
+          textAlign(CENTER, CENTER);
+          for (let i=0; i<word.length; i++) {
+              let charX = width/2 - (word.length*40)/2 + i*40 + 20;
+              
+              if (i < pathStack.length) {
+                  fill(217, 119, 87); stroke(217, 119, 87);
+              } else if (i === pathStack.length) {
+                  fill(50); stroke(100);
+              } else {
+                  fill(200); stroke(220);
+              }
+              
+              strokeWeight(2);
+              rect(charX, wordY, 30, 35, 4);
+              fill(255); noStroke(); textSize(18); textStyle(BOLD);
+              text(word[i], charX, wordY);
+              textStyle(NORMAL);
+          }
+      }
+
+      function draw() {
+        background(255);
+        drawGrid();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        if (currentAnimState && currentAnimState.done) {
+            if (!isDone) {
+                isDone = true;
+            }
+            return;
+        }
+
+        let s = currentAnimState.value;
+        failFlash = null;
+        tryHead = null;
+        let indent = " ".repeat(pathStack.length * 2);
+
+        if (s.phase === "START") {
+            logMsg(`\n🔍 在网格[${s.r},${s.c}] 处发现首字母 '${word[0]}'，开始 DFS！`, false);
+        } else if (s.phase === "TRY_DIR") {
+            tryHead = {r: s.r, c: s.c};
+            logMsg(`<span style="color:#888">${indent}</span> ➡️ 向方向探索 [${s.r},${s.c}]...`, false);
+        } else if (s.phase === "FAIL_BOUND") {
+            logMsg(`<span style="color:#888">${indent}</span> ❌ 越界：[${s.r},${s.c}]，返回 False`, false);
+        } else if (s.phase === "FAIL_VISITED") {
+            failFlash = {r: s.r, c: s.c};
+            logMsg(`<span style="color:#888">${indent}</span> ❌ 节点 [${s.r},${s.c}] 已在当前路径中(防回头)，返回 False`, false);
+        } else if (s.phase === "FAIL_CHAR") {
+            failFlash = {r: s.r, c: s.c};
+            logMsg(`<span style="color:#888">${indent}</span> ❌ 字符不匹配：找到 '${s.actual}'，需要 '${s.target}'`, false);
+        } else if (s.phase === "MATCH") {
+            tryHead = {r: s.r, c: s.c};
+            logMsg(`<span style="color:#888">${indent}</span> ✅ <span style="color:var(--anthropic-green);font-weight:bold">匹配字符 '${s.char}' ! (进度 ${s.idx+1}/${word.length}) 标记为已访问。</span>`, true);
+        } else if (s.phase === "BACKTRACK") {
+            logMsg(`<span style="color:#888">${indent}</span> 🔙 回溯：弹出 [${s.r},${s.c}] ('${s.char}')，撤销访问标记。`, false);
+        } else if (s.phase === "FOUND_ALL") {
+            foundResult = true;
+            logMsg(`🌟 <span style="color:var(--anthropic-orange);font-weight:bold;font-size:14px">成功找到单词 "${word}" ! 返回 True。</span>`, true);
+            isDone = true;
+        } else if (s.phase === "NOT_FOUND_ALL") {
+            logMsg(`🏁 遍历了整个网格，未能找到单词 "${word}"。返回 False。`, true);
+            isDone = true;
+        }
+
+        currentAnimState = gen.next();
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

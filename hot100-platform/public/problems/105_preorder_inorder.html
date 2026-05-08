@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>从前序与中序遍历序列构造二叉树 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>构造二叉树</h1>
+        <div class="subtitle">前序与中序遍历</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="1234" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机树</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>节点数量 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="3" max="10" step="1" value="6" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">6</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(n)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 前序遍历的第一个元素永远是当前子树的根节点。</div>
+            <div class="memo-tip">💡 在中序遍历中找到该根节点，左侧是左子树，右侧是右子树。</div>
+            <div class="memo-tip g">🔍 利用哈希表预存中序遍历的值到索引映射，可以在 O(1) 时间内定位根节点。</div>
+            <div class="memo-tip w">⚠️ 递归时，左右子树的节点数量必须计算准确，用来推导前序数组的边界。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def buildTree(self, preorder: List[int], inorder: List[int]) -> Optional[TreeNode]:\n        # 利用哈希表存储中序遍历的值到索引的映射\n        inorder_idx = {val: idx for idx, val in enumerate(inorder)}\n        \n        def build(pre_L, pre_R, in_L, in_R):\n            if pre_L > pre_R:\n                return None\n            \n            # 前序的第一个节点就是根节点\n            root_val = preorder[pre_L]\n            root = TreeNode(root_val)\n            \n            # 找到根节点在中序数组中的位置\n            idx = inorder_idx[root_val]\n            # 左子树的节点数量\n            left_size = idx - in_L\n            \n            # 递归构建左右子树\n            root.left = build(pre_L + 1, pre_L + left_size, in_L, idx - 1)\n            root.right = build(pre_L + left_size + 1, pre_R, idx + 1, in_R)\n            return root\n            \n        return build(0, len(preorder) - 1, 0, len(inorder) - 1)`,
+        ts: `// TypeScript\nfunction buildTree(preorder: number[], inorder: number[]): TreeNode | null {\n    // 使用哈希表预处理中序遍历的索引，将查找根节点的时间复杂度降为 O(1)\n    const map = new Map<number, number>();\n    for (let i = 0; i < inorder.length; i++) {\n        map.set(inorder[i], i);\n    }\n    \n    // 递归函数：通过前序和中序的左右边界来确定子树结构\n    function build(pre_L: number, pre_R: number, in_L: number, in_R: number): TreeNode | null {\n        if (pre_L > pre_R) return null; // 边界情况：当前区间为空，表示没有节点\n        \n        const rootVal = preorder[pre_L]; // 前序遍历的首个元素是当前子树的根节点\n        const root = new TreeNode(rootVal);\n        \n        const idx = map.get(rootVal)!; // 找到根节点在中序遍历中的索引\n        const leftSize = idx - in_L; // 计算左子树的节点数量\n        \n        // 根据节点数量，切分前序和中序数组的索引范围，递归构建左右子树\n        root.left = build(pre_L + 1, pre_L + leftSize, in_L, idx - 1);\n        root.right = build(pre_L + leftSize + 1, pre_R, idx + 1, in_R);\n        return root;\n    }\n    \n    return build(0, preorder.length - 1, 0, inorder.length - 1);\n}`,
+        java: `// Java\nclass Solution {\n    private Map<Integer, Integer> map = new HashMap<>();\n\n    public TreeNode buildTree(int[] preorder, int[] inorder) {\n        // 建立中序遍历的值与索引的映射，优化查找速度\n        for (int i = 0; i < inorder.length; i++) {\n            map.put(inorder[i], i);\n        }\n        return build(preorder, 0, preorder.length - 1, inorder, 0, inorder.length - 1);\n    }\n\n    private TreeNode build(int[] preorder, int preL, int preR, int[] inorder, int inL, int inR) {\n        if (preL > preR) return null; // 终止条件：区间无效时返回空树\n        \n        int rootVal = preorder[preL]; // 前序遍历区间的第一个值即为根节点\n        TreeNode root = new TreeNode(rootVal);\n        \n        int idx = map.get(rootVal); // 获取根节点在中序区间中的位置\n        int leftSize = idx - inL; // 根据中序区间计算出左子树含有多少个节点\n        \n        // 递归构造左子树：前序跳过根节点，长度为 leftSize；中序在根节点左边\n        root.left = build(preorder, preL + 1, preL + leftSize, inorder, inL, idx - 1);\n        // 递归构造右子树：前序跳过左子树部分；中序在根节点右边\n        root.right = build(preorder, preL + leftSize + 1, preR, inorder, idx + 1, inR);\n        return root;\n    }\n}`,
+        cpp: `// C++\nclass Solution {\n    unordered_map<int, int> indexMap;\npublic:\n    TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {\n        // 将中序遍历元素及其索引存入哈希表，实现 O(1) 查找\n        for(int i = 0; i < inorder.size(); i++) {\n            indexMap[inorder[i]] = i;\n        }\n        return build(preorder, 0, preorder.size() - 1, 0, inorder.size() - 1);\n    }\n    \n    TreeNode* build(vector<int>& preorder, int pre_L, int pre_R, int in_L, int in_R) {\n        if(pre_L > pre_R) return nullptr; // 递归出口\n        \n        int rootVal = preorder[pre_L]; // 提取根节点值\n        TreeNode* root = new TreeNode(rootVal);\n        \n        int idx = indexMap[rootVal]; // 查找根节点在中序数组的位置\n        int leftSize = idx - in_L; // 计算左子树元素个数\n        \n        // 递归划分左右子树区间并连接\n        root->left = build(preorder, pre_L + 1, pre_L + leftSize, in_L, idx - 1);\n        root->right = build(preorder, pre_L + leftSize + 1, pre_R, idx + 1, in_R);\n        return root;\n    }\n};`,
+        c: `// C\nTreeNode* build(int* preorder, int pre_L, int pre_R, int* inorder, int in_L, int in_R) {\n    if (pre_L > pre_R) return NULL; // 当前区间没有节点\n    \n    int rootVal = preorder[pre_L]; // 取前序第一个元素作为根节点\n    TreeNode* root = (TreeNode*)malloc(sizeof(TreeNode));\n    root->val = rootVal;\n    \n    // C语言没有内置哈希表，这里使用线性查找根节点在中序遍历中的位置（时间复杂度O(N)）\n    int idx = in_L;\n    while (idx <= in_R && inorder[idx] != rootVal) idx++;\n    int leftSize = idx - in_L; // 确定左子树的大小\n    \n    // 递归构建左子树和右子树\n    root->left = build(preorder, pre_L + 1, pre_L + leftSize, inorder, in_L, idx - 1);\n    root->right = build(preorder, pre_L + leftSize + 1, pre_R, inorder, idx + 1, in_R);\n    return root;\n}\n\nTreeNode* buildTree(int* preorder, int preorderSize, int* inorder, int inorderSize){\n    return build(preorder, 0, preorderSize - 1, inorder, 0, inorderSize - 1);\n}`
+      };
+
+      let params = { seed: 1234, speed: 1.0, n: 6 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      // 树节点结构
+      class DemoNode {
+          constructor(val, inIdx) {
+              this.val = val;
+              this.inIdx = inIdx; // 在中序遍历中的索引，用于控制水平位置
+              this.left = null;
+              this.right = null;
+              
+              // 动画位置
+              this.x = 0;
+              this.y = 0;
+              this.targetX = 0;
+              this.targetY = 0;
+              this.alpha = 0; // 0 到 255
+              this.isConstructed = false;
+          }
+      }
+
+      let preorder = [];
+      let inorder = [];
+      let callStack = []; // 模拟递归栈
+      let nodes = []; // 存储所有的节点，便于绘制
+      let rootNode = null;
+      
+      let stepIdx = 0; // 记录目前处理到栈的哪一步
+      
+      let cellW = 30;
+      let cellH = 30;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function generateRandomTree(n) {
+          // 先生成 1-n 的值，然后打乱构建一个随机形状的BST或者普通树
+          let vals = [];
+          for(let i=1; i<=n; i++) vals.push(i*10 + floor(random(0,9))); // 保证唯一
+          
+          let pre = [];
+          let ino = [];
+          
+          // 递归生成树
+          function genTree(arr) {
+              if (arr.length === 0) return null;
+              // 随机选一个作为根
+              let rootIdx = floor(random(0, arr.length));
+              let node = { val: arr[rootIdx] };
+              pre.push(node.val);
+              
+              let leftArr = arr.slice(0, rootIdx);
+              let rightArr = arr.slice(rootIdx + 1);
+              
+              node.left = genTree(leftArr);
+              ino.push(node.val);
+              node.right = genTree(rightArr);
+              return node;
+          }
+          
+          genTree(vals);
+          return { pre, ino };
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let n = floor(params.n);
+        let treeData = generateRandomTree(n);
+        preorder = treeData.pre;
+        inorder = treeData.ino;
+
+        callStack = [];
+        nodes = [];
+        rootNode = null;
+
+        // 初始化栈帧
+        callStack.push({
+            phase: 'INIT', // INIT, ROOT, LEFT, RIGHT, DONE
+            preL: 0, preR: n - 1,
+            inL: 0, inR: n - 1,
+            node: null,
+            depth: 0
+        });
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        logMsg(`✅ 树节点数量 ${n}，前序和中序序列已生成。`, true);
+      }
+
+      function draw() {
+        background(255);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // Draw arrays at top
+        let arrW = preorder.length * cellW;
+        let pX = width/2 - arrW/2;
+        let pY = 40;
+        
+        // 获取当前活跃的区间
+        let activePreL = -1, activePreR = -1;
+        let activeInL = -1, activeInR = -1;
+        let activeRootIdx = -1;
+        
+        if (callStack.length > 0) {
+            let top = callStack[callStack.length - 1];
+            activePreL = top.preL; activePreR = top.preR;
+            activeInL = top.inL; activeInR = top.inR;
+            if (top.node) {
+                activeRootIdx = top.node.inIdx;
+            }
+        }
+
+        // 绘制前序
+        textAlign(RIGHT, CENTER);
+        fill(100); textSize(12); noStroke();
+        text("Preorder:", pX - 10, pY + cellH/2);
+        for(let i=0; i<preorder.length; i++) {
+            let x = pX + i*cellW;
+            if (i >= activePreL && i <= activePreR) fill(230, 240, 255);
+            else fill(245);
+            stroke(200); strokeWeight(1);
+            rect(x, pY, cellW, cellH, 4);
+            
+            fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(12);
+            text(preorder[i], x + cellW/2, pY + cellH/2);
+            
+            // 指示箭头
+            if (i === activePreL && !isDone) {
+                fill(106, 155, 204);
+                triangle(x+cellW/2, pY-5, x+cellW/2-4, pY-10, x+cellW/2+4, pY-10);
+            }
+        }
+
+        // 绘制中序
+        pY += 50;
+        textAlign(RIGHT, CENTER);
+        fill(100); textSize(12); noStroke();
+        text("Inorder:", pX - 10, pY + cellH/2);
+        for(let i=0; i<inorder.length; i++) {
+            let x = pX + i*cellW;
+            if (i >= activeInL && i <= activeInR) {
+                if (i === activeRootIdx) fill(255, 220, 180); // 根节点
+                else if (i < activeRootIdx) fill(220, 245, 220); // 左子树
+                else fill(245, 220, 220); // 右子树
+            } else {
+                fill(245);
+            }
+            stroke(200); strokeWeight(1);
+            rect(x, pY, cellW, cellH, 4);
+            
+            fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(12);
+            text(inorder[i], x + cellW/2, pY + cellH/2);
+        }
+
+        // 绘制已构建的树
+        let treeStartY = 160;
+        
+        // 计算目标位置
+        for(let node of nodes) {
+            // 利用中序索引控制 X (让它天然就居中并展示树形)
+            let logicalX = pX + node.inIdx * cellW + cellW/2;
+            let logicalY = treeStartY + node.depth * 60;
+            
+            node.targetX = logicalX;
+            node.targetY = logicalY;
+            
+            // lerp 动画
+            if (node.alpha < 255) node.alpha += 15 * params.speed;
+            if (node.alpha > 255) node.alpha = 255;
+            
+            if (node.x === 0 && node.y === 0) {
+                node.x = node.targetX;
+                node.y = pY + 20; // 从中序数组飞出
+            }
+            node.x = lerp(node.x, node.targetX, 0.1 * params.speed);
+            node.y = lerp(node.y, node.targetY, 0.1 * params.speed);
+        }
+        
+        // 画线
+        stroke(150);
+        strokeWeight(2);
+        for(let node of nodes) {
+            if (node.left && node.left.isConstructed) {
+                line(node.x, node.y, node.left.x, node.left.y);
+            }
+            if (node.right && node.right.isConstructed) {
+                line(node.x, node.y, node.right.x, node.right.y);
+            }
+        }
+        
+        // 画节点
+        for(let node of nodes) {
+            fill(255, 240, 230, node.alpha);
+            stroke(217, 119, 87, node.alpha);
+            strokeWeight(2);
+            ellipse(node.x, node.y, 32, 32);
+            
+            fill(100, 60, 40, node.alpha);
+            noStroke();
+            textAlign(CENTER, CENTER);
+            textSize(13);
+            text(node.val, node.x, node.y);
+        }
+
+      }
+
+      function performStep() {
+        if (isDone || callStack.length === 0) return;
+        
+        let frame = callStack[callStack.length - 1];
+        
+        if (frame.preL > frame.preR) {
+            logMsg(`🔙 区间无效 (L=${frame.preL} > R=${frame.preR})，返回 Null`, false);
+            callStack.pop();
+            return;
+        }
+        
+        if (frame.phase === 'INIT') {
+            let rootVal = preorder[frame.preL];
+            // 找到 inIdx
+            let inIdx = -1;
+            for(let i = frame.inL; i <= frame.inR; i++) {
+                if (inorder[i] === rootVal) { inIdx = i; break; }
+            }
+            
+            frame.node = new DemoNode(rootVal, inIdx);
+            frame.node.depth = frame.depth;
+            frame.node.isConstructed = true;
+            nodes.push(frame.node);
+            
+            if (callStack.length === 1 && !rootNode) rootNode = frame.node;
+            
+            frame.inIdx = inIdx;
+            frame.leftSize = inIdx - frame.inL;
+            
+            logMsg(`🌱 前序[${frame.preL}]=${rootVal} 作为根节点`, true);
+            logMsg(`🔍 中序找到 ${rootVal} 索引 ${inIdx}，左子树大小 ${frame.leftSize}`, false);
+            frame.phase = 'LEFT';
+        } 
+        else if (frame.phase === 'LEFT') {
+            frame.phase = 'RIGHT';
+            // 推入左子树栈
+            if (frame.leftSize > 0) {
+                logMsg(`↘️ 递归构建左子树 (大小${frame.leftSize})`, false);
+                callStack.push({
+                    phase: 'INIT',
+                    preL: frame.preL + 1, preR: frame.preL + frame.leftSize,
+                    inL: frame.inL, inR: frame.inIdx - 1,
+                    node: null,
+                    depth: frame.depth + 1,
+                    parent: frame.node,
+                    side: 'left'
+                });
+            }
+        }
+        else if (frame.phase === 'RIGHT') {
+            // 如果刚刚从左子树回来，把左子树挂上
+            if (frame.node && !frame.node.left && frame.leftSize > 0) {
+                // 在节点列表中找最后建成的 depth+1 左节点有点麻烦，这里简化通过指针直接挂载
+                // 我们在 parent 返回时挂载
+            }
+            
+            frame.phase = 'DONE';
+            let rightSize = frame.preR - (frame.preL + frame.leftSize);
+            if (rightSize > 0) {
+                logMsg(`↙️ 递归构建右子树 (大小${rightSize})`, false);
+                callStack.push({
+                    phase: 'INIT',
+                    preL: frame.preL + frame.leftSize + 1, preR: frame.preR,
+                    inL: frame.inIdx + 1, inR: frame.inR,
+                    node: null,
+                    depth: frame.depth + 1,
+                    parent: frame.node,
+                    side: 'right'
+                });
+            }
+        }
+        else if (frame.phase === 'DONE') {
+            logMsg(`🔼 节点 ${frame.node.val} 子树构建完成，向上返回`, false);
+            
+            if (frame.parent) {
+                if (frame.side === 'left') frame.parent.left = frame.node;
+                else frame.parent.right = frame.node;
+            }
+            
+            callStack.pop();
+            
+            if (callStack.length === 0) {
+                isDone = true;
+                logMsg("🏁 整棵树构建完成！", true);
+            }
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+
+        if (typeof initializeSystem === "function") initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+        logMsg("🔄 随机化生成新场景。", true);
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

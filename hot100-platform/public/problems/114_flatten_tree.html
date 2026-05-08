@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>二叉树展开为链表可视化 - LeetCode 114</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; margin-bottom: 8px; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between;}
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box */
+      .code-box { flex: 1.2; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.8; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.highlight-blue { border-left-color: var(--anthropic-blue); background: #f0f7ff; font-weight: 500; }
+      .log-item.highlight-green { border-left-color: var(--anthropic-green); background: #f5fbf4; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; font-family: "JetBrains Mono", monospace; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* Memo Card */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #f6fbf4; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>二叉树展开为链表</h1>
+        <div class="subtitle">Morris 遍历思想：O(1) 空间物理嫁接法</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="114" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新的随机二叉树</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>节点数量 (N)</label>
+            <div class="slider-container">
+              <input type="range" id="nodesCount" min="4" max="12" step="1" value="8" oninput="updateParam('nodesCount', this.value)" />
+              <span class="value-display" id="nodesCount-value">8</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px; margin-bottom: 0;">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新执行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n) 时间</span>
+            <span class="memo-badge space">□ O(1) 原地空间</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 <b>寻找前驱：</b>对于任意节点，如果它有左子树，那么先序遍历中，右子树必定紧跟在“左子树的最右侧节点 (Predecessor)”之后。</div>
+            <div class="memo-tip">💡 <b>物理嫁接：</b>找到前驱后，直接把当前节点的右子树“剪切”下来，挂到前驱的右指针上。</div>
+            <div class="memo-tip g">🔍 <b>结构翻转：</b>挂载完成后，原本的左子树已经涵盖了所有后续节点，直接将左子树整体平移到右指针，并将左指针置空。</div>
+            <div class="memo-tip w">⚠️ <b>避坑点：</b>不需要引入任何递归栈或全局数组。通过不断破坏并重组指针，算法能够以 $O(1)$ 的极致空间复杂度完成任务。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+          <span>指针重定向与动态物理布局视图</span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优 O(1) 迭代嫁接)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行流日志 (Execution Trace)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTILINGUAL O(1) SPACE ITERATIVE CODE SNIPPETS
+      // ==========================================================
+      const SNIPPETS = {
+        ts: `// TypeScript
+class TreeNode {
+    val: number
+    left: TreeNode | null
+    right: TreeNode | null
+    constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) {
+        this.val = (val===undefined ? 0 : val)
+        this.left = (left===undefined ? null : left)
+        this.right = (right===undefined ? null : right)
+    }
+}
+
+function flatten(root: TreeNode | null): void {
+    let curr: TreeNode | null = root;
+    
+    // 利用当前指针遍历整个树
+    while (curr !== null) {
+        // 如果左子树存在，说明结构需要展开
+        if (curr.left !== null) {
+            // 1. 寻找当前节点的前驱节点（左子树的最右侧叶子节点）
+            let predecessor = curr.left;
+            while (predecessor.right !== null) {
+                predecessor = predecessor.right;
+            }
+            
+            // 2. 物理嫁接：将当前节点的右子树，整体挂载到前驱节点的右指针上
+            predecessor.right = curr.right;
+            
+            // 3. 结构翻转：将处理好的左子树移至右侧，并清空原本的左侧指针
+            curr.right = curr.left;
+            curr.left = null;
+        }
+        
+        // 当前节点处理完毕，控制流无脑向右推进
+        curr = curr.right;
+    }
+}`,
+        python: `# Python
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class Solution:
+    def flatten(self, root: TreeNode) -> None:
+        """
+        Do not return anything, modify root in-place instead.
+        """
+        curr = root
+        
+        while curr:
+            if curr.left:
+                # 寻找左子树中的最右侧节点（先序遍历中，右子树的直接前驱）
+                predecessor = curr.left
+                while predecessor.right:
+                    predecessor = predecessor.right
+                
+                # 将原本的右子树接在前驱节点的右边
+                predecessor.right = curr.right
+                
+                # 将整个左子树移到右边，断开左边
+                curr.right = curr.left
+                curr.left = None
+                
+            # 继续向右推进，由于右边已经是排好序的左子树，会按正确顺序展开
+            curr = curr.right`,
+        java: `// Java
+class Solution {
+    public void flatten(TreeNode root) {
+        TreeNode curr = root;
+        
+        while (curr != null) {
+            if (curr.left != null) {
+                // 1. 找到左子树的最右节点 (前驱节点)
+                TreeNode predecessor = curr.left;
+                while (predecessor.right != null) {
+                    predecessor = predecessor.right;
+                }
+                
+                // 2. 将当前节点的右子树，物理嫁接到前驱节点的右侧
+                predecessor.right = curr.right;
+                
+                // 3. 左子树拨到右侧，完成当前层级的扁平化
+                curr.right = curr.left;
+                curr.left = null;
+            }
+            
+            // 4. 指针持续向右探索
+            curr = curr.right;
+        }
+    }
+}`,
+        cpp: `// C++
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+class Solution {
+public:
+    void flatten(TreeNode* root) {
+        TreeNode* curr = root;
+        
+        while (curr != nullptr) {
+            if (curr->left != nullptr) {
+                TreeNode* predecessor = curr->left;
+                // 探底寻找先序遍历的前驱节点
+                while (predecessor->right != nullptr) {
+                    predecessor = predecessor->right;
+                }
+                
+                // 剪切右子树，粘贴至前驱节点之后
+                predecessor->right = curr->right;
+                
+                // 将左子树移至右侧，释放左侧内存指针
+                curr->right = curr->left;
+                curr->left = nullptr;
+            }
+            // 向下推进
+            curr = curr->right;
+        }
+    }
+};`,
+        c: `// C
+#include <stdlib.h>
+
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+void flatten(struct TreeNode* root) {
+    struct TreeNode* curr = root;
+    
+    while (curr != NULL) {
+        if (curr->left != NULL) {
+            struct TreeNode* predecessor = curr->left;
+            
+            // 物理遍历至左子树最深处的右节点
+            while (predecessor->right != NULL) {
+                predecessor = predecessor->right;
+            }
+            
+            // 重新定向内存指针
+            predecessor->right = curr->right;
+            curr->right = curr->left;
+            curr->left = NULL;
+        }
+        
+        // 迭代处理下一个节点
+        curr = curr->right;
+    }
+}`
+      };
+
+      // ==========================================================
+      // SIMULATION LOGIC & VISUALIZATION (p5.js)
+      // ==========================================================
+      let params = { seed: 114, speed: 1.0, nodesCount: 8 };
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // Tree Data Structure
+      class VisualTreeNode {
+        constructor(val) {
+          this.id = Math.random().toString(36).substr(2, 9);
+          this.val = val;
+          this.left = null;
+          this.right = null;
+          
+          // Physical coords
+          this.x = 0;
+          this.y = 0;
+          this.targetX = 0;
+          this.targetY = 0;
+          
+          this.state = 'DEFAULT'; // DEFAULT, ACTIVE_CURR, ACTIVE_PRED
+        }
+        
+        update() {
+            let s = 0.15 * params.speed;
+            this.x = lerp(this.x, this.targetX, s);
+            this.y = lerp(this.y, this.targetY, s);
+        }
+      }
+
+      let rootNode = null;
+      let currPtr = null;
+      let predPtr = null;
+      let detachedRight = null; // visual reference for drawing the flying edge
+
+      // Phase Machine
+      let algoPhase = 'START'; 
+      // EVAL_CURR -> SEEK_PRED -> GRAFT -> SWING -> WAIT_SETTLE -> MOVE_CURR
+
+      // UI Pointers
+      let cDispX = 0, cDispY = 0;
+      let pDispX = 0, pDispY = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 500);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("ts");
+        initializeSystem();
+      }
+
+      function buildRandomBinaryTree(n) {
+          let root = new VisualTreeNode(floor(random(1, 99)));
+          let nodes = [root];
+          
+          for (let i = 1; i < n; i++) {
+              let parent = random(nodes);
+              let child = new VisualTreeNode(floor(random(1, 99)));
+              
+              if (!parent.left && !parent.right) {
+                  if (random() > 0.5) parent.left = child; else parent.right = child;
+              } else if (!parent.left) {
+                  parent.left = child;
+              } else if (!parent.right) {
+                  parent.right = child;
+              } else {
+                  i--; // retry
+                  continue;
+              }
+              nodes.push(child);
+          }
+          return root;
+      }
+
+      // Dynamic layout that adapts as the tree becomes a linked list
+      function layoutTree(node, x, y, dx) {
+          if (!node) return;
+          node.targetX = x;
+          node.targetY = y;
+          
+          if (node.x === 0 && node.y === 0) {
+              node.x = node.targetX;
+              node.y = node.targetY;
+          }
+
+          if (node.left) {
+              layoutTree(node.left, x - dx, y + 45, dx * 0.6);
+          }
+          
+          if (node.right) {
+              if (node.left) {
+                  layoutTree(node.right, x + dx, y + 45, dx * 0.6);
+              } else {
+                  // If it only has a right child (like a linked list), 
+                  // shift it slightly to the right to fit the screen diagonally
+                  layoutTree(node.right, x + 35, y + 50, dx * 0.8);
+              }
+          }
+      }
+
+      function updateAllPhysics(node) {
+          if (!node) return;
+          node.update();
+          updateAllPhysics(node.left);
+          updateAllPhysics(node.right);
+      }
+
+      function checkSettle(node) {
+          if (!node) return true;
+          if (Math.abs(node.x - node.targetX) > 1 || Math.abs(node.y - node.targetY) > 1) return false;
+          return checkSettle(node.left) && checkSettle(node.right);
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        rootNode = buildRandomBinaryTree(params.nodesCount);
+        layoutTree(rootNode, width / 2 - 50, 40, 80);
+
+        currPtr = null;
+        predPtr = null;
+        detachedRight = null;
+        
+        cDispX = width / 2; cDispY = 20;
+        pDispX = width / 2; pDispY = 20;
+
+        algoPhase = 'START';
+        
+        document.getElementById("log-container").innerHTML = "";
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        
+        logMsg(`✅ 随机二叉树就绪，准备开启 O(1) 空间的迭代展开算法。`, true);
+      }
+
+      function draw() {
+        background(253, 252, 249);
+
+        let isWaiting = (algoPhase === 'WAIT_SETTLE');
+
+        if (!isDone && !isPaused) {
+            if (isWaiting) {
+                if (checkSettle(rootNode)) {
+                    if (p5Timer > 0.5) { // small delay
+                        algoPhase = 'MOVE_CURR';
+                        p5Timer = 0;
+                    } else {
+                        p5Timer += 0.05 * params.speed;
+                    }
+                }
+            } else {
+                p5Timer += 0.02 * params.speed;
+                if (p5Timer > 1) {
+                    p5Timer = 0;
+                    performStep();
+                }
+            }
+        }
+
+        updateAllPhysics(rootNode);
+        
+        drawEdges(rootNode);
+        
+        // Draw flying/grafting edge if applicable
+        if (algoPhase === 'SWING' && predPtr && detachedRight) {
+             stroke(217, 119, 87);
+             strokeWeight(2);
+             drawingContext.setLineDash([5, 5]);
+             line(predPtr.x, predPtr.y, detachedRight.x, detachedRight.y);
+             drawingContext.setLineDash([]);
+        }
+
+        drawNodes(rootNode);
+        drawPointers();
+      }
+
+      function drawEdges(node) {
+        if (!node) return;
+        stroke(200);
+        strokeWeight(2);
+        if (node.left) {
+            line(node.x, node.y, node.left.x, node.left.y);
+            drawEdges(node.left);
+        }
+        if (node.right) {
+            line(node.x, node.y, node.right.x, node.right.y);
+            drawEdges(node.right);
+        }
+      }
+
+      function drawNodes(node) {
+        if (!node) return;
+        
+        push();
+        let fillCol = color(255);
+        let borderCol = color(180);
+        let textCol = color(60);
+        let weight = 2;
+
+        if (node === currPtr) {
+            fillCol = color(240, 247, 255);
+            borderCol = color(106, 155, 204);
+            weight = 3;
+        } else if (node === predPtr) {
+            fillCol = color(255, 243, 238);
+            borderCol = color(217, 119, 87);
+            weight = 3;
+        }
+
+        fill(fillCol);
+        stroke(borderCol);
+        strokeWeight(weight);
+        circle(node.x, node.y, 32);
+
+        noStroke();
+        fill(textCol);
+        textAlign(CENTER, CENTER);
+        textSize(13);
+        textFont("JetBrains Mono");
+        text(node.val, node.x, node.y);
+        pop();
+
+        drawNodes(node.left);
+        drawNodes(node.right);
+      }
+
+      function drawPointers() {
+        if (currPtr) {
+            cDispX = lerp(cDispX, currPtr.x, 0.2 * params.speed);
+            cDispY = lerp(cDispY, currPtr.y, 0.2 * params.speed);
+            push();
+            translate(cDispX - 30, cDispY - 30);
+            fill(106, 155, 204);
+            noStroke();
+            rectMode(CENTER);
+            rect(0, -10, 36, 18, 4);
+            fill(255);
+            textSize(10);
+            textAlign(CENTER, CENTER);
+            textFont("JetBrains Mono");
+            let lbl = currentLang === 'python' ? 'curr' : 'curr';
+            text(lbl, 0, -10);
+            triangle(0, 5, -5, -1, 5, -1);
+            pop();
+        }
+
+        if (predPtr) {
+            pDispX = lerp(pDispX, predPtr.x, 0.2 * params.speed);
+            pDispY = lerp(pDispY, predPtr.y, 0.2 * params.speed);
+            push();
+            translate(pDispX + 30, pDispY - 30);
+            fill(217, 119, 87);
+            noStroke();
+            rectMode(CENTER);
+            rect(0, -10, 36, 18, 4);
+            fill(255);
+            textSize(10);
+            textAlign(CENTER, CENTER);
+            textFont("JetBrains Mono");
+            let lbl = currentLang === 'python' ? 'pred' : 'pred';
+            text(lbl, 0, -10);
+            triangle(0, 5, -5, -1, 5, -1);
+            pop();
+        }
+      }
+
+      function performStep() {
+          if (algoPhase === 'START') {
+              currPtr = rootNode;
+              algoPhase = 'EVAL_CURR';
+          } 
+          else if (algoPhase === 'EVAL_CURR') {
+              if (currPtr === null) {
+                  isDone = true;
+                  logMsg(`🏁 算法执行完成，二叉树已原位展开为右倾链表！`, false, true);
+                  predPtr = null;
+                  return;
+              }
+              
+              if (currPtr.left !== null) {
+                  logMsg(`🔎 检查节点 <b>${currPtr.val}</b>：发现左子树，需要进行物理展开。`);
+                  predPtr = currPtr.left;
+                  algoPhase = 'SEEK_PRED';
+              } else {
+                  logMsg(`✔️ 检查节点 <b>${currPtr.val}</b>：无左子树，无需展开。指针向右移动。`);
+                  algoPhase = 'MOVE_CURR';
+              }
+          } 
+          else if (algoPhase === 'SEEK_PRED') {
+              if (predPtr.right !== null) {
+                  predPtr = predPtr.right;
+              } else {
+                  logMsg(`🏃 寻找前驱：下探到左子树最深处的右侧叶子节点 <b>${predPtr.val}</b>。`);
+                  algoPhase = 'GRAFT';
+              }
+          }
+          else if (algoPhase === 'GRAFT') {
+              detachedRight = currPtr.right;
+              predPtr.right = currPtr.right; // 物理连接
+              
+              let str = detachedRight ? detachedRight.val + " 及后续节点" : "null";
+              logMsg(`✂️ <b>物理嫁接</b>：将当前节点的右侧 (<b>${str}</b>) 挂载到前驱节点 <b>${predPtr.val}</b> 的右指针上。`, true);
+              
+              algoPhase = 'SWING';
+          }
+          else if (algoPhase === 'SWING') {
+              currPtr.right = currPtr.left;
+              currPtr.left = null;
+              
+              logMsg(`🔄 <b>结构翻转</b>：清空当前节点左指针，将原本的左子树整体平移为右子树。`, true);
+              
+              // Recalculate layout targets
+              layoutTree(rootNode, width / 2 - 50, 40, 80);
+              algoPhase = 'WAIT_SETTLE';
+          }
+          else if (algoPhase === 'MOVE_CURR') {
+              predPtr = null;
+              detachedRight = null;
+              currPtr = currPtr.right;
+              algoPhase = 'EVAL_CURR';
+          }
+      }
+
+      function logMsg(msg, isHighlight = false, isWarn = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item";
+        if (isWarn) {
+             item.style.borderLeftColor = "#788c5d";
+             item.style.background = "#f5fbf4";
+             item.style.fontWeight = "500";
+        } else if (isHighlight) {
+             item.className += " highlight-blue";
+        }
+
+        let time = new Date().toLocaleTimeString("zh-CN", {hour12: false, hour: "2-digit", minute:"2-digit", second:"2-digit"});
+        item.innerHTML = `<div class="time">[${time}]</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      let currentLang = "ts";
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c"
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== 'speed') {
+            initializeSystem();
+        }
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 114;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

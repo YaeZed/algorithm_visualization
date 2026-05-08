@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>最小栈 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>最小栈</h1>
+        <div class="subtitle">设计模式 - 双栈同步 / 辅助栈法</div>
+
+        <div class="control-section">
+          <h3>操作序列</h3>
+          <select id="scenario-select" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--anthropic-light-gray);" onchange="initializeSystem()">
+              <option value="1">序列 A: 经典测试用例</option>
+              <option value="2">序列 B: 持续推入递增序列</option>
+              <option value="3">序列 C: 持续推入递减序列</option>
+          </select>
+          <button class="button" onclick="initializeSystem()">重新执行序列</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(1) 操作</span>
+            <span class="memo-badge space">□ O(N) 空间</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **核心思想**：为了能在 O(1) 时间获取最小值，我们必须“用空间换时间”。维护一个额外的栈（最小栈）来同步记录主栈中“对应高度的当前最小值”。</div>
+            <div class="memo-tip g">⬇️ **Push 规则**：元素 x 入主栈；同时计算 `min(x, 最小栈当前栈顶)` 并入最小栈。</div>
+            <div class="memo-tip w">⬆️ **Pop 规则**：主栈和最小栈必须**同时弹出**栈顶，保持两者的元素个数和生命周期绝对一致！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">操作执行日志 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass MinStack:\n    def __init__(self):\n        # 主栈，存储常规的数字\n        self.stack = []\n        # 辅助栈，存储每次 push 操作时的“当前最小元素”\n        self.min_stack = []\n\n    def push(self, val: int) -> None:\n        self.stack.append(val)\n        if not self.min_stack:\n            # 如果是第一个元素，它自身就是最小值\n            self.min_stack.append(val)\n        else:\n            # 否则，当前最小值 = min(新元素, 之前记录的最小值)\n            self.min_stack.append(min(val, self.min_stack[-1]))\n\n    def pop(self) -> None:\n        # 同步弹出，保证两个栈的大小完全一致\n        self.stack.pop()\n        self.min_stack.pop()\n\n    def top(self) -> int:\n        return self.stack[-1]\n\n    def getMin(self) -> int:\n        # 辅助栈的栈顶永远保存着当前主栈中的最小元素\n        return self.min_stack[-1]`,
+        ts: `// TypeScript\nclass MinStack {\n    private stack: number[];\n    private minStack: number[];\n\n    constructor() {\n        this.stack = [];\n        this.minStack = [];\n    }\n\n    push(val: number): void {\n        this.stack.push(val);\n        if (this.minStack.length === 0) {\n            this.minStack.push(val);\n        } else {\n            const currMin = this.minStack[this.minStack.length - 1];\n            this.minStack.push(Math.min(val, currMin));\n        }\n    }\n\n    pop(): void {\n        this.stack.pop();\n        this.minStack.pop();\n    }\n\n    top(): number {\n        return this.stack[this.stack.length - 1];\n    }\n\n    getMin(): number {\n        return this.minStack[this.minStack.length - 1];\n    }\n}`,
+        java: `// Java\nclass MinStack {\n    private Deque<Integer> stack;\n    private Deque<Integer> minStack;\n\n    public MinStack() {\n        stack = new ArrayDeque<>();\n        minStack = new ArrayDeque<>();\n    }\n    \n    public void push(int val) {\n        stack.push(val);\n        if (minStack.isEmpty()) {\n            minStack.push(val);\n        } else {\n            // 比较新值和当前最小栈的栈顶，将较小值入栈\n            minStack.push(Math.min(val, minStack.peek()));\n        }\n    }\n    \n    public void pop() {\n        stack.pop();\n        minStack.pop();\n    }\n    \n    public int top() {\n        return stack.peek();\n    }\n    \n    public int getMin() {\n        return minStack.peek();\n    }\n}`,
+        cpp: `// C++\nclass MinStack {\nprivate:\n    stack<int> st;\n    stack<int> min_st;\n\npublic:\n    MinStack() {}\n    \n    void push(int val) {\n        st.push(val);\n        if (min_st.empty()) {\n            min_st.push(val);\n        } else {\n            min_st.push(min(val, min_st.top()));\n        }\n    }\n    \n    void pop() {\n        st.pop();\n        min_st.pop();\n    }\n    \n    int top() {\n        return st.top();\n    }\n    \n    int getMin() {\n        return min_st.top();\n    }\n};`,
+        c: `// C\ntypedef struct {\n    int* stack;\n    int* min_stack;\n    int top_idx;\n    int capacity;\n} MinStack;\n\nMinStack* minStackCreate() {\n    MinStack* obj = (MinStack*)malloc(sizeof(MinStack));\n    obj->capacity = 10000;\n    obj->stack = (int*)malloc(sizeof(int) * obj->capacity);\n    obj->min_stack = (int*)malloc(sizeof(int) * obj->capacity);\n    obj->top_idx = -1;\n    return obj;\n}\n\nvoid minStackPush(MinStack* obj, int val) {\n    obj->top_idx++;\n    obj->stack[obj->top_idx] = val;\n    if (obj->top_idx == 0) {\n        obj->min_stack[obj->top_idx] = val;\n    } else {\n        int curr_min = obj->min_stack[obj->top_idx - 1];\n        obj->min_stack[obj->top_idx] = (val < curr_min) ? val : curr_min;\n    }\n}\n\nvoid minStackPop(MinStack* obj) {\n    obj->top_idx--;\n}\n\nint minStackTop(MinStack* obj) {\n    return obj->stack[obj->top_idx];\n}\n\nint minStackGetMin(MinStack* obj) {\n    return obj->min_stack[obj->top_idx];\n}\n\nvoid minStackFree(MinStack* obj) {\n    free(obj->stack);\n    free(obj->min_stack);\n    free(obj);\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let COMMANDS = [];
+      let SCENARIO_1 = [
+          { op: "push", val: -2 },
+          { op: "push", val: 0 },
+          { op: "push", val: -3 },
+          { op: "getMin" },
+          { op: "pop" },
+          { op: "top" },
+          { op: "getMin" }
+      ];
+      let SCENARIO_2 = [
+          { op: "push", val: 1 },
+          { op: "push", val: 2 },
+          { op: "push", val: 3 },
+          { op: "getMin" },
+          { op: "pop" },
+          { op: "getMin" }
+      ];
+      let SCENARIO_3 = [
+          { op: "push", val: 5 },
+          { op: "push", val: 3 },
+          { op: "push", val: 1 },
+          { op: "getMin" },
+          { op: "pop" },
+          { op: "getMin" }
+      ];
+      
+      let state = null;
+      let gen = null;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function* minStackGen() {
+          let stack = [];
+          let minStack = [];
+          
+          for (let i = 0; i < COMMANDS.length; i++) {
+              let cmd = COMMANDS[i];
+              let cmdStr = cmd.op === "push" ? `push(${cmd.val})` : `${cmd.op}()`;
+              yield { phase: "START_CMD", cmd, cmdStr, stack: [...stack], minStack: [...minStack] };
+              
+              if (cmd.op === "push") {
+                  let val = cmd.val;
+                  let currentMin = minStack.length === 0 ? val : Math.min(val, minStack[minStack.length - 1]);
+                  
+                  // Animation intermediate state: val is prepared, checking min
+                  yield { phase: "CALC_MIN", cmd, cmdStr, val, currentMin, prevMin: minStack.length ? minStack[minStack.length - 1] : null, stack: [...stack], minStack: [...minStack] };
+                  
+                  stack.push(val);
+                  minStack.push(currentMin);
+                  yield { phase: "PUSH_DONE", cmd, cmdStr, val, currentMin, stack: [...stack], minStack: [...minStack] };
+              } else if (cmd.op === "pop") {
+                  let popped = stack.pop();
+                  let poppedMin = minStack.pop();
+                  yield { phase: "POP_DONE", cmd, cmdStr, popped, stack: [...stack], minStack: [...minStack] };
+              } else if (cmd.op === "top") {
+                  let topVal = stack[stack.length - 1];
+                  yield { phase: "READ_DONE", cmd, cmdStr, val: topVal, resultType: "top", stack: [...stack], minStack: [...minStack] };
+              } else if (cmd.op === "getMin") {
+                  let minVal = minStack[minStack.length - 1];
+                  yield { phase: "READ_DONE", cmd, cmdStr, val: minVal, resultType: "getMin", stack: [...stack], minStack: [...minStack] };
+              }
+          }
+          yield { phase: "DONE", stack: [...stack], minStack: [...minStack] };
+      }
+
+      function initializeSystem() {
+        let sc = document.getElementById("scenario-select").value;
+        if (sc === "1") { COMMANDS = SCENARIO_1; }
+        else if (sc === "2") { COMMANDS = SCENARIO_2; }
+        else { COMMANDS = SCENARIO_3; }
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        state = null;
+
+        gen = minStackGen();
+        state = gen.next().value;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = "▶ 阶段：准备执行操作序列";
+        logMsg(`✅ 初始化最小栈，准备执行 ${COMMANDS.length} 条操作命令`, true);
+      }
+
+      function drawStackData() {
+          let s = state;
+          if (!s) return;
+          
+          let stackW = 80;
+          let boxH = 40;
+          let maxItems = 8;
+          
+          // Draw Main Stack
+          let stack1X = width/2 - 100;
+          let stackYBase = height/2 + 100;
+          
+          fill(150); noStroke(); textAlign(CENTER, BOTTOM); textSize(14);
+          text("主栈 (Main Stack)", stack1X, stackYBase + 25);
+          
+          stroke(200); strokeWeight(3); noFill();
+          beginShape();
+          vertex(stack1X - stackW/2, stackYBase - maxItems * boxH);
+          vertex(stack1X - stackW/2, stackYBase);
+          vertex(stack1X + stackW/2, stackYBase);
+          vertex(stack1X + stackW/2, stackYBase - maxItems * boxH);
+          endShape();
+          
+          // Draw Min Stack
+          let stack2X = width/2 + 100;
+          
+          fill(150); noStroke(); textAlign(CENTER, BOTTOM); textSize(14);
+          text("最小栈 (Min Stack)", stack2X, stackYBase + 25);
+          
+          stroke(200); strokeWeight(3); noFill();
+          beginShape();
+          vertex(stack2X - stackW/2, stackYBase - maxItems * boxH);
+          vertex(stack2X - stackW/2, stackYBase);
+          vertex(stack2X + stackW/2, stackYBase);
+          vertex(stack2X + stackW/2, stackYBase - maxItems * boxH);
+          endShape();
+          
+          // Elements in stacks
+          let st1 = s.stack || [];
+          let st2 = s.minStack || [];
+          
+          for(let i=0; i<st1.length; i++) {
+              let cy = stackYBase - i * boxH - boxH/2;
+              
+              // highlight if it was just pushed or read
+              let isTop = (i === st1.length - 1);
+              let highlight = false;
+              if (isTop && s.phase === "PUSH_DONE") highlight = true;
+              if (isTop && s.phase === "READ_DONE" && s.resultType === "top") highlight = true;
+              
+              fill(highlight ? 254 : 240, highlight ? 240 : 248, highlight ? 138 : 255);
+              stroke(highlight ? 202 : 150, highlight ? 138 : 200, highlight ? 4 : 255);
+              strokeWeight(2);
+              rect(stack1X - stackW/2 + 2, cy - boxH/2 + 2, stackW - 4, boxH - 4, 4);
+              
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+              text(st1[i], stack1X, cy);
+              textStyle(NORMAL);
+          }
+          
+          for(let i=0; i<st2.length; i++) {
+              let cy = stackYBase - i * boxH - boxH/2;
+              
+              let isTop = (i === st2.length - 1);
+              let highlight = false;
+              if (isTop && s.phase === "PUSH_DONE") highlight = true;
+              if (isTop && s.phase === "READ_DONE" && s.resultType === "getMin") highlight = true;
+              
+              fill(highlight ? 220 : 250, highlight ? 252 : 240, highlight ? 231 : 230);
+              stroke(highlight ? 34 : 150, highlight ? 197 : 200, highlight ? 94 : 150);
+              strokeWeight(2);
+              rect(stack2X - stackW/2 + 2, cy - boxH/2 + 2, stackW - 4, boxH - 4, 4);
+              
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+              text(st2[i], stack2X, cy);
+              textStyle(NORMAL);
+          }
+          
+          // Draw floating element for Push
+          if (s.phase === "START_CMD" || s.phase === "CALC_MIN") {
+              if (s.cmd.op === "push") {
+                  let fy = stackYBase - maxItems * boxH - 50;
+                  
+                  // Main val
+                  fill(255, 237, 213); stroke(249, 115, 22); strokeWeight(2);
+                  rect(stack1X - stackW/2 + 2, fy - boxH/2, stackW - 4, boxH - 4, 4);
+                  fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+                  text(s.val !== undefined ? s.val : s.cmd.val, stack1X, fy);
+                  textStyle(NORMAL);
+                  
+                  // Min val calculation
+                  if (s.phase === "CALC_MIN") {
+                      // Draw the box
+                      fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2);
+                      rect(stack2X - stackW/2 + 2, fy - boxH/2, stackW - 4, boxH - 4, 4);
+                      
+                      // Draw the "min(x, y)" explanation text ABOVE the box
+                      fill(100); noStroke(); textAlign(CENTER, BOTTOM); textSize(13); textStyle(NORMAL);
+                      text(`min(${s.val}, ${s.prevMin !== null ? s.prevMin : '∞'})`, stack2X, fy - boxH/2 - 5);
+                      
+                      // Draw the result text INSIDE the box
+                      fill(50); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+                      text("= " + s.currentMin, stack2X, fy);
+                      textStyle(NORMAL);
+                  }
+              }
+          }
+          
+          // Draw floating result for Read operations
+          if (s.phase === "READ_DONE") {
+              let fy = stackYBase - maxItems * boxH - 50;
+              let x = s.resultType === "top" ? stack1X : stack2X;
+              fill(254, 240, 138); stroke(202, 138, 4); strokeWeight(2);
+              rect(x - stackW/2 + 2, fy - boxH/2, stackW - 4, boxH - 4, 4);
+              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
+              text("返回: " + s.val, x, fy);
+              textStyle(NORMAL);
+          }
+      }
+      
+      function varColor(name) {
+          return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      }
+
+      function draw() {
+        background(255);
+        if (state) drawStackData();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function performStep() {
+        let nxt = gen.next();
+        if (nxt.done) {
+            if (!isDone) isDone = true;
+            return;
+        }
+
+        state = nxt.value;
+        let s = state;
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) {
+            if (s.phase === "DONE") headerEl.innerHTML = "🏁 所有操作执行完毕";
+            else headerEl.innerHTML = `▶ 当前指令: <span style="color:var(--anthropic-orange)">${s.cmdStr}</span>`;
+        }
+
+        if (s.phase === "START_CMD") {
+            logMsg(`\n------------------\n🚀 准备执行: <b>${s.cmdStr}</b>`, false);
+        } else if (s.phase === "CALC_MIN") {
+            if (s.prevMin === null) {
+                logMsg(`这是第一个元素，因此主栈 push(${s.val})，同时最小栈也直接 push(${s.currentMin})`, false);
+            } else {
+                logMsg(`判断辅助栈要压入的值：min(新值 ${s.val}, 辅助栈顶 ${s.prevMin}) = ${s.currentMin}`, false);
+            }
+        } else if (s.phase === "PUSH_DONE") {
+            logMsg(`✅ <b>${s.cmdStr}</b> 执行完毕。`, true);
+        } else if (s.phase === "POP_DONE") {
+            logMsg(`🗑️ 主栈弹出 ${s.popped}。⚠️ 同步弹出辅助栈顶元素，保持状态一致！`, true);
+        } else if (s.phase === "READ_DONE") {
+            if (s.resultType === "top") {
+                logMsg(`👁️ top() 直接返回主栈栈顶，结果：<b>${s.val}</b>`, true);
+            } else {
+                logMsg(`💡 getMin() 的精髓：直接返回最小栈的栈顶即可！结果：<b><span style="color:var(--anthropic-green)">${s.val}</span></b>。时间复杂度 O(1)！`, true);
+            }
+        } else if (s.phase === "DONE") {
+            logMsg(`\n🎉 序列运行结束！`, true);
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

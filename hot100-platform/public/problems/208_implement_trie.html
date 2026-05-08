@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>实现 Trie (前缀树) - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>实现 Trie（前缀树）</h1>
+        <div class="subtitle">字典树的 插入、搜索与前缀匹配</div>
+
+        <div class="control-section">
+          <h3>操作场景选择</h3>
+          <select id="scenario-select" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--anthropic-light-gray);" onchange="initializeSystem()">
+              <option value="1">经典: apple / app</option>
+              <option value="2">多分支: cat / car / cart / dog</option>
+              <option value="3">前缀覆盖: a / ab / abc / abcd</option>
+          </select>
+          <button class="button" onclick="initializeSystem()">重新演示当前序列</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(len(word))</span>
+            <span class="memo-badge space">□ O(Σ * L)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **节点结构**：每个节点包含一个 `children` 数组（或字典，最多 26 个子节点）以及一个 `isEnd` 布尔标志，表明是否有单词在此处结尾。</div>
+            <div class="memo-tip">💡 **插入 (Insert)**：逐个字符沿着树往下走，如果孩子不存在则新建节点；走到最后一个字符时，将 `isEnd` 设为 true。</div>
+            <div class="memo-tip g">🔍 **Search 与 StartsWith 的区别**：Search 要求走到最后一个字符时，所在节点的 `isEnd` 必须是 true；而 StartsWith 只要能无碍地走完所有前缀字符即可，不关心是否 `isEnd`。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">正在执行：初始化 Trie 对象</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.is_end = False # 标识是否有单词在此结束\n\nclass Trie:\n    def __init__(self):\n        self.root = TrieNode()\n\n    def insert(self, word: str) -> None:\n        node = self.root\n        for char in word:\n            # 顺藤摸瓜，如果没有该字符的路径，则新建节点\n            if char not in node.children:\n                node.children[char] = TrieNode()\n            node = node.children[char]\n        # 单词最后一个字符所在的节点标记为结尾\n        node.is_end = True\n\n    def search(self, word: str) -> bool:\n        node = self.root\n        for char in word:\n            if char not in node.children:\n                return False\n            node = node.children[char]\n        # 必须确保走到了单词结尾，并且该节点确实是一个单词的结尾（而不是单纯的前缀）\n        return node.is_end\n\n    def startsWith(self, prefix: str) -> bool:\n        node = self.root\n        for char in prefix:\n            if char not in node.children:\n                return False\n            node = node.children[char]\n        # 只要能顺畅走完 prefix 所有字符，就说明该前缀存在\n        return True`,
+        ts: `// TypeScript\nclass TrieNode {\n    children: Map<string, TrieNode>;\n    isEnd: boolean;\n    constructor() {\n        this.children = new Map();\n        this.isEnd = false;\n    }\n}\n\nclass Trie {\n    root: TrieNode;\n    constructor() {\n        this.root = new TrieNode();\n    }\n\n    insert(word: string): void {\n        let node = this.root;\n        for (const char of word) {\n            // 如果当前字符对应的子节点不存在，则创建\n            if (!node.children.has(char)) {\n                node.children.set(char, new TrieNode());\n            }\n            node = node.children.get(char)!;\n        }\n        // 最后一个字符对应的节点打上结束标记\n        node.isEnd = true;\n    }\n\n    search(word: string): boolean {\n        let node = this.root;\n        for (const char of word) {\n            if (!node.children.has(char)) return false;\n            node = node.children.get(char)!;\n        }\n        // 完全匹配：必须是某个单词的结尾\n        return node.isEnd;\n    }\n\n    startsWith(prefix: string): boolean {\n        let node = this.root;\n        for (const char of prefix) {\n            if (!node.children.has(char)) return false;\n            node = node.children.get(char)!;\n        }\n        // 前缀匹配：只要没断掉就行\n        return true;\n    }\n}`,
+        java: `// Java\nclass TrieNode {\n    TrieNode[] children;\n    boolean isEnd;\n    public TrieNode() {\n        // 假设只包含小写字母，可以用长度26的数组替代哈希表，提升效率\n        children = new TrieNode[26];\n        isEnd = false;\n    }\n}\n\nclass Trie {\n    TrieNode root;\n    public Trie() {\n        root = new TrieNode();\n    }\n    \n    public void insert(String word) {\n        TrieNode node = root;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new TrieNode();\n            }\n            node = node.children[idx];\n        }\n        node.isEnd = true;\n    }\n    \n    public boolean search(String word) {\n        TrieNode node = root;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) return false;\n            node = node.children[idx];\n        }\n        return node.isEnd;\n    }\n    \n    public boolean startsWith(String prefix) {\n        TrieNode node = root;\n        for (char c : prefix.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) return false;\n            node = node.children[idx];\n        }\n        return true;\n    }\n}`,
+        cpp: `// C++\nclass TrieNode {\npublic:\n    TrieNode* children[26];\n    bool isEnd;\n    TrieNode() {\n        isEnd = false;\n        for (int i = 0; i < 26; ++i) {\n            children[i] = nullptr;\n        }\n    }\n};\n\nclass Trie {\nprivate:\n    TrieNode* root;\npublic:\n    Trie() {\n        root = new TrieNode();\n    }\n    \n    void insert(string word) {\n        TrieNode* node = root;\n        for (char c : word) {\n            int idx = c - 'a';\n            if (node->children[idx] == nullptr) {\n                node->children[idx] = new TrieNode();\n            }\n            node = node->children[idx];\n        }\n        node->isEnd = true; // 标记单词结尾\n    }\n    \n    bool search(string word) {\n        TrieNode* node = root;\n        for (char c : word) {\n            int idx = c - 'a';\n            // 一旦发现缺少某条分支，立刻返回false\n            if (node->children[idx] == nullptr) return false;\n            node = node->children[idx];\n        }\n        // 完整匹配要求最后停留的位置必须是一个合法单词的终点\n        return node->isEnd;\n    }\n    \n    bool startsWith(string prefix) {\n        TrieNode* node = root;\n        for (char c : prefix) {\n            int idx = c - 'a';\n            if (node->children[idx] == nullptr) return false;\n            node = node->children[idx];\n        }\n        return true;\n    }\n};`,
+        c: `// C\ntypedef struct Trie {\n    struct Trie* children[26];\n    bool isEnd;\n} Trie;\n\nTrie* trieCreate() {\n    Trie* node = (Trie*)malloc(sizeof(Trie));\n    node->isEnd = false;\n    for (int i = 0; i < 26; ++i) {\n        node->children[i] = NULL;\n    }\n    return node;\n}\n\nvoid trieInsert(Trie* obj, char * word) {\n    Trie* node = obj;\n    for (int i = 0; word[i] != '\\0'; ++i) {\n        int idx = word[i] - 'a';\n        if (node->children[idx] == NULL) {\n            node->children[idx] = trieCreate();\n        }\n        node = node->children[idx];\n    }\n    node->isEnd = true;\n}\n\nbool trieSearch(Trie* obj, char * word) {\n    Trie* node = obj;\n    for (int i = 0; word[i] != '\\0'; ++i) {\n        int idx = word[i] - 'a';\n        if (node->children[idx] == NULL) return false;\n        node = node->children[idx];\n    }\n    return node->isEnd;\n}\n\nbool trieStartsWith(Trie* obj, char * prefix) {\n    Trie* node = obj;\n    for (int i = 0; prefix[i] != '\\0'; ++i) {\n        int idx = prefix[i] - 'a';\n        if (node->children[idx] == NULL) return false;\n        node = node->children[idx];\n    }\n    return true;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      class TrieNodeVisual {
+          constructor(char, depth) {
+              this.char = char;
+              this.depth = depth;
+              this.children = {};
+              this.isEnd = false;
+              
+              this.x = width / 2;
+              this.y = 50 + depth * 70;
+              this.targetX = width / 2;
+              
+              this.isCurrent = false; // For animation highlight
+          }
+      }
+
+      let rootNode = null;
+      let operations = [];
+      let opIndex = 0;
+      let charIndex = 0;
+      let animCurrentNode = null;
+      let animState = 0; // 0: start op, 1: matching char, 2: end op, 3: result wait
+
+      const SCENARIOS = {
+          "1": [
+              {type: 'INSERT', word: 'apple'},
+              {type: 'SEARCH', word: 'apple'},
+              {type: 'SEARCH', word: 'app'},
+              {type: 'STARTSWITH', word: 'app'},
+              {type: 'INSERT', word: 'app'},
+              {type: 'SEARCH', word: 'app'}
+          ],
+          "2": [
+              {type: 'INSERT', word: 'cat'},
+              {type: 'INSERT', word: 'car'},
+              {type: 'INSERT', word: 'cart'},
+              {type: 'INSERT', word: 'dog'},
+              {type: 'SEARCH', word: 'car'},
+              {type: 'STARTSWITH', word: 'ca'}
+          ],
+          "3": [
+              {type: 'INSERT', word: 'abcd'},
+              {type: 'INSERT', word: 'ab'},
+              {type: 'SEARCH', word: 'a'},
+              {type: 'SEARCH', word: 'ab'},
+              {type: 'STARTSWITH', word: 'a'}
+          ]
+      };
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function calculateLayout(node, left, right) {
+          node.targetX = (left + right) / 2;
+          let keys = Object.keys(node.children);
+          if (keys.length === 0) return;
+          
+          let w = (right - left) / keys.length;
+          keys.sort(); // Sort alphabetically
+          
+          for (let i = 0; i < keys.length; i++) {
+              let childLeft = left + i * w;
+              calculateLayout(node.children[keys[i]], childLeft, childLeft + w);
+          }
+      }
+
+      function updateLayout() {
+          if (!rootNode) return;
+          calculateLayout(rootNode, 40, width - 40);
+      }
+
+      function initializeSystem() {
+        let s = document.getElementById("scenario-select").value;
+        operations = JSON.parse(JSON.stringify(SCENARIOS[s]));
+        
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        rootNode = new TrieNodeVisual("Root", 0);
+        opIndex = 0;
+        charIndex = 0;
+        animCurrentNode = null;
+        animState = 0;
+        
+        updateLayout();
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        logMsg(`✅ Trie 字典树已初始化（创建空根节点）。开始执行操作序列...`, true);
+      }
+
+      function drawTrie(node) {
+          // Smooth interpolate
+          node.x += (node.targetX - node.x) * 0.1;
+          
+          // Draw edges first
+          for (let k in node.children) {
+              let child = node.children[k];
+              stroke(200);
+              strokeWeight(2);
+              if (child.isCurrent) stroke(234, 179, 8);
+              line(node.x, node.y, child.x, child.y);
+              drawTrie(child);
+          }
+          
+          // Draw node
+          if (node.isCurrent) {
+              fill(254, 240, 138); // Yellow highlight
+              stroke(202, 138, 4);
+              strokeWeight(3);
+          } else if (node.isEnd) {
+              fill(220, 252, 231); // Greenish
+              stroke(22, 163, 74);
+              strokeWeight(3);
+          } else {
+              fill(255);
+              stroke(150);
+              strokeWeight(2);
+          }
+          
+          ellipse(node.x, node.y, 36, 36);
+          
+          fill(50);
+          noStroke();
+          textAlign(CENTER, CENTER);
+          textSize(14);
+          if (node.depth === 0) {
+              text("R", node.x, node.y); // Root
+          } else {
+              text(node.char, node.x, node.y);
+          }
+      }
+
+      function clearHighlights(node) {
+          node.isCurrent = false;
+          for (let k in node.children) clearHighlights(node.children[k]);
+      }
+
+      function draw() {
+        background(255);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // HUD - Current Operation
+        fill(250, 240, 230); stroke(220, 180, 150); strokeWeight(2);
+        rect(10, 10, width - 20, 50, 8);
+        
+        if (opIndex < operations.length) {
+            let op = operations[opIndex];
+            fill(217, 119, 87); noStroke(); textAlign(LEFT, TOP); textSize(14); fontStyle = "bold";
+            text(`${op.type}("${op.word}")`, 30, 25);
+            
+            // Show characters
+            let charStartX = 200;
+            textSize(18); fontFamily = "monospace";
+            for (let i=0; i<op.word.length; i++) {
+                if (i === charIndex && animState === 1) fill(234, 179, 8); // Yellow highlight
+                else if (i < charIndex) fill(150); // Gray out passed
+                else fill(50); // Normal
+                text(op.word[i], charStartX + i * 14, 23);
+            }
+        } else {
+            fill(101, 163, 13); noStroke(); textAlign(CENTER, CENTER); textSize(15); fontStyle = "bold";
+            text(`🎉 所有操作执行完毕！`, width/2, 35);
+        }
+
+        if (rootNode) drawTrie(rootNode);
+      }
+
+      function performStep() {
+        if (isDone) return;
+        if (opIndex >= operations.length) {
+            isDone = true;
+            return;
+        }
+
+        let op = operations[opIndex];
+        
+        if (animState === 0) {
+            // Start of operation
+            document.getElementById("phase-header").innerHTML = `正在执行：${op.type}("${op.word}")`;
+            logMsg(`▶️ 开始执行 ${op.type}，目标字符串: "${op.word}"`, true);
+            animCurrentNode = rootNode;
+            clearHighlights(rootNode);
+            animCurrentNode.isCurrent = true;
+            charIndex = 0;
+            animState = 1;
+        } 
+        else if (animState === 1) {
+            // Processing characters
+            if (charIndex < op.word.length) {
+                let char = op.word[charIndex];
+                
+                if (op.type === 'INSERT') {
+                    if (!animCurrentNode.children[char]) {
+                        logMsg(`  🌱 字符 '${char}' 的路径不存在，创建新节点。`, false);
+                        let newNode = new TrieNodeVisual(char, animCurrentNode.depth + 1);
+                        animCurrentNode.children[char] = newNode;
+                        updateLayout();
+                    } else {
+                        logMsg(`  ➡️ 字符 '${char}' 的路径已存在，顺着走下去。`, false);
+                    }
+                    animCurrentNode.isCurrent = false;
+                    animCurrentNode = animCurrentNode.children[char];
+                    animCurrentNode.isCurrent = true;
+                    charIndex++;
+                } 
+                else if (op.type === 'SEARCH' || op.type === 'STARTSWITH') {
+                    if (!animCurrentNode.children[char]) {
+                        logMsg(`  ❌ 遇到字符 '${char}'，但在字典树中找不到对应分支。`, false);
+                        animState = 2; // Jump to end with failure
+                        op._failedEarly = true;
+                    } else {
+                        logMsg(`  ➡️ 匹配到字符 '${char}'，继续往下...`, false);
+                        animCurrentNode.isCurrent = false;
+                        animCurrentNode = animCurrentNode.children[char];
+                        animCurrentNode.isCurrent = true;
+                        charIndex++;
+                    }
+                }
+            } else {
+                // Reached end of string
+                animState = 2;
+            }
+        }
+        else if (animState === 2) {
+            // End logic
+            if (op.type === 'INSERT') {
+                animCurrentNode.isEnd = true;
+                logMsg(`✅ 字符串结尾，将当前节点 (${animCurrentNode.char}) 的 isEnd 标记为 True。`, true);
+            } 
+            else if (op.type === 'SEARCH') {
+                if (op._failedEarly) {
+                    logMsg(`🔴 SEARCH 返回 false (路径不完整)。`, true);
+                } else {
+                    if (animCurrentNode.isEnd) {
+                        logMsg(`🟢 SEARCH 返回 true (完整匹配，且 isEnd=True)。`, true);
+                    } else {
+                        logMsg(`🔴 SEARCH 返回 false (路径存在，但当前节点的 isEnd=False，只是一个前缀)。`, true);
+                    }
+                }
+            }
+            else if (op.type === 'STARTSWITH') {
+                if (op._failedEarly) {
+                    logMsg(`🔴 STARTSWITH 返回 false (前缀路径中断)。`, true);
+                } else {
+                    logMsg(`🟢 STARTSWITH 返回 true (顺利走完了整个前缀路径，不在乎 isEnd)。`, true);
+                }
+            }
+            animState = 3; // wait 1 tick before moving to next op
+        }
+        else if (animState === 3) {
+            clearHighlights(rootNode);
+            opIndex++;
+            animState = 0;
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

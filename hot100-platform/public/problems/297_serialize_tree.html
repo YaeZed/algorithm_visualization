@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>二叉树的序列化与反序列化 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>序列化与反序列化</h1>
+        <div class="subtitle">前序遍历（DFS）实现</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="123" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机树</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>节点数量 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="4" max="12" step="1" value="7" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">7</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(n)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 序列化：使用前序遍历，如果遇到空节点则记录特定字符（如 `X`），并用逗号分隔所有节点值。</div>
+            <div class="memo-tip">💡 反序列化：将字符串用逗号切分成数组，同样按照前序遍历 `(中->左->右)` 的顺序依次从数组中取值构建节点。</div>
+            <div class="memo-tip g">🔍 DFS 方法相对于广度优先（队列）实现起来代码更短、逻辑更加自洽。</div>
+            <div class="memo-tip w">⚠️ 反序列化时，必须要有一个全局索引变量或迭代器，因为构建子树时会消耗掉数组中的元素。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">算法执行动画展示区 - 正在进行【序列化】</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Codec:\n    def serialize(self, root):\n        """Encodes a tree to a single string."""\n        if not root:\n            return "X," # 空节点用 X 表示，加逗号分隔\n            \n        # 前序遍历：根 -> 左 -> 右\n        left_serialized = self.serialize(root.left)\n        right_serialized = self.serialize(root.right)\n        \n        return str(root.val) + "," + left_serialized + right_serialized\n\n    def deserialize(self, data):\n        """Decodes your encoded data to tree."""\n        vals = data.split(",")\n        self.idx = 0\n        \n        def build():\n            if self.idx >= len(vals) or vals[self.idx] == "X":\n                self.idx += 1\n                return None\n                \n            # 当前值构建根节点\n            node = TreeNode(int(vals[self.idx]))\n            self.idx += 1\n            \n            # 递归构建左右子树\n            node.left = build()\n            node.right = build()\n            return node\n            \n        return build()`,
+        ts: `// TypeScript\nfunction serialize(root: TreeNode | null): string {\n    // 使用前序遍历进行序列化\n    if (root === null) {\n        return "X,"; // 用 X 表示空指针\n    }\n    \n    const leftStr = serialize(root.left);\n    const rightStr = serialize(root.right);\n    \n    // 根节点在前，随后是左子树，最后是右子树\n    return root.val + "," + leftStr + rightStr;\n}\n\nfunction deserialize(data: string): TreeNode | null {\n    const vals = data.split(",");\n    let idx = 0;\n    \n    // 辅助函数：根据全局 idx 索引按前序遍历的顺序恢复树\n    function build(): TreeNode | null {\n        if (vals[idx] === "X") {\n            idx++;\n            return null;\n        }\n        \n        const node = new TreeNode(parseInt(vals[idx]));\n        idx++;\n        \n        // 先恢复左边，再恢复右边。注意这会递归修改外层的 idx\n        node.left = build();\n        node.right = build();\n        \n        return node;\n    }\n    \n    return build();\n}`,
+        java: `// Java\npublic class Codec {\n    public String serialize(TreeNode root) {\n        if (root == null) {\n            return "X,"; // 空节点用 X 代替\n        }\n        // 前序遍历拼接字符串\n        return root.val + "," + serialize(root.left) + serialize(root.right);\n    }\n\n    public TreeNode deserialize(String data) {\n        String[] vals = data.split(",");\n        // 利用数组容器模拟全局指针或者队列\n        Queue<String> queue = new LinkedList<>(Arrays.asList(vals));\n        return build(queue);\n    }\n    \n    private TreeNode build(Queue<String> queue) {\n        String val = queue.poll();\n        if (val.equals("X")) {\n            return null;\n        }\n        \n        TreeNode node = new TreeNode(Integer.parseInt(val));\n        // 队列确保了每次递归调用都能取到正确的下一个元素\n        node.left = build(queue);\n        node.right = build(queue);\n        \n        return node;\n    }\n}`,
+        cpp: `// C++\nclass Codec {\npublic:\n    string serialize(TreeNode* root) {\n        if (!root) return "X,"; // 空节点映射为 X,\n        \n        // 前序遍历序列化\n        return to_string(root->val) + "," \n               + serialize(root->left) \n               + serialize(root->right);\n    }\n\n    TreeNode* deserialize(string data) {\n        int idx = 0;\n        return build(data, idx);\n    }\n    \n    TreeNode* build(const string& data, int& idx) {\n        if (idx >= data.size()) return nullptr;\n        \n        // 查找下一个逗号的位置，提取当前节点值\n        int comma = data.find(',', idx);\n        string val = data.substr(idx, comma - idx);\n        idx = comma + 1;\n        \n        if (val == "X") return nullptr;\n        \n        TreeNode* node = new TreeNode(stoi(val));\n        // idx 是引用传递，因此左右子树构建时会自然地向后推进游标\n        node->left = build(data, idx);\n        node->right = build(data, idx);\n        \n        return node;\n    }\n};`,
+        c: `// C\n// C语言通常需要自己处理字符串拼接和拆分内存分配\n// 这里展示核心逻辑\nvoid serializeHelper(struct TreeNode* root, char* str) {\n    if (!root) {\n        strcat(str, "X,");\n        return;\n    }\n    char valStr[20];\n    sprintf(valStr, "%d,", root->val);\n    strcat(str, valStr);\n    \n    serializeHelper(root->left, str);\n    serializeHelper(root->right, str);\n}\n\nchar* serialize(struct TreeNode* root) {\n    char* res = (char*)calloc(10000, sizeof(char));\n    serializeHelper(root, res);\n    return res;\n}\n\nstruct TreeNode* build(char** data) {\n    // 解析直到逗号\n    char* comma = strchr(*data, ',');\n    if (!comma) return NULL;\n    \n    *comma = '\\0';\n    char* val = *data;\n    *data = comma + 1;\n    \n    if (strcmp(val, "X") == 0) return NULL;\n    \n    struct TreeNode* node = (struct TreeNode*)malloc(sizeof(struct TreeNode));\n    node->val = atoi(val);\n    node->left = build(data);\n    node->right = build(data);\n    return node;\n}\n\nstruct TreeNode* deserialize(char* data) {\n    char* cursor = data;\n    return build(&cursor);\n}`
+      };
+
+      let params = { seed: 123, speed: 1.0, n: 7 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      class DemoNode {
+          constructor(id, val, x, y, depth) {
+              this.id = id;
+              this.val = val;
+              this.x = x;
+              this.y = y;
+              this.depth = depth;
+              this.left = null;
+              this.right = null;
+              this.parent = null;
+              
+              // Visualization state
+              this.isVisited = false;
+              this.isCurrent = false;
+          }
+      }
+
+      let nodes = [];
+      let root = null;
+      let serializedArray = [];
+      let globalPhase = 'SERIALIZE'; // 'SERIALIZE' -> 'DESERIALIZE'
+      
+      let callStack = [];
+
+      function generateTree(n) {
+          let treeNodes = [];
+          
+          let w = width > 400 ? width : 600;
+          let rootNode = new DemoNode(1, floor(random(1, 20)), w/2, 100, 0);
+          treeNodes.push(rootNode);
+          
+          let queue = [rootNode];
+          let idCounter = 2;
+          
+          let horizontalSpacing = 160;
+          let verticalSpacing = 70;
+          
+          while(treeNodes.length < n && queue.length > 0) {
+              let curr = queue.shift();
+              
+              if (treeNodes.length < n && random() > 0.15) {
+                  let lNode = new DemoNode(idCounter++, floor(random(1, 20)), curr.x - horizontalSpacing / (curr.depth + 1), curr.y + verticalSpacing, curr.depth + 1);
+                  lNode.parent = curr;
+                  curr.left = lNode;
+                  treeNodes.push(lNode);
+                  queue.push(lNode);
+              }
+              if (treeNodes.length < n && random() > 0.15) {
+                  let rNode = new DemoNode(idCounter++, floor(random(1, 20)), curr.x + horizontalSpacing / (curr.depth + 1), curr.y + verticalSpacing, curr.depth + 1);
+                  rNode.parent = curr;
+                  curr.right = rNode;
+                  treeNodes.push(rNode);
+                  queue.push(rNode);
+              }
+              if (queue.length === 0 && treeNodes.length < n) {
+                  queue.push(curr); 
+              }
+          }
+          return { treeNodes, rootNode };
+      }
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        
+        globalPhase = 'SERIALIZE';
+        serializedArray = [];
+
+        let n = floor(params.n);
+        let tData = generateTree(n);
+        nodes = tData.treeNodes;
+        root = tData.rootNode;
+        
+        nodes.forEach(n => { n.isVisited = false; n.isCurrent = false; });
+        
+        callStack = [];
+        callStack.push({
+            node: root,
+            phase: 'VISIT' // VISIT, LEFT, RIGHT
+        });
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        document.getElementById("phase-header").innerHTML = "算法执行动画展示区 - 正在进行【第一阶段：序列化】";
+        
+        logMsg(`✅ 生成 ${n} 个节点的二叉树。`, true);
+        logMsg(`🚀 开始前序遍历进行序列化！`, false);
+      }
+
+      function draw() {
+        background(255);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // Draw arrays at top
+        let arrW = serializedArray.length * 30;
+        let pX = width/2 - arrW/2;
+        let pY = 40;
+        
+        // Draw String Array (Serialized Data)
+        fill(250, 240, 230); stroke(220, 180, 150); strokeWeight(2);
+        rect(10, 10, width - 20, 80, 8);
+        
+        fill(100); noStroke(); textAlign(LEFT, TOP); textSize(12);
+        text("Serialized Array: ", 20, 20);
+        
+        // Render array elements
+        for(let i=0; i<serializedArray.length; i++) {
+            let x = pX + i*30;
+            let val = serializedArray[i];
+            if (globalPhase === 'DESERIALIZE' && i === deserializeIdx) {
+                fill(255, 235, 200); // Current deserialize index
+            } else if (val === "X") {
+                fill(240, 210, 210); // Null nodes
+            } else {
+                fill(230, 240, 255);
+            }
+            stroke(200); strokeWeight(1);
+            rect(x, pY, 30, 30, 4);
+            
+            fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(11); fontStyle = "normal";
+            text(val, x + 15, pY + 15);
+            
+            if (globalPhase === 'DESERIALIZE' && i === deserializeIdx) {
+                fill(217, 119, 87);
+                triangle(x+15, pY-5, x+15-4, pY-10, x+15+4, pY-10);
+            }
+        }
+
+        // Draw edges
+        strokeWeight(2);
+        for(let node of nodes) {
+            if (node.left) {
+                if (globalPhase === 'DESERIALIZE' && !node.left.isConstructed) stroke(235, 245, 235);
+                else stroke(200);
+                line(node.x, node.y, node.left.x, node.left.y);
+            }
+            if (node.right) {
+                if (globalPhase === 'DESERIALIZE' && !node.right.isConstructed) stroke(235, 245, 235);
+                else stroke(200);
+                line(node.x, node.y, node.right.x, node.right.y);
+            }
+        }
+
+        // Current status string
+        if (callStack.length > 0 && !isDone) {
+            let top = callStack[callStack.length - 1];
+            fill(80); textSize(14); textAlign(CENTER, BOTTOM);
+            if (globalPhase === 'SERIALIZE' && top.node) {
+                text(`DFS 访问节点: ${top.node.val}`, width/2, height - 20);
+            } else if (globalPhase === 'DESERIALIZE') {
+                let currentVal = serializedArray[deserializeIdx];
+                text(`正在构建树，当前读取值: ${currentVal}`, width/2, height - 20);
+            }
+        }
+
+        // Draw nodes
+        for(let node of nodes) {
+            if (globalPhase === 'DESERIALIZE' && !node.isConstructed) {
+                // Invisible until constructed
+                continue;
+            }
+            
+            if (node.isCurrent) {
+                fill(255, 255, 200);
+                stroke(200, 150, 50);
+                strokeWeight(3);
+                ellipse(node.x, node.y, 44, 44);
+            } else if (node.isVisited) {
+                fill(245, 245, 245);
+                stroke(200);
+                strokeWeight(2);
+                ellipse(node.x, node.y, 36, 36);
+            } else {
+                fill(255);
+                stroke(220);
+                strokeWeight(2);
+                ellipse(node.x, node.y, 36, 36);
+            }
+
+            fill(60); noStroke(); textAlign(CENTER, CENTER); textSize(15);
+            text(node.val, node.x, node.y);
+        }
+      }
+
+      let deserializeIdx = 0;
+
+      function performStep() {
+        if (isDone) return;
+        
+        if (globalPhase === 'SERIALIZE') {
+            if (callStack.length === 0) {
+                globalPhase = 'DESERIALIZE';
+                document.getElementById("phase-header").innerHTML = "算法执行动画展示区 - 正在进行【第二阶段：反序列化】";
+                logMsg(`✅ 序列化完成，结果数组：[${serializedArray.join(",")}]`, true);
+                logMsg(`🚀 开始反序列化（重构二叉树）。`, false);
+                
+                // Set up deserialize state
+                nodes.forEach(n => { n.isConstructed = false; n.isVisited = false; n.isCurrent = false; });
+                deserializeIdx = 0;
+                callStack.push({ phase: 'INIT', expectedNode: root }); // Hack: reusing existing node positions for animation
+                return;
+            }
+
+            let frame = callStack[callStack.length - 1];
+
+            if (!frame.node) {
+                serializedArray.push("X");
+                logMsg(`🔸 遇到空节点，存入 "X"`, false);
+                callStack.pop();
+                return;
+            }
+
+            nodes.forEach(n => n.isCurrent = false);
+            frame.node.isCurrent = true;
+            frame.node.isVisited = true;
+
+            if (frame.phase === 'VISIT') {
+                serializedArray.push(frame.node.val.toString());
+                logMsg(`📍 访问节点 ${frame.node.val}，存入数组。`, false);
+                frame.phase = 'LEFT';
+                callStack.push({ node: frame.node.left, phase: 'VISIT' });
+            }
+            else if (frame.phase === 'LEFT') {
+                frame.phase = 'RIGHT';
+                callStack.push({ node: frame.node.right, phase: 'VISIT' });
+            }
+            else if (frame.phase === 'RIGHT') {
+                logMsg(`🔙 节点 ${frame.node.val} 的左右子树都已序列化，返回。`, false);
+                frame.node.isCurrent = false;
+                callStack.pop();
+            }
+        } 
+        else if (globalPhase === 'DESERIALIZE') {
+            if (callStack.length === 0) {
+                isDone = true;
+                logMsg(`🏁 反序列化完成，树结构完全恢复！`, true);
+                return;
+            }
+
+            let frame = callStack[callStack.length - 1];
+            
+            if (deserializeIdx >= serializedArray.length) {
+                callStack.pop();
+                return;
+            }
+
+            let currentVal = serializedArray[deserializeIdx];
+
+            if (frame.phase === 'INIT') {
+                if (currentVal === "X") {
+                    logMsg(`🔸 读取到 "X"，返回空指针，向上一层回溯。`, false);
+                    deserializeIdx++;
+                    callStack.pop();
+                } else {
+                    // Activate expected node (already placed by layout)
+                    frame.node = frame.expectedNode;
+                    frame.node.isConstructed = true;
+                    frame.node.isCurrent = true;
+                    frame.node.isVisited = true;
+                    nodes.forEach(n => { if (n !== frame.node) n.isCurrent = false; });
+                    
+                    logMsg(`🌱 读取到值 ${currentVal}，创建节点，并进入它的左子树构建...`, false);
+                    deserializeIdx++;
+                    
+                    frame.phase = 'LEFT';
+                    callStack.push({ phase: 'INIT', expectedNode: frame.node.left });
+                }
+            }
+            else if (frame.phase === 'LEFT') {
+                frame.phase = 'RIGHT';
+                nodes.forEach(n => n.isCurrent = false);
+                if(frame.node) frame.node.isCurrent = true;
+                logMsg(`↘️ 节点 ${frame.node.val} 的左侧构建完毕，现在进入右子树构建...`, false);
+                callStack.push({ phase: 'INIT', expectedNode: frame.node.right });
+            }
+            else if (frame.phase === 'RIGHT') {
+                logMsg(`🔼 节点 ${frame.node.val} 的左右子树都构建完成了，向上返回。`, false);
+                if(frame.node) frame.node.isCurrent = false;
+                callStack.pop();
+            }
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

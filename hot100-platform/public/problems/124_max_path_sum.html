@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>二叉树中的最大路径和 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>二叉树中的最大路径和</h1>
+        <div class="subtitle">深度优先搜索（后序遍历）</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="12345" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机树（含负数）</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>节点数量 (n)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="4" max="15" step="1" value="9" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">9</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n)</span>
+            <span class="memo-badge space">□ O(h)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 后序遍历：在计算当前节点之前，先求得左右子树的最大单边路径和。</div>
+            <div class="memo-tip">💡 路径可由任意节点开始，任意节点结束。负数路径直接舍弃（取0）。</div>
+            <div class="memo-tip g">🔍 节点的作用 1（拱顶）：连接左右两边，构成完整路径 `node.val + left + right`，用来尝试更新全局最大值。</div>
+            <div class="memo-tip g">🔍 节点的作用 2（桥梁）：只选择左右较大的单边加上自己 `node.val + max(left, right)`，作为单边路径返回给上一层父节点。</div>
+            <div class="memo-tip w">⚠️ 必须区分清楚这两种情况：一个是更新答案用的“倒V型路径”，另一个是向上返回的“单边路径”。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">算法执行动画展示区</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def maxPathSum(self, root: Optional[TreeNode]) -> int:\n        self.max_sum = float('-inf')\n        \n        def dfs(node):\n            if not node:\n                return 0\n            \n            # 递归计算左右子树的最大单边贡献值\n            # 只有在贡献值大于 0 时，才会选取对应子树（剪枝）\n            left_gain = max(dfs(node.left), 0)\n            right_gain = max(dfs(node.right), 0)\n            \n            # 节点的最大路径和取决于该节点的值与该节点的左右子树的最大贡献值\n            price_newpath = node.val + left_gain + right_gain\n            \n            # 更新全局答案\n            self.max_sum = max(self.max_sum, price_newpath)\n            \n            # 返回节点的最大贡献值给父节点（只能选单边）\n            return node.val + max(left_gain, right_gain)\n            \n        dfs(root)\n        return self.max_sum`,
+        ts: `// TypeScript\nfunction maxPathSum(root: TreeNode | null): number {\n    let maxSum = -Infinity;\n\n    function dfs(node: TreeNode | null): number {\n        if (node === null) return 0; // 空节点贡献为0\n\n        // 递归获取左右子树的单侧最大路径和。若为负数则舍弃（取0）\n        const leftGain = Math.max(dfs(node.left), 0);\n        const rightGain = Math.max(dfs(node.right), 0);\n\n        // 如果包含当前节点，以及它的左右子树，构成的一个"倒V型"路径\n        const currentPathSum = node.val + leftGain + rightGain;\n\n        // 如果这个"倒V型"路径的和比历史最大值还要大，就更新全局最大值\n        maxSum = Math.max(maxSum, currentPathSum);\n\n        // 返回时，只能返回一条自上向下的路径给父节点，即当前节点加上左右两边较大的一边\n        return node.val + Math.max(leftGain, rightGain);\n    }\n\n    dfs(root);\n    return maxSum;\n}`,
+        java: `// Java\nclass Solution {\n    int maxSum = Integer.MIN_VALUE;\n\n    public int maxPathSum(TreeNode root) {\n        dfs(root);\n        return maxSum;\n    }\n\n    private int dfs(TreeNode node) {\n        if (node == null) return 0; // 递归终点：空节点不能提供路径和，返回0\n\n        // 递归计算左右子树的最大单边路径和\n        // 如果子树路径和是负数，则直接不走那条分支，视为 0 贡献\n        int leftGain = Math.max(dfs(node.left), 0);\n        int rightGain = Math.max(dfs(node.right), 0);\n\n        // 将当前节点作为该路径的"最高点"（即连接左右子树的拐点）计算路径和\n        int currentPathSum = node.val + leftGain + rightGain;\n\n        // 更新全局的最大路径和\n        maxSum = Math.max(maxSum, currentPathSum);\n\n        // 当前节点能向父节点提供的最大单边路径和只能包含左子树或右子树之一\n        return node.val + Math.max(leftGain, rightGain);\n    }\n}`,
+        cpp: `// C++\nclass Solution {\n    int maxSum = INT_MIN;\npublic:\n    int maxPathSum(TreeNode* root) {\n        dfs(root);\n        return maxSum;\n    }\n\n    int dfs(TreeNode* node) {\n        if (!node) return 0; // 空节点路径和为0\n\n        // 获取左右子树的最大贡献值，若小于0则按0计算（即剪枝，不走负数路径）\n        int leftGain = max(dfs(node->left), 0);\n        int rightGain = max(node->right ? dfs(node->right) : 0, 0); // 也可以写成 max(dfs(node->right), 0)\n\n        // 包含当前节点作为"拱顶"的完整路径和\n        int currentPathSum = node->val + leftGain + rightGain;\n\n        // 更新全局历史最大值\n        maxSum = max(maxSum, currentPathSum);\n\n        // 当前节点给上一层父节点提供的路径，只能是"自己 + 左/右子树中较大的那个"\n        return node->val + max(leftGain, rightGain);\n    }\n};`,
+        c: `// C\nint maxSum;\n\nint dfs(struct TreeNode* node) {\n    if (node == NULL) return 0; // 边界情况：空节点\n    \n    // 递归获取左右子树最大单侧路径和。如果为负数则不取（当作0）\n    int leftGain = dfs(node->left);\n    if (leftGain < 0) leftGain = 0;\n    \n    int rightGain = dfs(node->right);\n    if (rightGain < 0) rightGain = 0;\n    \n    // 以当前节点为桥梁，连接左右两边的路径\n    int currentPathSum = node->val + leftGain + rightGain;\n    \n    // 维护一个全局最大路径和\n    if (currentPathSum > maxSum) {\n        maxSum = currentPathSum;\n    }\n    \n    // 返回包含当前节点在内的单侧最长路径给其父节点\n    return node->val + (leftGain > rightGain ? leftGain : rightGain);\n}\n\nint maxPathSum(struct TreeNode* root) {\n    maxSum = INT_MIN; // 初始化为最小整数\n    dfs(root);\n    return maxSum;\n}`
+      };
+
+      let params = { seed: 12345, speed: 1.0, n: 9 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      class TreeNode {
+          constructor(id, val, x, y, depth) {
+              this.id = id;
+              this.val = val;
+              this.x = x;
+              this.y = y;
+              this.depth = depth;
+              this.left = null;
+              this.right = null;
+              this.parent = null;
+              
+              // Visualization state
+              this.isVisited = false;
+              this.isCurrent = false;
+              this.returnValue = null; // What did DFS return for this node?
+          }
+      }
+
+      let nodes = [];
+      let root = null;
+      let globalMaxSum = -Infinity;
+      let globalMaxPath = []; // Node IDs
+      
+      let callStack = [];
+
+      function generateTree(n) {
+          let treeNodes = [];
+          
+          let w = width > 400 ? width : 600;
+          let rootNode = new TreeNode(1, floor(random(-5, 10)), w/2, 80, 0);
+          treeNodes.push(rootNode);
+          
+          let queue = [rootNode];
+          let idCounter = 2;
+          
+          let horizontalSpacing = 180;
+          let verticalSpacing = 70;
+          
+          while(treeNodes.length < n && queue.length > 0) {
+              let curr = queue.shift();
+              
+              if (treeNodes.length < n && random() > 0.15) {
+                  let lNode = new TreeNode(idCounter++, floor(random(-15, 20)), curr.x - horizontalSpacing / (curr.depth + 1), curr.y + verticalSpacing, curr.depth + 1);
+                  lNode.parent = curr;
+                  curr.left = lNode;
+                  treeNodes.push(lNode);
+                  queue.push(lNode);
+              }
+              if (treeNodes.length < n && random() > 0.15) {
+                  let rNode = new TreeNode(idCounter++, floor(random(-15, 20)), curr.x + horizontalSpacing / (curr.depth + 1), curr.y + verticalSpacing, curr.depth + 1);
+                  rNode.parent = curr;
+                  curr.right = rNode;
+                  treeNodes.push(rNode);
+                  queue.push(rNode);
+              }
+              if (queue.length === 0 && treeNodes.length < n) {
+                  queue.push(curr); 
+              }
+          }
+          return { treeNodes, rootNode };
+      }
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        
+        globalMaxSum = -Infinity;
+        globalMaxPath = [];
+
+        let n = floor(params.n);
+        let tData = generateTree(n);
+        nodes = tData.treeNodes;
+        root = tData.rootNode;
+        
+        nodes.forEach(n => {
+            n.isVisited = false; n.isCurrent = false; n.returnValue = null;
+        });
+        
+        callStack = [];
+        callStack.push({
+            node: root,
+            phase: 'VISIT', // VISIT, LEFT, RIGHT
+            parentFrame: null,
+            side: null, // 'left' or 'right'
+            leftRes: null,
+            rightRes: null
+        });
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        logMsg(`✅ 生成 ${n} 个节点的二叉树（包含正负数）。`, true);
+        logMsg(`🚀 开始后序遍历，初始全局最大值: -Infinity`, false);
+      }
+
+      function draw() {
+        background(255);
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // HUD - Global Max Sum
+        fill(250, 240, 230); stroke(220, 180, 150); strokeWeight(2);
+        rect(20, 20, 180, 50, 8);
+        fill(217, 119, 87); noStroke(); textAlign(LEFT, TOP); textSize(15); fontStyle = "bold";
+        text(`Max Sum: ${globalMaxSum === -Infinity ? '-∞' : globalMaxSum}`, 35, 35);
+
+        // Draw edges
+        strokeWeight(2);
+        for(let node of nodes) {
+            if (node.left) {
+                if (node.left.returnValue !== null) stroke(100, 180, 100);
+                else if (node.left.isVisited) stroke(200);
+                else stroke(220);
+                line(node.x, node.y, node.left.x, node.left.y);
+            }
+            if (node.right) {
+                if (node.right.returnValue !== null) stroke(100, 180, 100);
+                else if (node.right.isVisited) stroke(200);
+                else stroke(220);
+                line(node.x, node.y, node.right.x, node.right.y);
+            }
+        }
+
+        // Highlight max path edges
+        if (globalMaxPath.length > 0) {
+            strokeWeight(5);
+            stroke(217, 119, 87, 180);
+            for(let node of nodes) {
+                if (globalMaxPath.includes(node.id)) {
+                    if (node.left && globalMaxPath.includes(node.left.id)) {
+                        line(node.x, node.y, node.left.x, node.left.y);
+                    }
+                    if (node.right && globalMaxPath.includes(node.right.id)) {
+                        line(node.x, node.y, node.right.x, node.right.y);
+                    }
+                }
+            }
+        }
+
+        // Current status string
+        if (callStack.length > 0 && !isDone) {
+            let top = callStack[callStack.length - 1];
+            if (top.node) {
+                fill(80); textSize(14); textAlign(CENTER, BOTTOM);
+                text(`DFS 访问节点: ${top.node.val}`, width/2, height - 20);
+            }
+        }
+
+        // Draw nodes
+        for(let node of nodes) {
+            if (globalMaxPath.includes(node.id)) {
+                fill(255, 235, 215);
+                stroke(217, 119, 87);
+                strokeWeight(3);
+                ellipse(node.x, node.y, 44, 44);
+            } else if (node.isCurrent) {
+                fill(255, 255, 200);
+                stroke(200, 150, 50);
+                strokeWeight(3);
+                ellipse(node.x, node.y, 44, 44);
+            } else if (node.isVisited) {
+                fill(245, 245, 245);
+                stroke(200);
+                strokeWeight(2);
+                ellipse(node.x, node.y, 36, 36);
+            } else {
+                fill(255);
+                stroke(220);
+                strokeWeight(2);
+                ellipse(node.x, node.y, 36, 36);
+            }
+
+            // Negative values can be red for emphasis
+            if (node.val < 0) fill(200, 80, 80);
+            else fill(60);
+            
+            noStroke();
+            textAlign(CENTER, CENTER);
+            textSize(15);
+            text(node.val, node.x, node.y);
+
+            // Draw return value indicator if it returned something
+            if (node.isVisited && node.returnValue !== null) {
+                fill(100, 180, 100);
+                textSize(11);
+                text(`^${node.returnValue}`, node.x + 25, node.y - 15);
+            }
+        }
+      }
+
+      function performStep() {
+        if (isDone || callStack.length === 0) return;
+
+        let frame = callStack[callStack.length - 1];
+
+        if (!frame.node) {
+            // Null node returns 0 and empty path
+            if (frame.parentFrame && frame.side) {
+                frame.parentFrame[frame.side + 'Res'] = { singleSum: 0, singlePath: [] };
+            }
+            callStack.pop();
+            return;
+        }
+
+        nodes.forEach(n => n.isCurrent = false);
+        frame.node.isCurrent = true;
+        frame.node.isVisited = true;
+
+        if (frame.phase === 'VISIT') {
+            logMsg(`📍 深入节点 ${frame.node.val}`, false);
+            frame.phase = 'LEFT';
+            callStack.push({ node: frame.node.left, phase: 'VISIT', parentFrame: frame, side: 'left', leftRes: null, rightRes: null });
+        }
+        else if (frame.phase === 'LEFT') {
+            frame.phase = 'RIGHT';
+            callStack.push({ node: frame.node.right, phase: 'VISIT', parentFrame: frame, side: 'right', leftRes: null, rightRes: null });
+        }
+        else if (frame.phase === 'RIGHT') {
+            // Both children processed. Calculate!
+            let leftRes = frame.leftRes || { singleSum: 0, singlePath: [] };
+            let rightRes = frame.rightRes || { singleSum: 0, singlePath: [] };
+            
+            let leftGain = Math.max(0, leftRes.singleSum);
+            let rightGain = Math.max(0, rightRes.singleSum);
+            
+            let currentPathSum = frame.node.val + leftGain + rightGain;
+            
+            let currentPath = [];
+            if (leftGain > 0) currentPath = currentPath.concat(leftRes.singlePath);
+            currentPath.push(frame.node.id);
+            if (rightGain > 0) currentPath = currentPath.concat(rightRes.singlePath);
+            
+            if (currentPathSum > globalMaxSum) {
+                globalMaxSum = currentPathSum;
+                globalMaxPath = currentPath;
+                logMsg(`🔥 [更新Max] 经过节点 ${frame.node.val} 的倒V路径和为 ${currentPathSum}，刷新全局最大值！`, true);
+            } else {
+                logMsg(`🔸 节点 ${frame.node.val} 的倒V路径和为 ${currentPathSum}（未超过全局最大值 ${globalMaxSum}）`, false);
+            }
+            
+            let returnSingleSum = frame.node.val + Math.max(leftGain, rightGain);
+            let returnPath = [frame.node.id];
+            
+            if (leftGain >= rightGain && leftGain > 0) {
+                returnPath = returnPath.concat(leftRes.singlePath);
+            } else if (rightGain > leftGain && rightGain > 0) {
+                returnPath = returnPath.concat(rightRes.singlePath);
+            }
+            
+            frame.node.returnValue = returnSingleSum;
+            logMsg(`🔼 节点 ${frame.node.val} 向上返回单侧最大贡献: ${returnSingleSum}`, false);
+            
+            if (frame.parentFrame && frame.side) {
+                frame.parentFrame[frame.side + 'Res'] = { singleSum: returnSingleSum, singlePath: returnPath };
+            } else {
+                isDone = true;
+                logMsg(`🏁 DFS 完成！全树最大路径和为 ${globalMaxSum}`, true);
+                frame.node.isCurrent = false;
+            }
+            
+            callStack.pop();
+        }
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

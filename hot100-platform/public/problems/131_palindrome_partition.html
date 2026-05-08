@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>分割回文串 - 算法全流程可视化</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>分割回文串</h1>
+        <div class="subtitle">字符串切分的回溯搜索</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <select id="scenario-select" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--anthropic-light-gray);" onchange="initializeSystem()">
+              <option value="aab">s = "aab"</option>
+              <option value="efe">s = "efe"</option>
+          </select>
+          <button class="button" onclick="initializeSystem()">重新演示切割树</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="5.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n * 2^n)</span>
+            <span class="memo-badge space">□ O(n)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 **切割问题本质也是组合问题**。可以将切割线看作是回溯树的边。对于字符串 `[a a b]`，第一刀可以切在第一个 `a` 后面，也可以切在第二个 `a` 后面。</div>
+            <div class="memo-tip g">🔪 **合法切割条件**：只有切出来的子串 `[startIndex : i]` 是回文串时，才是一次合法的切割，才会继续向下递归。</div>
+            <div class="memo-tip w">✂️ **提前剪枝**：如果切出来的子串不是回文（例如切出了 `ab`），直接丢弃，不往深处走！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header" id="phase-header">递归状态树：等待开始...</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python\nclass Solution:\n    def partition(self, s: str) -> List[List[str]]:\n        res = []\n        path = []\n        \n        # 判断子串 s[l:r+1] 是否是回文串\n        def isPalindrome(s: str, l: int, r: int) -> bool:\n            while l < r:\n                if s[l] != s[r]: return False\n                l += 1\n                r -= 1\n            return True\n            \n        def backtrack(startIndex):\n            # 如果切割线到了字符串尽头，说明找到了一组分割方案\n            if startIndex >= len(s):\n                res.append(path[:])\n                return\n                \n            for i in range(startIndex, len(s)):\n                # 如果截取的子串是回文串，才继续往下切\n                if isPalindrome(s, startIndex, i):\n                    path.append(s[startIndex : i + 1])\n                    # 从下一处继续切割\n                    backtrack(i + 1)\n                    # 回溯，撤销上一次的切割\n                    path.pop()\n                # 不是回文串的话直接跳过（剪枝）\n                \n        backtrack(0)\n        return res`,
+        ts: `// TypeScript\nfunction partition(s: string): string[][] {\n    const res: string[][] = [];\n    const path: string[] = [];\n    \n    function isPalindrome(str: string, l: number, r: number): boolean {\n        while (l < r) {\n            if (str[l] !== str[r]) return false;\n            l++; r--;\n        }\n        return true;\n    }\n    \n    function backtrack(startIndex: number) {\n        if (startIndex >= s.length) {\n            res.push([...path]);\n            return;\n        }\n        \n        for (let i = startIndex; i < s.length; i++) {\n            if (isPalindrome(s, startIndex, i)) {\n                path.push(s.substring(startIndex, i + 1));\n                \n                backtrack(i + 1);\n                \n                path.pop();\n            }\n        }\n    }\n    \n    backtrack(0);\n    return res;\n}`,
+        java: `// Java\nclass Solution {\n    public List<List<String>> partition(String s) {\n        List<List<String>> res = new ArrayList<>();\n        List<String> path = new ArrayList<>();\n        backtrack(s, 0, path, res);\n        return res;\n    }\n    \n    private boolean isPalindrome(String s, int l, int r) {\n        while (l < r) {\n            if (s.charAt(l) != s.charAt(r)) return false;\n            l++; r--;\n        }\n        return true;\n    }\n    \n    private void backtrack(String s, int startIndex, List<String> path, List<List<String>> res) {\n        if (startIndex >= s.length()) {\n            res.add(new ArrayList<>(path));\n            return;\n        }\n        \n        for (int i = startIndex; i < s.length(); i++) {\n            if (isPalindrome(s, startIndex, i)) {\n                path.add(s.substring(startIndex, i + 1));\n                \n                backtrack(s, i + 1, path, res);\n                \n                path.remove(path.size() - 1);\n            }\n        }\n    }\n}`,
+        cpp: `// C++\nclass Solution {\npublic:\n    vector<vector<string>> partition(string s) {\n        vector<vector<string>> res;\n        vector<string> path;\n        backtrack(s, 0, path, res);\n        return res;\n    }\n    \n    bool isPalindrome(const string& s, int l, int r) {\n        while (l < r) {\n            if (s[l] != s[r]) return false;\n            l++; r--;\n        }\n        return true;\n    }\n    \n    void backtrack(const string& s, int startIndex, vector<string>& path, vector<vector<string>>& res) {\n        if (startIndex >= s.length()) {\n            res.push_back(path);\n            return;\n        }\n        \n        for (int i = startIndex; i < s.length(); ++i) {\n            if (isPalindrome(s, startIndex, i)) {\n                path.push_back(s.substr(startIndex, i - startIndex + 1));\n                \n                backtrack(s, i + 1, path, res);\n                \n                path.pop_back();\n            }\n        }\n    }\n};`,
+        c: `// C\nbool isPalindrome(char* s, int l, int r) {\n    while (l < r) {\n        if (s[l] != s[r]) return false;\n        l++; r--;\n    }\n    return true;\n}\n\nvoid backtrack(char* s, int len, int startIndex, char** path, int pathSize, \n               char*** res, int* returnSize, int** returnColumnSizes) {\n    if (startIndex >= len) {\n        res[*returnSize] = (char**)malloc(pathSize * sizeof(char*));\n        for (int i = 0; i < pathSize; ++i) {\n            res[*returnSize][i] = (char*)malloc((strlen(path[i]) + 1) * sizeof(char));\n            strcpy(res[*returnSize][i], path[i]);\n        }\n        (*returnColumnSizes)[*returnSize] = pathSize;\n        (*returnSize)++;\n        return;\n    }\n    \n    for (int i = startIndex; i < len; ++i) {\n        if (isPalindrome(s, startIndex, i)) {\n            int subLen = i - startIndex + 1;\n            path[pathSize] = (char*)malloc((subLen + 1) * sizeof(char));\n            strncpy(path[pathSize], s + startIndex, subLen);\n            path[pathSize][subLen] = '\\0';\n            \n            backtrack(s, len, i + 1, path, pathSize + 1, res, returnSize, returnColumnSizes);\n            \n            free(path[pathSize]);\n        }\n    }\n}\n\nchar*** partition(char* s, int* returnSize, int** returnColumnSizes) {\n    int len = strlen(s);\n    int maxPossible = 1 << len; // 最多 2^n 种子集切割\n    \n    char*** res = (char***)malloc(maxPossible * sizeof(char**));\n    *returnColumnSizes = (int*)malloc(maxPossible * sizeof(int));\n    *returnSize = 0;\n    \n    char** path = (char**)malloc(len * sizeof(char*));\n    \n    backtrack(s, len, 0, path, 0, res, returnSize, returnColumnSizes);\n    \n    free(path);\n    return res;\n}`
+      };
+
+      let params = { speed: 1.0 };
+      let isDone = false, isPaused = false, p5Timer = 0;
+      let currentLang = "python";
+
+      let STR = "aab";
+      let treeRoot = null;
+      let activeNodes = new Set();
+      let prunedNodes = new Set();
+      let gen = null;
+      let currentAnimState = null;
+      let collectedRes = 0;
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function isPal(s) {
+          if (!s) return true;
+          let l=0, r=s.length-1;
+          while(l<r) { if(s[l]!==s[r]) return false; l++; r--; }
+          return true;
+      }
+
+      function buildStaticTree(s) {
+          let idCounter = 0;
+          let root = { id: idCounter++, path: [], remainder: s, startIndex: 0, children: [], depth: 0, x: 0, y: 0, parent: null, isPruned: false };
+          let allNodes = [];
+          
+          function dfs(node) {
+              allNodes.push(node);
+              if (node.startIndex >= s.length) return;
+              
+              for (let i = node.startIndex; i < s.length; i++) {
+                  let sub = s.substring(node.startIndex, i + 1);
+                  let isP = isPal(sub);
+                  
+                  let child = {
+                      id: idCounter++,
+                      path: [...node.path, sub],
+                      remainder: s.substring(i + 1),
+                      startIndex: i + 1,
+                      children: [],
+                      depth: node.depth + 1,
+                      parent: node,
+                      edgeLabel: sub,
+                      isPruned: !isP,
+                      x: 0, y: 0
+                  };
+                  
+                  node.children.push(child);
+                  if (!isP) {
+                      allNodes.push(child);
+                  } else {
+                      dfs(child);
+                  }
+              }
+          }
+          dfs(root);
+          return { root, allNodes };
+      }
+
+      function updateLayout(root, allNodes, viewWidth) {
+          let leaves = allNodes.filter(n => n.children.length === 0);
+          let leafW = viewWidth / (leaves.length || 1);
+          for (let i = 0; i < leaves.length; i++) {
+              leaves[i].x = leafW * (i + 0.5);
+          }
+          
+          function setX(node) {
+              if (node.children.length === 0) return node.x;
+              let sumX = 0;
+              for (let c of node.children) sumX += setX(c);
+              node.x = sumX / node.children.length;
+              return node.x;
+          }
+          setX(root);
+      }
+
+      function* backtrackGen(s, node) {
+          activeNodes.add(node.id);
+          yield { phase: "ENTER", node: node };
+          
+          if (node.startIndex >= s.length) {
+              yield { phase: "RECORD", node: node };
+          } else {
+              for (let i = node.startIndex; i < s.length; i++) {
+                  let sub = s.substring(node.startIndex, i + 1);
+                  let child = node.children.find(c => c.edgeLabel === sub);
+                  
+                  if (child) {
+                      if (child.isPruned) {
+                          prunedNodes.add(child.id);
+                          yield { phase: "PRUNED", node: node, sub: sub };
+                      } else {
+                          yield { phase: "TRY_OK", node: node, sub: sub };
+                          yield* backtrackGen(s, child);
+                      }
+                  }
+              }
+          }
+          
+          yield { phase: "BACKTRACK", node: node };
+          activeNodes.delete(node.id);
+      }
+
+      function initializeSystem() {
+        STR = document.getElementById("scenario-select").value;
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        collectedRes = 0;
+        activeNodes.clear();
+        prunedNodes.clear();
+
+        let treeData = buildStaticTree(STR);
+        treeRoot = treeData.root;
+        updateLayout(treeRoot, treeData.allNodes, width - 20);
+
+        gen = backtrackGen(STR, treeRoot);
+        currentAnimState = gen.next();
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        document.getElementById("log-container").innerHTML = "";
+        
+        let headerEl = document.getElementById("phase-header");
+        if (headerEl) headerEl.innerHTML = `正在生成 s="${STR}" 的回文分割...`;
+        logMsg(`✅ 启动分割回文串算法！目标字符串 s="${STR}"`, true);
+      }
+
+      function drawSubTree(node) {
+          for (let child of node.children) {
+              let isActiveEdge = activeNodes.has(node.id) && activeNodes.has(child.id);
+              let isPrunedEdge = prunedNodes.has(child.id);
+              
+              if (isActiveEdge) {
+                  stroke(217, 119, 87); strokeWeight(3);
+              } else if (isPrunedEdge) {
+                  stroke(239, 68, 68); strokeWeight(2);
+              } else {
+                  stroke(230); strokeWeight(1);
+              }
+              line(node.x, node.y, child.x, child.y);
+              
+              if (isActiveEdge || isPrunedEdge) {
+                  if (isActiveEdge) fill(217, 119, 87);
+                  else fill(239, 68, 68);
+                  noStroke(); textSize(14);
+                  text(`"${child.edgeLabel}"`, (node.x + child.x)/2, (node.y + child.y)/2);
+              }
+              
+              drawSubTree(child);
+          }
+          
+          let isActive = activeNodes.has(node.id);
+          let isPruned = prunedNodes.has(node.id);
+          
+          if (isActive) {
+              fill(254, 240, 138); stroke(202, 138, 4); strokeWeight(2);
+          } else if (isPruned) {
+              fill(254, 226, 226); stroke(220, 38, 38); strokeWeight(2);
+          } else {
+              fill(250); stroke(220); strokeWeight(1);
+          }
+          
+          let dispStr = node.startIndex >= STR.length ? "✔" : node.remainder;
+          let w = max(30, dispStr.length * 10 + 20);
+          rectMode(CENTER);
+          rect(node.x, node.y, w, 26, 6);
+          rectMode(CORNER);
+          
+          if (isActive) fill(50);
+          else if (isPruned) fill(185, 28, 28);
+          else fill(180);
+          noStroke(); textAlign(CENTER, CENTER);
+          textSize(12);
+          text(dispStr, node.x, node.y);
+      }
+
+      function draw() {
+        background(255);
+
+        if (treeRoot && width > 0) {
+            let treeData = buildStaticTree(STR);
+            updateLayout(treeData.root, treeData.allNodes, width - 40);
+            
+            let maxDepth = STR.length;
+            let levelHeight = 90;
+            let treeHeight = 60 + maxDepth * levelHeight;
+            let offsetY = max(0, (height - treeHeight) / 2);
+            
+            let q1 = [treeRoot];
+            let q2 = [treeData.root];
+            while(q1.length) {
+                let n1 = q1.shift(); let n2 = q2.shift();
+                n1.x = n2.x + 20; 
+                n1.y = 80 + n1.depth * levelHeight + offsetY; 
+                for(let i=0; i<n1.children.length; i++) {
+                    q1.push(n1.children[i]); q2.push(n2.children[i]);
+                }
+            }
+        }
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        // HUD
+        fill(250, 240, 230); stroke(220, 180, 150); strokeWeight(2);
+        rect(10, 10, 180, 45, 8);
+        fill(50); noStroke(); textAlign(LEFT, CENTER); textSize(13);
+        text(`已收集方案: ${collectedRes}`, 20, 32);
+
+        if (treeRoot) drawSubTree(treeRoot);
+      }
+
+      function performStep() {
+        if (currentAnimState && currentAnimState.done) {
+            if (!isDone) {
+                isDone = true;
+                logMsg(`🏁 所有切割方案探索完毕！共生成 ${collectedRes} 种回文分割。`, true);
+            }
+            return;
+        }
+
+        let s = currentAnimState.value;
+        let indent = " ".repeat(s.node.depth * 2);
+
+        if (s.phase === "ENTER") {
+            let remStr = s.node.startIndex >= STR.length ? "无" : `"${s.node.remainder}"`;
+            logMsg(`<span style="color:#888">${indent}</span> ⬇️ 当前路径 path=[${s.node.path.map(x=>`"${x}"`).join(', ')}]，剩余待切割字符串: ${remStr}`, false);
+        } else if (s.phase === "RECORD") {
+            collectedRes++;
+            logMsg(`<span style="color:#888">${indent}</span> 🌟 <span style="color:var(--anthropic-green);font-weight:bold">切割线到达末尾！收集到一种合法分割: [${s.node.path.map(x=>`"${x}"`).join(', ')}]</span>`, true);
+        } else if (s.phase === "TRY_OK") {
+            logMsg(`<span style="color:#888">${indent}</span> ✅ 尝试切出子串 "${s.sub}"。它是回文串，可以切！进入下一层。`, false);
+        } else if (s.phase === "PRUNED") {
+            logMsg(`<span style="color:#888">${indent}</span> ✂️ <span style="color:#ef4444;font-weight:bold">触发剪枝！</span> 尝试切出子串 "${s.sub}"，它**不是**回文串，抛弃此分支。`, true);
+        } else if (s.phase === "BACKTRACK") {
+            if (s.node.parent) {
+                let popped = s.node.path[s.node.path.length-1];
+                logMsg(`<span style="color:#888">${indent}</span> 🔙 回溯返回：撤销切割出来的 "${popped}"`, false);
+            }
+        }
+
+        currentAnimState = gen.next();
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+      }
+    </script>
+  </body>
+</html>

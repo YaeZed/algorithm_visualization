@@ -1,0 +1,815 @@
+<!-- 
+========================================================================
+ALGORITHM VISUALIZER: Convert Sorted Array to BST (LeetCode 108)
+========================================================================
+-->
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>有序数组转二叉搜索树可视化 - LeetCode 108</title>
+
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Code Highlight Engine -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; margin-bottom: 8px; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between;}
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box */
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.highlight-blue { border-left-color: var(--anthropic-blue); background: #f0f7ff; font-weight: 500; }
+      .log-item.highlight-green { border-left-color: var(--anthropic-green); background: #f5fbf4; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; font-family: "JetBrains Mono", monospace; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* Memo Card */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); background: #f6fbf4; }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>有序数组转平衡二叉树</h1>
+        <div class="subtitle">分治法 (Divide & Conquer) 物理切割与映射</div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="108" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新升序数组</button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>执行速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>数组长度 (N)</label>
+            <div class="slider-container">
+              <input type="range" id="arrLen" min="3" max="15" step="1" value="11" oninput="updateParam('arrLen', this.value)" />
+              <span class="value-display" id="arrLen-value">11</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px; margin-bottom: 0;">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新执行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(n) 时间</span>
+            <span class="memo-badge space">□ O(log n) 栈空间</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 <b>高度平衡的物理保证：</b>BST 要求高度平衡，那么作为根节点的元素，其左侧小于它的元素数量，必须尽可能等于右侧大于它的元素数量。因此必须选择数组的<b>物理中点 (Mid)</b>。</div>
+            <div class="memo-tip">💡 <b>分治策略 (Divide and Conquer)：</b>主问题是把大数组变成大树。将其拆解为子问题：取中间作为根，然后把左半边数组变成左子树，右半边数组变成右子树。</div>
+            <div class="memo-tip g">🔍 <b>空间复杂度分析：</b>每次递归数组长度减半，因此递归树的深度就是 $\log_2 n$。即使不产生新数组，系统调用栈的最大深度也是 $O(\log n)$。</div>
+            <div class="memo-tip w">⚠️ <b>避坑点：</b>在计算中点时，习惯性写 `(left + right) / 2` 在极端大数据下可能导致整形溢出。工业级写法应为 `left + (right - left) / 2`。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+          <span>内存区间切割与树结构生成视图</span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优递归 DFS)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">执行流日志 (Execution Trace)</div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // MULTILINGUAL DIVIDE & CONQUER CODE SNIPPETS
+      // ==========================================================
+      const SNIPPETS = {
+        ts: `// TypeScript
+class TreeNode {
+    val: number
+    left: TreeNode | null
+    right: TreeNode | null
+    constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) {
+        this.val = (val===undefined ? 0 : val)
+        this.left = (left===undefined ? null : left)
+        this.right = (right===undefined ? null : right)
+    }
+}
+
+function sortedArrayToBST(nums: number[]): TreeNode | null {
+    // 启动分治引擎，传入整个数组的物理索引范围
+    return buildTree(nums, 0, nums.length - 1);
+}
+
+function buildTree(nums: number[], left: number, right: number): TreeNode | null {
+    // 递归边界：当左边界越过右边界时，说明该子区间为空
+    if (left > right) {
+        return null;
+    }
+
+    // 1. 物理切割点 (防溢出写法)
+    // 选择区间的正中间作为当前子树的根节点，确保两侧节点数量平衡
+    const mid = left + Math.floor((right - left) / 2);
+    const root = new TreeNode(nums[mid]);
+
+    // 2. 递归构建左半区间 [left, mid - 1]
+    root.left = buildTree(nums, left, mid - 1);
+
+    // 3. 递归构建右半区间 [mid + 1, right]
+    root.right = buildTree(nums, mid + 1, right);
+
+    // 返回组装好的当前子树根节点
+    return root;
+}`,
+        python: `# Python
+from typing import List, Optional
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class Solution:
+    def sortedArrayToBST(self, nums: List[int]) -> Optional[TreeNode]:
+        # 内部定义辅助函数以共享 nums 数组内存引用
+        def build_tree(left: int, right: int) -> Optional[TreeNode]:
+            # 区间不存在，返回空节点
+            if left > right:
+                return None
+            
+            # 找到中间位置，提拔为根节点
+            # 使用 // 进行整除，确保取出正确的物理索引
+            mid = left + (right - left) // 2
+            root = TreeNode(nums[mid])
+            
+            # 分治法：向左向右分别建立子树，并直接挂载到 root 上
+            root.left = build_tree(left, mid - 1)
+            root.right = build_tree(mid + 1, right)
+            
+            return root
+            
+        # 初始调用，传入全集范围
+        return build_tree(0, len(nums) - 1)`,
+        java: `// Java
+class Solution {
+    public TreeNode sortedArrayToBST(int[] nums) {
+        return buildTree(nums, 0, nums.length - 1);
+    }
+
+    private TreeNode buildTree(int[] nums, int left, int right) {
+        // 范围越界，表示没有元素可以构建节点
+        if (left > right) {
+            return null;
+        }
+
+        // 选取中间节点作为根节点，保证两边高度平衡
+        // 写法 (left + right) / 2 在极大整数时可能会内存溢出，使用下式更加安全
+        int mid = left + (right - left) / 2;
+        TreeNode root = new TreeNode(nums[mid]);
+
+        // 递归构建左子树，使用左半区段
+        root.left = buildTree(nums, left, mid - 1);
+        
+        // 递归构建右子树，使用右半区段
+        root.right = buildTree(nums, mid + 1, right);
+
+        return root;
+    }
+}`,
+        cpp: `// C++
+#include <vector>
+using namespace std;
+
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+class Solution {
+public:
+    TreeNode* sortedArrayToBST(vector<int>& nums) {
+        return buildTree(nums, 0, nums.size() - 1);
+    }
+
+private:
+    TreeNode* buildTree(const vector<int>& nums, int left, int right) {
+        if (left > right) return nullptr;
+
+        int mid = left + (right - left) / 2;
+        
+        // 动态分配堆内存建立树节点
+        TreeNode* root = new TreeNode(nums[mid]);
+        
+        // 通过指针挂载建立好的子树
+        root->left = buildTree(nums, left, mid - 1);
+        root->right = buildTree(nums, mid + 1, right);
+        
+        return root;
+    }
+};`,
+        c: `// C
+#include <stdlib.h>
+
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+// 辅助递归函数
+struct TreeNode* buildTree(int* nums, int left, int right) {
+    if (left > right) {
+        return NULL;
+    }
+
+    // 防止 (left + right) 的潜在加法溢出
+    int mid = left + (right - left) / 2;
+    
+    // C语言必须手动使用 malloc 申请内存
+    struct TreeNode* root = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+    root->val = nums[mid];
+    
+    // 递归下分左右两半区间
+    root->left = buildTree(nums, left, mid - 1);
+    root->right = buildTree(nums, mid + 1, right);
+    
+    return root;
+}
+
+struct TreeNode* sortedArrayToBST(int* nums, int numsSize) {
+    return buildTree(nums, 0, numsSize - 1);
+}`
+      };
+
+      // ==========================================================
+      // SIMULATION LOGIC & VISUALIZATION (p5.js)
+      // ==========================================================
+      let params = { seed: 108, speed: 1.0, arrLen: 11 };
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // Data Arrays
+      let rawArray = [];
+      let visualNodes = []; // All extracted nodes
+      let treeRoot = null;
+
+      // Coordinate systems
+      const ARRAY_Y = 60;
+      const TREE_START_Y = 160;
+
+      class VisualNode {
+        constructor(val, idx) {
+          this.val = val;
+          this.idx = idx; // index in raw array
+          
+          // Starts in the array physical location
+          this.x = 0; // will be set in layout
+          this.y = ARRAY_Y; 
+          
+          // Target tree location
+          this.targetX = 0;
+          this.targetY = 0;
+          
+          this.left = null;
+          this.right = null;
+
+          // State
+          this.isExtracted = false;
+          this.isSettled = false;
+        }
+
+        update() {
+            if (this.isExtracted) {
+                let s = 0.15 * params.speed;
+                this.x = lerp(this.x, this.targetX, s);
+                this.y = lerp(this.y, this.targetY, s);
+                
+                // Snap to settle
+                if (Math.abs(this.x - this.targetX) < 1 && Math.abs(this.y - this.targetY) < 1) {
+                    this.isSettled = true;
+                }
+            }
+        }
+      }
+
+      // Explicit Call Stack for DFS State Machine
+      // Phase: 0=Start/Extract, 1=WaitAnimation, 2=LeftDFS, 3=RightDFS, 4=Return
+      let callStack = []; 
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 500);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+
+        switchLang("ts");
+        initializeSystem();
+      }
+
+      function precalculateTreeTargets(left, right, depth, minX, maxX) {
+          if (left > right) return null;
+          let mid = Math.floor(left + (right - left) / 2);
+          
+          // We don't construct the actual logic tree here, just calculate coordinates for all possible nodes
+          // to make animation smooth when they drop out of the array
+          let n = new VisualNode(rawArray[mid], mid);
+          n.targetX = (minX + maxX) / 2;
+          n.targetY = TREE_START_Y + depth * 70;
+          
+          // Array starting X position
+          let boxWidth = width / (params.arrLen + 2);
+          let totalW = params.arrLen * boxWidth;
+          let startX = (width - totalW) / 2 + boxWidth/2;
+          n.x = startX + mid * boxWidth;
+          
+          visualNodes[mid] = n;
+
+          precalculateTreeTargets(left, mid - 1, depth + 1, minX, n.targetX);
+          precalculateTreeTargets(mid + 1, right, depth + 1, n.targetX, maxX);
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        // 1. Generate Sorted Array
+        rawArray = [];
+        let cur = floor(random(1, 10));
+        for (let i = 0; i < params.arrLen; i++) {
+            rawArray.push(cur);
+            cur += floor(random(2, 12)); // ensure ascending
+        }
+
+        // 2. Pre-calculate drop targets
+        visualNodes = new Array(params.arrLen).fill(null);
+        precalculateTreeTargets(0, params.arrLen - 1, 0, 40, width - 40);
+        treeRoot = null;
+
+        // 3. Initialize Stack
+        callStack = [];
+        callStack.push({ left: 0, right: params.arrLen - 1, parent: null, isLeftChild: false, phase: 0, mid: -1, node: null });
+
+        document.getElementById("log-container").innerHTML = "";
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        
+        logMsg(`✅ 有序数组 (长度 ${params.arrLen}) 就绪。启动分治建树算法。`, true);
+      }
+
+      function draw() {
+        background(253, 252, 249);
+
+        let activeFrame = callStack.length > 0 ? callStack[callStack.length - 1] : null;
+
+        // Wait phase blocks the execution timer until node settles visually
+        let isWaiting = activeFrame && activeFrame.phase === 1;
+
+        if (!isDone && !isPaused) {
+            if (isWaiting) {
+                if (activeFrame.node && activeFrame.node.isSettled) {
+                    activeFrame.phase = 2; // Move on
+                    p5Timer = 0; // reset for next step
+                }
+            } else {
+                p5Timer += 0.025 * params.speed;
+                if (p5Timer > 1) {
+                    p5Timer = 0;
+                    performStep();
+                }
+            }
+        }
+
+        // Update physics
+        for (let i=0; i<visualNodes.length; i++) {
+            if (visualNodes[i]) visualNodes[i].update();
+        }
+
+        drawArrayBase(activeFrame);
+        
+        // Draw Links first so they are under nodes
+        for (let i=0; i<visualNodes.length; i++) {
+            let n = visualNodes[i];
+            if (n && n.isExtracted) drawEdges(n);
+        }
+
+        // Draw Nodes
+        for (let i=0; i<visualNodes.length; i++) {
+            let n = visualNodes[i];
+            if (n && n.isExtracted) drawTreeNode(n);
+        }
+
+        drawCallStackUI();
+      }
+
+      function drawArrayBase(activeFrame) {
+          push();
+          let boxWidth = Math.min(45, width / (params.arrLen + 2));
+          let totalW = params.arrLen * boxWidth;
+          let startX = (width - totalW) / 2;
+
+          // Base bar
+          fill(245);
+          stroke(220);
+          rectMode(CORNER);
+          rect(startX, ARRAY_Y - 20, totalW, 40, 6);
+
+          for (let i = 0; i < params.arrLen; i++) {
+              let cx = startX + i * boxWidth + boxWidth/2;
+              let cy = ARRAY_Y;
+
+              let isExtracted = visualNodes[i] && visualNodes[i].isExtracted;
+              let isInActiveRange = activeFrame && (i >= activeFrame.left && i <= activeFrame.right);
+              let isMid = activeFrame && activeFrame.mid === i;
+
+              // Draw cell backgrounds
+              if (isInActiveRange && !isExtracted) {
+                  fill(240, 247, 255);
+                  noStroke();
+                  rect(startX + i*boxWidth, ARRAY_Y - 20, boxWidth, 40);
+              }
+              if (isMid && !isExtracted) {
+                  fill(255, 243, 238);
+                  noStroke();
+                  rect(startX + i*boxWidth, ARRAY_Y - 20, boxWidth, 40);
+              }
+
+              // Divider lines
+              stroke(220);
+              strokeWeight(1);
+              if (i > 0) line(startX + i * boxWidth, ARRAY_Y - 20, startX + i * boxWidth, ARRAY_Y + 20);
+
+              // Value text (only if not extracted, as the node physical object represents it now)
+              if (!isExtracted) {
+                  fill(60);
+                  noStroke();
+                  textAlign(CENTER, CENTER);
+                  textSize(13);
+                  textFont("JetBrains Mono");
+                  text(rawArray[i], cx, cy);
+              }
+              
+              // Index at bottom
+              fill(180);
+              textSize(9);
+              text(i, cx, cy + 30);
+          }
+
+          // Bracket over active range
+          if (activeFrame && activeFrame.left <= activeFrame.right) {
+              let px1 = startX + activeFrame.left * boxWidth;
+              let px2 = startX + (activeFrame.right + 1) * boxWidth;
+              stroke(106, 155, 204);
+              strokeWeight(2);
+              noFill();
+              line(px1, ARRAY_Y - 25, px2, ARRAY_Y - 25);
+              line(px1, ARRAY_Y - 25, px1, ARRAY_Y - 20);
+              line(px2, ARRAY_Y - 25, px2, ARRAY_Y - 20);
+              
+              fill(106, 155, 204);
+              noStroke();
+              textAlign(CENTER, BOTTOM);
+              textSize(10);
+              text(`Range [${activeFrame.left}, ${activeFrame.right}]`, (px1+px2)/2, ARRAY_Y - 28);
+          }
+          pop();
+      }
+
+      function drawEdges(node) {
+        stroke(200);
+        strokeWeight(2);
+        // Only draw edge if both child and parent are somewhat extracted
+        if (node.left && node.left.isExtracted) {
+            line(node.x, node.y, node.left.x, node.left.y);
+        }
+        if (node.right && node.right.isExtracted) {
+            line(node.x, node.y, node.right.x, node.right.y);
+        }
+      }
+
+      function drawTreeNode(node) {
+        push();
+        // If it's recently extracted but not settled, highlight
+        let isMoving = !node.isSettled;
+        
+        fill(isMoving ? color(255, 243, 238) : color(255));
+        stroke(isMoving ? color(217, 119, 87) : color(180));
+        strokeWeight(isMoving ? 3 : 2);
+        
+        circle(node.x, node.y, 32);
+
+        noStroke();
+        fill(60);
+        textAlign(CENTER, CENTER);
+        textSize(13);
+        textFont("JetBrains Mono");
+        text(node.val, node.x, node.y);
+        pop();
+      }
+
+      function drawCallStackUI() {
+        push();
+        let sx = width - 100;
+        let sy = height - 50; 
+        let sw = 140;
+        let sh = 25;
+
+        fill(150);
+        noStroke();
+        textSize(12);
+        textAlign(CENTER, BOTTOM);
+        text("递归栈 (Call Stack)", sx, height - 10);
+
+        stroke(200);
+        strokeWeight(2);
+        line(sx - sw/2, sy + sh/2, sx - sw/2, 50);
+        line(sx + sw/2, sy + sh/2, sx + sw/2, 50);
+        line(sx - sw/2, sy + sh/2, sx + sw/2, sy + sh/2);
+
+        for (let i = 0; i < callStack.length; i++) {
+            let frame = callStack[i];
+            let yPos = sy - i * (sh + 5);
+            
+            fill(250);
+            stroke(106, 155, 204);
+            rectMode(CENTER);
+            rect(sx, yPos, sw - 8, sh, 4);
+            
+            fill(80);
+            noStroke();
+            textAlign(CENTER, CENTER);
+            textFont("JetBrains Mono");
+            
+            if (frame.left > frame.right) {
+                text(`[${frame.left}, ${frame.right}] (Empty)`, sx, yPos);
+            } else {
+                let phaseStr = frame.phase < 2 ? "Extract" : (frame.phase === 2 ? "wait L" : "wait R");
+                text(`[${frame.left}, ${frame.right}] | ${phaseStr}`, sx, yPos);
+            }
+        }
+        pop();
+      }
+
+      function performStep() {
+          if (callStack.length === 0) {
+              isDone = true;
+              logMsg(`🏁 调用栈清空，高度平衡的二叉搜索树构建完毕！`, false, true);
+              return;
+          }
+
+          let frame = callStack[callStack.length - 1];
+
+          if (frame.left > frame.right) {
+              logMsg(`⚠️ 区间无效 [${frame.left}, ${frame.right}]，返回空节点并出栈。`);
+              callStack.pop();
+              return;
+          }
+
+          if (frame.phase === 0) {
+              // Extract Phase
+              frame.mid = Math.floor(frame.left + (frame.right - frame.left) / 2);
+              frame.node = visualNodes[frame.mid];
+              
+              // Logical hookup
+              if (!treeRoot) treeRoot = frame.node;
+              if (frame.parent) {
+                  if (frame.isLeftChild) frame.parent.left = frame.node;
+                  else frame.parent.right = frame.node;
+              }
+
+              // Trigger visual animation
+              frame.node.isExtracted = true;
+              
+              logMsg(`🎯 锁定区间 [${frame.left}, ${frame.right}] 的中点物理索引 <b>Mid = ${frame.mid}</b>。<br/>提取值 <b>${frame.node.val}</b> 提拔为当前子树的根节点。`, true);
+              
+              frame.phase = 1; // goto animation wait
+          } else if (frame.phase === 1) {
+              // Handled in draw() to wait for physics
+          } else if (frame.phase === 2) {
+              // Dispatch Left
+              logMsg(`🔽 根节点 ${frame.node.val} 挂起，切分出左半区间 [${frame.left}, ${frame.mid - 1}] 压入递归栈。`);
+              frame.phase = 3;
+              callStack.push({ left: frame.left, right: frame.mid - 1, parent: frame.node, isLeftChild: true, phase: 0, mid: -1, node: null });
+          } else if (frame.phase === 3) {
+              // Dispatch Right
+              logMsg(`🔽 根节点 ${frame.node.val} 的左子树就绪，切分出右半区间 [${frame.mid + 1}, ${frame.right}] 压入递归栈。`);
+              frame.phase = 4;
+              callStack.push({ left: frame.mid + 1, right: frame.right, parent: frame.node, isLeftChild: false, phase: 0, mid: -1, node: null });
+          } else if (frame.phase === 4) {
+              // Return
+              logMsg(`✅ 节点 <b>${frame.node.val}</b> 的左右子树拼装完成，返回自身内存地址并出栈。`);
+              callStack.pop();
+          }
+      }
+
+      function logMsg(msg, isHighlight = false, isWarn = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item";
+        if (isWarn) {
+             item.style.borderLeftColor = "#e8a838";
+             item.style.background = "#fffdf2";
+             item.style.fontWeight = "500";
+        } else if (isHighlight) {
+             item.className += " highlight-blue";
+        }
+
+        let time = new Date().toLocaleTimeString("zh-CN", {hour12: false, hour: "2-digit", minute:"2-digit", second:"2-digit"});
+        item.innerHTML = `<div class="time">[${time}]</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      let currentLang = "ts";
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c"
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== 'speed') {
+            initializeSystem();
+        }
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 108;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>
