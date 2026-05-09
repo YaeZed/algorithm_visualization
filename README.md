@@ -28,7 +28,7 @@
 
 | 模块 | 技术 |
 | :--- | :--- |
-| **框架** | [Vue 3](https://vuejs.org/) (Composition API) |
+| **框架** | [Vue 3](https://vuejs.org/)|
 | **构建** | [Vite](https://vitejs.dev/) |
 | **语言** | [TypeScript](https://www.typescriptlang.org/) |
 | **UI 组件** | [Element Plus](https://element-plus.org/) |
