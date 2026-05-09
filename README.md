@@ -4,6 +4,10 @@
 ![Tech Stack](https://img.shields.io/badge/Stack-Vue%203%20%2B%20Vite%20%2B%20TS-brightgreen)
 ![Design](https://img.shields.io/badge/Design-Premium-blueviolet)
 
+## 在线体验
+
+[https://algorithm-visualization-v1.pages.dev/](https://algorithm-visualization-v1.pages.dev/)
+
 这是一个专为 **LeetCode Hot 100** 设计的算法可视化与进度管理平台。它不仅能帮助你追踪刷题进度，还通过交互式的动画演示细节化地呈现算法逻辑，让抽象的代码变得直观易懂。
 
 ## 📸 项目预览
