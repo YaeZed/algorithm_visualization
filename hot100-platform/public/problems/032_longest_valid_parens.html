@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>最长有效括号 - LeetCode 32</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+    <style>
+      :root {
+        --dark: #141413;
+        --line: #e8e6dc;
+        --mid: #b0aea5;
+        --orange: #d97757;
+        --blue: #6a9bcc;
+        --green: #788c5d;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+      .sidebar { width: 280px; flex-shrink: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; overflow-y: auto; }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; color: var(--orange); margin-bottom: 4px; }
+      .subtitle { font-size: 11px; color: var(--mid); margin-bottom: 20px; }
+      .control-section { margin-bottom: 18px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--orange); border-radius: 2px; }
+      .control-group { margin-bottom: 10px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--line); border-radius: 2px; appearance: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--orange); border-radius: 50%; border: 2px solid #fff; }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 24px; text-align: right; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+      .button { width: 100%; border: none; background: var(--orange); color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 500; cursor: pointer; }
+      .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--line); border-radius: 6px; padding: 7px 6px; background: #fff; font-family: "JetBrains Mono", monospace; font-size: 11px; cursor: pointer; text-align: center; }
+      .canvas-area { flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--line); font-size: 13px; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.08; background: #1e1e1e; border: 1px solid #333; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0; display: flex; justify-content: space-between; align-items: center; }
+      .box-title.dark { color: #ccc; font-size: 12px; font-weight: 600; padding-bottom: 10px; }
+      .tabs.dark { display: flex; gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; background: #2d2d2d; color: #888; border-radius: 6px 6px 0 0; font-size: 11px; cursor: pointer; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; overflow: auto; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.55; color: #d4d4d4; padding: 15px; }
+      .logic-box { flex: .92; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .box-header { padding: 8px 15px; border-bottom: 1px solid #eee; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--orange); margin-bottom: 6px; text-transform: uppercase; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node {
+        min-width: 26px;
+        height: 26px;
+        padding: 0 8px;
+        background: var(--orange);
+        color: #fff;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; color: #444; line-height: 1.4; }
+      .log-item.highlight { border-left-color: var(--orange); background: #fff9f5; font-weight: 500; }
+      .log-item.success { border-left-color: var(--green); background: #f6fbef; }
+      .log-item .log-time { font-size: 9px; color: #aaa; margin-bottom: 2px; }
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600; }
+      .memo-time { background: #fff3ee; color: var(--orange); border: 1px solid #f0c8b0; }
+      .memo-space { background: #eef3ff; color: var(--blue); border: 1px solid #b8d0f0; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--orange); border-radius: 0 5px 5px 0; margin-bottom: 6px; }
+      .memo-tip.g { border-left-color: var(--green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>最长有效括号</h1>
+        <div class="subtitle">LeetCode 32 · 一维 DP（按结尾位置）</div>
+        <div class="control-section">
+          <h3>随机种子</h3>
+          <input type="number" id="seed-input" class="seed-input" value="32001" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机选择样例</button>
+        </div>
+        <div class="control-section">
+          <h3>参数控制</h3>
+          <div class="control-group">
+            <label>动画速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>字符串长度</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="4" max="16" step="1" value="10" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">10</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>预设样例</label>
+            <div class="preset-grid">
+              <button class="preset" onclick="setPreset('(()')">(()</button>
+              <button class="preset" onclick="setPreset(')()())')">)()())</button>
+              <button class="preset" onclick="setPreset('()(())')">()(())</button>
+              <button class="preset" onclick="setPreset('())(())')">())(())</button>
+            </div>
+          </div>
+        </div>
+        <div class="control-section" style="display:flex; gap:10px">
+          <button id="pause-btn" class="button" style="background:var(--dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background:var(--blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+        <div class="memo-card">
+          <h3>算法备忘</h3>
+          <div class="memo-badges">
+            <span class="memo-badge memo-time">时间 O(n)</span>
+            <span class="memo-badge memo-space">空间 O(n)</span>
+          </div>
+          <div class="memo-tip">dp[i] 表示“以 i 结尾”的最长有效括号长度。</div>
+          <div class="memo-tip g">当 s[i]=')' 时，先看 i-1 的有效长度，再反推匹配下标 match。</div>
+          <div class="memo-tip w">若 s[match]='('，则 dp[i]=dp[i-1]+2+dp[match-1]（若 match>0）。</div>
+        </div>
+      </div>
+      <div class="canvas-area">
+        <div class="canvas-header"><span>最长有效括号 DP 可视化</span><span id="result-label">运行中</span></div>
+        <div id="canvas-container"></div>
+      </div>
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+        <div class="logic-box">
+          <div class="box-header"><div class="box-title">执行日志</div></div>
+          <div class="data-viz">
+            <div class="data-title">括号串</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def longestValidParentheses(s: str) -> int:
+    n = len(s)
+    # dp[i]：以 i 结尾的最长有效括号长度
+    dp = [0] * n
+    ans = 0
+
+    for i in range(1, n):
+        # 只有右括号才可能形成有效结尾
+        if s[i] == ")":
+            prev = dp[i - 1]
+            match = i - prev - 1
+            # 找到可匹配的左括号
+            if match >= 0 and s[match] == "(":
+                dp[i] = prev + 2
+                # 拼接 match 前一段已完成的有效区间
+                if match > 0:
+                    dp[i] += dp[match - 1]
+        ans = max(ans, dp[i])
+    return ans`,
+        ts: `// TypeScript
+function longestValidParentheses(s: string): number {
+  const n = s.length;
+  // dp[i]：以 i 结尾的最长有效括号长度
+  const dp = new Array(n).fill(0);
+  let ans = 0;
+
+  for (let i = 1; i < n; i++) {
+    // 只有右括号能作为有效串结尾
+    if (s[i] === ")") {
+      const prev = dp[i - 1];
+      const match = i - prev - 1;
+      // match 位置必须是左括号
+      if (match >= 0 && s[match] === "(") {
+        dp[i] = prev + 2;
+        // 再接上 match 前面的有效长度
+        if (match > 0) dp[i] += dp[match - 1];
+      }
+    }
+    ans = Math.max(ans, dp[i]);
+  }
+  return ans;
+}`,
+        java: `// Java
+class Solution {
+  public int longestValidParentheses(String s) {
+    int n = s.length();
+    // dp[i]：以 i 结尾的最长有效括号长度
+    int[] dp = new int[n];
+    int ans = 0;
+
+    for (int i = 1; i < n; i++) {
+      // 只有 ')' 才可能更新 dp[i]
+      if (s.charAt(i) == ')') {
+        int prev = dp[i - 1];
+        int match = i - prev - 1;
+        // 检查可配对的 '('
+        if (match >= 0 && s.charAt(match) == '(') {
+          dp[i] = prev + 2;
+          // 连接 match 前面的有效段
+          if (match > 0) dp[i] += dp[match - 1];
+        }
+      }
+      ans = Math.max(ans, dp[i]);
+    }
+    return ans;
+  }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+  int longestValidParentheses(string s) {
+    int n = (int)s.size();
+    // dp[i]：以 i 结尾的最长有效括号长度
+    vector<int> dp(n, 0);
+    int ans = 0;
+
+    for (int i = 1; i < n; i++) {
+      // 右括号才可能形成有效结尾
+      if (s[i] == ')') {
+        int prev = dp[i - 1];
+        int match = i - prev - 1;
+        // 检查 match 是否是左括号
+        if (match >= 0 && s[match] == '(') {
+          dp[i] = prev + 2;
+          // 拼接前缀有效区间
+          if (match > 0) dp[i] += dp[match - 1];
+        }
+      }
+      ans = max(ans, dp[i]);
+    }
+    return ans;
+  }
+};`,
+        c: `// C
+int longestValidParentheses(char* s) {
+  int n = (int)strlen(s);
+  // dp[i]：以 i 结尾的最长有效括号长度
+  int* dp = (int*)calloc(n, sizeof(int));
+  int ans = 0;
+
+  for (int i = 1; i < n; i++) {
+    // 仅当 s[i] 为 ')' 时尝试转移
+    if (s[i] == ')') {
+      int prev = dp[i - 1];
+      int match = i - prev - 1;
+      // match 必须在范围内且为 '('
+      if (match >= 0 && s[match] == '(') {
+        dp[i] = prev + 2;
+        // 累加 match 前面的有效长度
+        if (match > 0) dp[i] += dp[match - 1];
+      }
+    }
+    if (dp[i] > ans) ans = dp[i];
+  }
+
+  free(dp);
+  return ans;
+}`
+      };
+
+      let params = { seed: 32001, speed: 1.0, n: 10 };
+      let currentLang = "python";
+      let s = "";
+      let dp = [];
+      let presetRaw = "";
+      let isDone = false;
+      let isPaused = false;
+      let timer = 0;
+      let i = 1;
+      let ans = 0;
+      let stepInfo = null;
+
+      function makeRng(seed) {
+        let x = (seed >>> 0) || 1;
+        return () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296);
+      }
+
+      function generateString(n, seed) {
+        const rnd = makeRng(seed);
+        let out = "";
+        for (let k = 0; k < n; k++) out += rnd() < 0.5 ? "(" : ")";
+        return out;
+      }
+
+      function setup() {
+        const container = document.getElementById("canvas-container");
+        const canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => {
+          resizeCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        });
+        switchLang("python");
+      }
+
+      function initializeSystem() {
+        s = presetRaw || generateString(params.n, params.seed);
+        if (s.length < 2) s = "()";
+        dp = new Array(s.length).fill(0);
+        isDone = false;
+        isPaused = false;
+        timer = 0;
+        i = 1;
+        ans = 0;
+        stepInfo = null;
+
+        document.getElementById("log-container").innerHTML = "";
+        updateDataNodes(s);
+        updateResult("运行中", "#888");
+        const btn = document.getElementById("pause-btn");
+        btn.innerHTML = "⏸ 暂停";
+        btn.style.background = "var(--dark)";
+        logMsg(`输入字符串：${s}，初始化 dp 全 0。`, true);
+      }
+
+      function draw() {
+        background(255);
+        drawStringRow();
+        drawDpRow();
+        drawStatus();
+        if (isPaused || isDone) return;
+
+        timer += (deltaTime / 1000) * params.speed;
+        if (timer >= 1.0) {
+          performStep();
+          timer = 0;
+        }
+      }
+
+      function drawStringRow() {
+        const n = s.length;
+        const gap = Math.max(28, Math.min(42, (width - 120) / Math.max(n - 1, 1)));
+        const nodeW = Math.max(22, Math.min(32, gap - 4));
+        const nodeH = 40;
+        const startX = Math.max(50, width / 2 - ((n - 1) * gap) / 2);
+        const y = 120;
+
+        fill(90);
+        noStroke();
+        textSize(13);
+        textAlign(LEFT, CENTER);
+        text("字符串 s", 24, 70);
+
+        for (let k = 0; k < n; k++) {
+          const x = startX + k * gap;
+          const isI = !isDone && k === i;
+          const isMatch = stepInfo && k === stepInfo.match;
+          const inSpan = stepInfo && stepInfo.validStart >= 0 && k >= stepInfo.validStart && k <= stepInfo.i;
+          let strokeColor = "#ddd";
+          let fillColor = "#fff";
+
+          if (inSpan) {
+            fillColor = "#eef3ff";
+            strokeColor = "#6a9bcc";
+          }
+          if (isMatch) {
+            fillColor = "#f6fbef";
+            strokeColor = "#788c5d";
+          }
+          if (isI) {
+            fillColor = "#fff3ee";
+            strokeColor = "#d97757";
+          }
+
+          stroke(strokeColor);
+          strokeWeight(isI || isMatch ? 2.2 : 1.2);
+          fill(fillColor);
+          rect(x - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 7);
+
+          noStroke();
+          fill("#222");
+          textAlign(CENTER, CENTER);
+          textSize(16);
+          text(s[k], x, y);
+
+          fill("#999");
+          textSize(9);
+          text(k, x, y + 29);
+        }
+      }
+
+      function drawDpRow() {
+        const n = s.length;
+        const gap = Math.max(26, Math.min(36, (width - 120) / Math.max(n - 1, 1)));
+        const nodeW = Math.max(20, Math.min(30, gap - 4));
+        const nodeH = 34;
+        const startX = Math.max(48, width / 2 - ((n - 1) * gap) / 2);
+        const y = 248;
+
+        fill(90);
+        noStroke();
+        textSize(13);
+        textAlign(LEFT, CENTER);
+        text("dp[i]", 24, 202);
+
+        for (let k = 0; k < n; k++) {
+          const x = startX + k * gap;
+          const isI = !isDone && k === i;
+          const isPrev = stepInfo && k === i - 1;
+          let strokeColor = "#ddd";
+          let fillColor = "#fff";
+          if (dp[k] > 0) {
+            fillColor = "#eef3ff";
+            strokeColor = "#6a9bcc";
+          }
+          if (isPrev) {
+            fillColor = "#f6fbef";
+            strokeColor = "#788c5d";
+          }
+          if (isI) {
+            fillColor = "#fff3ee";
+            strokeColor = "#d97757";
+          }
+
+          stroke(strokeColor);
+          strokeWeight(isI || isPrev ? 2.1 : 1.1);
+          fill(fillColor);
+          rect(x - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 6);
+
+          noStroke();
+          fill("#222");
+          textAlign(CENTER, CENTER);
+          textSize(11);
+          text(dp[k], x, y);
+
+          fill("#999");
+          textSize(8);
+          text(k, x, y + 24);
+        }
+      }
+
+      function drawStatus() {
+        const bw = Math.min(520, width - 48);
+        const bh = 176;
+        const bx = (width - bw) / 2;
+        const minBy = 300;
+        const maxBy = height - bh - 16;
+        const by = Math.max(minBy, Math.min(maxBy, height / 2 + 74));
+
+        fill("#fffcf9");
+        stroke("#e8e6dc");
+        strokeWeight(1.4);
+        rect(bx, by, bw, bh, 10);
+        noStroke();
+
+        fill("#666");
+        textAlign(CENTER, CENTER);
+        textSize(12);
+        text(`i=${Math.min(i, s.length - 1)}  ans=${ans}`, bx + bw / 2, by + 24);
+
+        textAlign(LEFT, CENTER);
+        textSize(14);
+        if (stepInfo) {
+          fill("#6a9bcc");
+          text(`字符 s[${stepInfo.i}]='${stepInfo.cur}'，dp[i-1]=${stepInfo.prev}`, bx + 20, by + 56);
+          fill("#d97757");
+          text(`match=${stepInfo.match}，是否命中左括号：${stepInfo.hit}`, bx + 20, by + 88);
+          fill("#788c5d");
+          text(`dp[${stepInfo.i}] 更新为 ${stepInfo.value}`, bx + 20, by + 120);
+          fill("#444");
+          text(`当前最大长度 ans=${ans}`, bx + 20, by + 150);
+        } else {
+          fill("#777");
+          text("等待首个状态更新...", bx + 20, by + 96);
+        }
+      }
+
+      function performStep() {
+        const n = s.length;
+        if (i >= n) {
+          isDone = true;
+          updateResult(`最终结果：${ans}`, "var(--green)");
+          logMsg(`遍历结束，最长有效括号长度为 ${ans}。`, true, "success");
+          return;
+        }
+
+        const cur = s[i];
+        let value = 0;
+        let prev = 0;
+        let match = -1;
+        let hit = false;
+        let validStart = -1;
+
+        if (cur === ")") {
+          prev = dp[i - 1];
+          match = i - prev - 1;
+          if (match >= 0 && s[match] === "(") {
+            hit = true;
+            value = prev + 2;
+            if (match > 0) value += dp[match - 1];
+            validStart = i - value + 1;
+          }
+        }
+
+        dp[i] = value;
+        if (value > ans) ans = value;
+        stepInfo = { i, cur, prev, match, hit, value, validStart };
+
+        if (cur === "(") {
+          logMsg(`i=${i}, s[i]='('，无法作为有效结尾，dp[${i}]=0。`, true);
+        } else if (!hit) {
+          logMsg(`i=${i}, s[i]=')'，match=${match} 不可配对，dp[${i}]=0。`, true);
+        } else {
+          logMsg(`i=${i}, 命中配对，dp[${i}]=${value}，当前 ans=${ans}。`, true);
+        }
+
+        i++;
+        if (i >= n) {
+          isDone = true;
+          updateResult(`最终结果：${ans}`, "var(--green)");
+          logMsg(`状态计算完成，答案为 ${ans}。`, true, "success");
+        }
+      }
+
+      function updateDataNodes(str) {
+        const c = document.getElementById("data-nodes");
+        c.innerHTML = "";
+        for (const ch of str) {
+          const node = document.createElement("div");
+          node.className = "data-node";
+          node.textContent = ch;
+          c.appendChild(node);
+        }
+      }
+
+      function updateResult(text, color) {
+        const el = document.getElementById("result-label");
+        el.textContent = text;
+        el.style.color = color;
+      }
+
+      function logMsg(msg, highlight = false, extraClass = "") {
+        const c = document.getElementById("log-container");
+        const item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "") + (extraClass ? ` ${extraClass}` : "");
+        const t = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="log-time">${t}</div>${msg}`;
+        c.appendChild(item);
+        c.scrollTop = c.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const map = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        document.querySelectorAll(".tab")[map[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hl = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hl[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        document.getElementById(id + "-value").textContent = val;
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value, 10) || 32001;
+        presetRaw = "";
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        presetRaw = "";
+        initializeSystem();
+      }
+
+      function setPreset(raw) {
+        presetRaw = raw;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        const btn = document.getElementById("pause-btn");
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>零钱兑换 - LeetCode 322</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+    <style>
+      :root {
+        --dark: #141413;
+        --line: #e8e6dc;
+        --mid: #b0aea5;
+        --orange: #d97757;
+        --blue: #6a9bcc;
+        --green: #788c5d;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+      .sidebar { width: 280px; flex-shrink: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; overflow-y: auto; }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; color: var(--orange); margin-bottom: 4px; }
+      .subtitle { font-size: 11px; color: var(--mid); margin-bottom: 20px; }
+      .control-section { margin-bottom: 18px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--orange); border-radius: 2px; }
+      .control-group { margin-bottom: 10px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--line); border-radius: 2px; appearance: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--orange); border-radius: 50%; border: 2px solid #fff; }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 24px; text-align: right; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+      .button { width: 100%; border: none; background: var(--orange); color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 500; cursor: pointer; }
+      .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--line); border-radius: 6px; padding: 7px 6px; background: #fff; font-family: "JetBrains Mono", monospace; font-size: 11px; cursor: pointer; }
+      .canvas-area { flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--line); font-size: 13px; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.08; background: #1e1e1e; border: 1px solid #333; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0; display: flex; justify-content: space-between; align-items: center; }
+      .box-title.dark { color: #ccc; font-size: 12px; font-weight: 600; padding-bottom: 10px; }
+      .tabs.dark { display: flex; gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; background: #2d2d2d; color: #888; border-radius: 6px 6px 0 0; font-size: 11px; cursor: pointer; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; overflow: auto; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.55; color: #d4d4d4; padding: 15px; }
+      .logic-box { flex: .92; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .box-header { padding: 8px 15px; border-bottom: 1px solid #eee; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--orange); margin-bottom: 6px; text-transform: uppercase; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { width: 26px; height: 26px; background: var(--orange); color: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; color: #444; line-height: 1.4; }
+      .log-item.highlight { border-left-color: var(--orange); background: #fff9f5; font-weight: 500; }
+      .log-item.success { border-left-color: var(--green); background: #f6fbef; }
+      .log-item .log-time { font-size: 9px; color: #aaa; margin-bottom: 2px; }
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600; }
+      .memo-time { background: #fff3ee; color: var(--orange); border: 1px solid #f0c8b0; }
+      .memo-space { background: #eef3ff; color: var(--blue); border: 1px solid #b8d0f0; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--orange); border-radius: 0 5px 5px 0; margin-bottom: 6px; }
+      .memo-tip.g { border-left-color: var(--green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>零钱兑换</h1>
+        <div class="subtitle">LeetCode 322 · 完全背包 DP</div>
+        <div class="control-section">
+          <h3>随机种子</h3>
+          <input type="number" id="seed-input" class="seed-input" value="32201" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成随机样例</button>
+        </div>
+        <div class="control-section">
+          <h3>参数控制</h3>
+          <div class="control-group">
+            <label>动画速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>目标 amount</label>
+            <div class="slider-container">
+              <input type="range" id="amount" min="1" max="30" step="1" value="11" oninput="updateParam('amount', this.value)" />
+              <span class="value-display" id="amount-value">11</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>预设样例</label>
+            <div class="preset-grid">
+              <button class="preset" onclick="setPreset('11|1,2,5')">11|1,2,5</button>
+              <button class="preset" onclick="setPreset('3|2')">3|2</button>
+              <button class="preset" onclick="setPreset('27|2,5,10')">27|2,5,10</button>
+              <button class="preset" onclick="setPreset('18|3,7,9')">18|3,7,9</button>
+            </div>
+          </div>
+        </div>
+        <div class="control-section" style="display:flex; gap:10px">
+          <button id="pause-btn" class="button" style="background:var(--dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background:var(--blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+        <div class="memo-card">
+          <h3>算法备忘</h3>
+          <div class="memo-badges">
+            <span class="memo-badge memo-time">时间 O(amount × m)</span>
+            <span class="memo-badge memo-space">空间 O(amount)</span>
+          </div>
+          <div class="memo-tip">dp[i] 表示凑出金额 i 的最少硬币数，dp[0] = 0。</div>
+          <div class="memo-tip g">转移：dp[i] = min(dp[i], dp[i-coin] + 1)，coin 可重复使用。</div>
+          <div class="memo-tip w">若最后 dp[amount] 仍为 ∞，说明无解，返回 -1。</div>
+        </div>
+      </div>
+      <div class="canvas-area">
+        <div class="canvas-header"><span>完全背包转移可视化</span><span id="result-label">运行中</span></div>
+        <div id="canvas-container"></div>
+      </div>
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+        <div class="logic-box">
+          <div class="box-header"><div class="box-title">执行日志</div></div>
+          <div class="data-viz">
+            <div class="data-title">硬币面值</div>
+            <div id="coin-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def coinChange(coins: list[int], amount: int) -> int:
+    # dp[i]：凑出金额 i 的最少硬币数
+    INF = 10**9
+    dp = [INF] * (amount + 1)
+    dp[0] = 0
+
+    for i in range(1, amount + 1):
+        # 枚举所有硬币做完全背包转移
+        for coin in coins:
+            if coin <= i and dp[i - coin] != INF:
+                dp[i] = min(dp[i], dp[i - coin] + 1)
+
+    # 无法凑出时返回 -1
+    return -1 if dp[amount] == INF else dp[amount]`,
+        ts: `// TypeScript
+function coinChange(coins: number[], amount: number): number {
+  // dp[i]：凑出金额 i 的最少硬币数
+  const INF = 1e9;
+  const dp = new Array(amount + 1).fill(INF);
+  dp[0] = 0;
+
+  for (let i = 1; i <= amount; i++) {
+    // 完全背包：每个硬币都可重复使用
+    for (const coin of coins) {
+      if (coin <= i && dp[i - coin] !== INF) {
+        dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+      }
+    }
+  }
+  // 若仍为 INF，说明无解
+  return dp[amount] === INF ? -1 : dp[amount];
+}`,
+        java: `// Java
+class Solution {
+  public int coinChange(int[] coins, int amount) {
+    // dp[i]：凑出金额 i 的最少硬币数
+    int INF = 1 << 30;
+    int[] dp = new int[amount + 1];
+    Arrays.fill(dp, INF);
+    dp[0] = 0;
+
+    for (int i = 1; i <= amount; i++) {
+      // 完全背包转移
+      for (int coin : coins) {
+        if (coin <= i && dp[i - coin] != INF) {
+          dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+        }
+      }
+    }
+    // 无法凑出返回 -1
+    return dp[amount] == INF ? -1 : dp[amount];
+  }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+  int coinChange(vector<int>& coins, int amount) {
+    // dp[i]：凑出金额 i 的最少硬币数
+    const int INF = 1e9;
+    vector<int> dp(amount + 1, INF);
+    dp[0] = 0;
+
+    for (int i = 1; i <= amount; i++) {
+      // 完全背包：硬币可重复取
+      for (int coin : coins) {
+        if (coin <= i && dp[i - coin] != INF) {
+          dp[i] = min(dp[i], dp[i - coin] + 1);
+        }
+      }
+    }
+    // 无解时返回 -1
+    return dp[amount] == INF ? -1 : dp[amount];
+  }
+};`,
+        c: `// C
+int coinChange(int* coins, int coinsSize, int amount) {
+  // dp[i]：凑出金额 i 的最少硬币数
+  int INF = 1e9;
+  int* dp = (int*)malloc(sizeof(int) * (amount + 1));
+  for (int i = 0; i <= amount; i++) dp[i] = INF;
+  dp[0] = 0;
+
+  for (int i = 1; i <= amount; i++) {
+    // 完全背包转移
+    for (int j = 0; j < coinsSize; j++) {
+      int coin = coins[j];
+      if (coin <= i && dp[i - coin] != INF) {
+        int cand = dp[i - coin] + 1;
+        if (cand < dp[i]) dp[i] = cand;
+      }
+    }
+  }
+  int ans = (dp[amount] == INF) ? -1 : dp[amount];
+  free(dp);
+  return ans;
+}`
+      };
+
+      let params = { seed: 32201, speed: 1.0, amount: 11 };
+      let currentLang = "python";
+      let amount = 11;
+      let coins = [];
+      let dp = [];
+      let presetRaw = "";
+      let isDone = false;
+      let isPaused = false;
+      let timer = 0;
+      let i = 1;
+      let ci = 0;
+      let stepInfo = null;
+
+      function makeRng(seed) {
+        let s = (seed >>> 0) || 1;
+        return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+      }
+
+      function setup() {
+        const container = document.getElementById("canvas-container");
+        const canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+      }
+
+      function initializeSystem() {
+        if (presetRaw) {
+          const parsed = parsePreset(presetRaw);
+          amount = parsed.amount;
+          coins = parsed.coins;
+        } else {
+          amount = params.amount;
+          coins = generateCoins(params.seed, amount);
+        }
+        if (amount < 1) amount = 1;
+        if (coins.length === 0) coins = [1, 2, 5];
+        coins.sort((a, b) => a - b);
+        params.amount = amount;
+        document.getElementById("amount").value = amount;
+        document.getElementById("amount-value").textContent = String(amount);
+
+        dp = new Array(amount + 1).fill(Infinity);
+        dp[0] = 0;
+        isDone = false;
+        isPaused = false;
+        timer = 0;
+        i = 1;
+        ci = 0;
+        stepInfo = null;
+        document.getElementById("log-container").innerHTML = "";
+        updateCoinsUI(coins);
+        updateResult("运行中", "#888");
+        const btn = document.getElementById("pause-btn");
+        btn.innerHTML = "⏸ 暂停";
+        btn.style.background = "var(--dark)";
+        logMsg(`coins=[${coins.join(", ")}], amount=${amount}。初始化 dp[0]=0，其余为 ∞。`, true);
+      }
+
+      function parsePreset(raw) {
+        const [a, cs] = raw.split("|");
+        const aa = parseInt(a, 10);
+        const out = cs.split(",").map((s) => parseInt(s.trim(), 10)).filter((v) => Number.isFinite(v) && v > 0);
+        return { amount: Number.isFinite(aa) ? aa : 11, coins: out };
+      }
+
+      function generateCoins(seed, amt) {
+        const rand = makeRng(seed);
+        const cnt = 3 + floor(rand() * 2);
+        const set = new Set();
+        for (let k = 0; k < cnt; k++) set.add(1 + floor(rand() * Math.max(2, Math.min(10, amt))));
+        return Array.from(set);
+      }
+
+      function draw() {
+        background(255);
+        drawCoins();
+        drawDp();
+        drawStatus();
+        if (isPaused || isDone) return;
+        timer += (deltaTime / 1000) * params.speed;
+        if (timer >= 1.0) {
+          performStep();
+          timer = 0;
+        }
+      }
+
+      function drawCoins() {
+        const gap = Math.max(32, Math.min(60, (width - 140) / Math.max(coins.length - 1, 1)));
+        const nodeW = Math.max(26, Math.min(38, gap - 4));
+        const nodeH = 40;
+        const startX = Math.max(54, width / 2 - ((coins.length - 1) * gap) / 2);
+        const y = 125;
+        fill(90); noStroke(); textSize(13); textAlign(LEFT, CENTER); text("可用硬币", 24, 72);
+        for (let idx = 0; idx < coins.length; idx++) {
+          const cx = startX + idx * gap;
+          const active = idx === ci && !isDone && i <= amount;
+          stroke(active ? "#d97757" : "#6a9bcc");
+          strokeWeight(active ? 2.2 : 1.2);
+          fill(active ? "#fff3ee" : "#eef3ff");
+          rect(cx - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 7);
+          noStroke(); fill("#222"); textAlign(CENTER, CENTER); textSize(nodeW < 30 ? 14 : 16); text(coins[idx], cx, y);
+        }
+      }
+
+      function drawDp() {
+        const gap = Math.max(24, Math.min(42, (width - 120) / Math.max(amount, 1)));
+        const nodeW = Math.max(20, Math.min(32, gap - 3));
+        const nodeH = 36;
+        const startX = Math.max(44, width / 2 - (amount * gap) / 2);
+        const y = 245;
+        fill(90); noStroke(); textSize(13); textAlign(LEFT, CENTER); text("dp[0..amount]", 24, 196);
+        for (let idx = 0; idx <= amount; idx++) {
+          const cx = startX + idx * gap;
+          const isCurrent = idx === i && !isDone;
+          const isSource = stepInfo && idx === stepInfo.source;
+          const done = idx < i;
+          let fillColor = "#fff", strokeColor = "#ddd";
+          if (done) { fillColor = "#eef3ff"; strokeColor = "#6a9bcc"; }
+          if (isCurrent) { fillColor = "#fff3ee"; strokeColor = "#d97757"; }
+          if (isSource) { fillColor = "#f6fbef"; strokeColor = "#788c5d"; }
+          stroke(strokeColor); strokeWeight((isCurrent || isSource) ? 2.1 : 1.1); fill(fillColor);
+          rect(cx - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 6);
+          noStroke(); fill("#222"); textAlign(CENTER, CENTER); textSize(12); text(dp[idx] === Infinity ? "∞" : dp[idx], cx, y);
+          fill("#aaa"); textSize(9); text(idx, cx, y + 27);
+        }
+      }
+
+      function drawStatus() {
+        const bw = Math.min(450, width - 48);
+        const bh = 160;
+        const bx = (width - bw) / 2;
+        const minBy = 286;
+        const maxBy = height - bh - 16;
+        const by = Math.max(minBy, Math.min(maxBy, height / 2 + 76));
+        fill("#fffcf9"); stroke("#e8e6dc"); strokeWeight(1.4); rect(bx, by, bw, bh, 10);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        fill("#666"); textSize(12); text(`i=${Math.min(i, amount)}  coin=${coins[Math.min(ci, coins.length - 1)] ?? "-"}  dp[amount]=${dp[amount] === Infinity ? "∞" : dp[amount]}`, bx + bw / 2, by + 24);
+        textAlign(LEFT, CENTER);
+        textSize(14);
+        if (stepInfo) {
+          fill("#6a9bcc"); text(`候选来源：dp[${stepInfo.source}] + 1`, bx + 20, by + 58);
+          fill("#d97757"); text(`候选值：${stepInfo.candidateText}`, bx + 20, by + 88);
+          fill("#788c5d"); text(`更新后 dp[${i}] = ${dp[i] === Infinity ? "∞" : dp[i]}`, bx + 20, by + 118);
+          fill("#444"); text(`状态：${stepInfo.updated ? "发生更新" : "未更新"}`, bx + 20, by + 146);
+        } else {
+          fill("#777"); text("等待第一步转移...", bx + 20, by + 88);
+        }
+      }
+
+      // 对当前 i 和当前 coin 执行一次完全背包转移
+      function performStep() {
+        if (i > amount) {
+          isDone = true;
+          const ans = dp[amount] === Infinity ? -1 : dp[amount];
+          updateResult(`最少硬币数：${ans}`, "var(--green)");
+          logMsg(`计算结束，答案为 ${ans}。`, true, "success");
+          return;
+        }
+
+        const coin = coins[ci];
+        let updated = false;
+        let source = i;
+        let candidateText = "无效";
+
+        if (coin <= i) {
+          source = i - coin;
+          if (dp[source] !== Infinity) {
+            const cand = dp[source] + 1;
+            candidateText = String(cand);
+            if (cand < dp[i]) {
+              dp[i] = cand;
+              updated = true;
+            }
+          } else {
+            candidateText = "∞";
+          }
+        }
+
+        stepInfo = { source, updated, candidateText };
+        logMsg(`i=${i}, coin=${coin}：候选=${candidateText}，dp[${i}]=${dp[i] === Infinity ? "∞" : dp[i]}。`, true);
+
+        ci++;
+        if (ci >= coins.length) {
+          ci = 0;
+          logMsg(`金额 ${i} 处理完成，dp[${i}] = ${dp[i] === Infinity ? "∞" : dp[i]}。`, true);
+          i++;
+          if (i > amount) {
+            isDone = true;
+            const ans = dp[amount] === Infinity ? -1 : dp[amount];
+            updateResult(`最少硬币数：${ans}`, "var(--green)");
+            logMsg(`全部处理完成，答案为 ${ans}。`, true, "success");
+          }
+        }
+      }
+
+      function updateResult(text, color) {
+        const el = document.getElementById("result-label");
+        el.textContent = text;
+        el.style.color = color;
+      }
+
+      function updateCoinsUI(array) {
+        const c = document.getElementById("coin-nodes");
+        c.innerHTML = "";
+        array.forEach((v) => {
+          const node = document.createElement("div");
+          node.className = "data-node";
+          node.textContent = v;
+          c.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false, extraClass = "") {
+        const c = document.getElementById("log-container");
+        const item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "") + (extraClass ? ` ${extraClass}` : "");
+        const t = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="log-time">${t}</div>${msg}`;
+        c.appendChild(item);
+        c.scrollTop = c.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const map = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        document.querySelectorAll(".tab")[map[lang]].classList.add("active");
+        const codeEl = document.getElementById("code-viewer");
+        const hl = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hl[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        document.getElementById(id + "-value").textContent = val;
+        if (id !== "speed") {
+          presetRaw = "";
+          initializeSystem();
+        }
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value, 10) || 32201;
+        presetRaw = "";
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        params.amount = 1 + floor(random(1, 31));
+        document.getElementById("seed-input").value = params.seed;
+        presetRaw = "";
+        initializeSystem();
+      }
+
+      function setPreset(raw) {
+        presetRaw = raw;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        const btn = document.getElementById("pause-btn");
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

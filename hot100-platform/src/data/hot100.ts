@@ -55,7 +55,6 @@ export const HOT100: Problem[] = [
   { id: 189, slug: '189_rotate_array', title: '轮转数组', titleEn: 'Rotate Array', category: '普通数组', difficulty: 'Medium', tags: ['数组', '双指针'], hasVisualization: true },
   { id: 238, slug: '238_product_except_self', title: '除自身以外数组的乘积', titleEn: 'Product of Array Except Self', category: '普通数组', difficulty: 'Medium', tags: ['数组', '前缀和'], hasVisualization: true },
   { id: 41, slug: '041_first_missing', title: '缺失的第一个正数', titleEn: 'First Missing Positive', category: '普通数组', difficulty: 'Hard', tags: ['数组', '哈希表'], hasVisualization: true },
-  // { id: 84, slug: '084_largest_rectangle', title: '柱状图中最大的矩形', titleEn: 'Largest Rectangle in Histogram', category: '普通数组', difficulty: 'Hard', tags: ['栈', '数组', '单调栈'], hasVisualization: false },
 
   // ── 矩阵 ────────────────────────────────────────────────────
   { id: 73, slug: '073_set_matrix_zeroes', title: '矩阵置零', titleEn: 'Set Matrix Zeroes', category: '矩阵', difficulty: 'Medium', tags: ['数组', '矩阵'], hasVisualization: true },
@@ -143,26 +142,26 @@ export const HOT100: Problem[] = [
   // ── 动态规划 ────────────────────────────────────────────────
   { id: 70, slug: '070_climbing_stairs', title: '爬楼梯', titleEn: 'Climbing Stairs', category: '动态规划', difficulty: 'Easy', tags: ['记忆化搜索', '数学', 'DP'], hasVisualization: true },
   { id: 118, slug: '118_pascals_triangle', title: '杨辉三角', titleEn: "Pascal's Triangle", category: '动态规划', difficulty: 'Easy', tags: ['数组', 'DP'], hasVisualization: true },
-  { id: 198, slug: '198_house_robber', title: '打家劫舍', titleEn: 'House Robber', category: '动态规划', difficulty: 'Medium', tags: ['数组', 'DP'], hasVisualization: false },
-  { id: 279, slug: '279_perfect_squares', title: '完全平方数', titleEn: 'Perfect Squares', category: '动态规划', difficulty: 'Medium', tags: ['广度优先', 'DP'], hasVisualization: false },
-  { id: 322, slug: '322_coin_change', title: '零钱兑换', titleEn: 'Coin Change', category: '动态规划', difficulty: 'Medium', tags: ['广度优先', 'DP'], hasVisualization: false },
-  { id: 139, slug: '139_word_break', title: '单词拆分', titleEn: 'Word Break', category: '动态规划', difficulty: 'Medium', tags: ['字典树', '记忆化', 'DP'], hasVisualization: false },
-  { id: 300, slug: '300_longest_increasing', title: '最长递增子序列', titleEn: 'Longest Increasing Subsequence', category: '动态规划', difficulty: 'Medium', tags: ['数组', '二分', 'DP'], hasVisualization: false },
-  { id: 152, slug: '152_max_product_subarray', title: '乘积最大子数组', titleEn: 'Maximum Product Subarray', category: '动态规划', difficulty: 'Medium', tags: ['数组', 'DP'], hasVisualization: false },
-  { id: 416, slug: '416_partition_subset', title: '分割等和子集', titleEn: 'Partition Equal Subset Sum', category: '动态规划', difficulty: 'Medium', tags: ['数组', 'DP'], hasVisualization: false },
-  { id: 32, slug: '032_longest_valid_parens', title: '最长有效括号', titleEn: 'Longest Valid Parentheses', category: '动态规划', difficulty: 'Hard', tags: ['栈', '字符串', 'DP'], hasVisualization: false },
+  { id: 198, slug: '198_house_robber', title: '打家劫舍', titleEn: 'House Robber', category: '动态规划', difficulty: 'Medium', tags: ['数组', 'DP'], hasVisualization: true },
+  { id: 279, slug: '279_perfect_squares', title: '完全平方数', titleEn: 'Perfect Squares', category: '动态规划', difficulty: 'Medium', tags: ['广度优先', 'DP'], hasVisualization: true },
+  { id: 322, slug: '322_coin_change', title: '零钱兑换', titleEn: 'Coin Change', category: '动态规划', difficulty: 'Medium', tags: ['广度优先', 'DP'], hasVisualization: true },
+  { id: 139, slug: '139_word_break', title: '单词拆分', titleEn: 'Word Break', category: '动态规划', difficulty: 'Medium', tags: ['字典树', '记忆化', 'DP'], hasVisualization: true },
+  { id: 300, slug: '300_longest_increasing', title: '最长递增子序列', titleEn: 'Longest Increasing Subsequence', category: '动态规划', difficulty: 'Medium', tags: ['数组', '二分', 'DP'], hasVisualization: true },
+  { id: 152, slug: '152_max_product_subarray', title: '乘积最大子数组', titleEn: 'Maximum Product Subarray', category: '动态规划', difficulty: 'Medium', tags: ['数组', 'DP'], hasVisualization: true },
+  { id: 416, slug: '416_partition_subset', title: '分割等和子集', titleEn: 'Partition Equal Subset Sum', category: '动态规划', difficulty: 'Medium', tags: ['数组', 'DP'], hasVisualization: true },
+  { id: 32, slug: '032_longest_valid_parens', title: '最长有效括号', titleEn: 'Longest Valid Parentheses', category: '动态规划', difficulty: 'Hard', tags: ['栈', '字符串', 'DP'], hasVisualization: true },
 
   // ── 多维 DP ─────────────────────────────────────────────────
-  { id: 62, slug: '062_unique_paths', title: '不同路径', titleEn: 'Unique Paths', category: '多维DP', difficulty: 'Medium', tags: ['数学', '组合', 'DP'], hasVisualization: false },
-  { id: 64, slug: '064_min_path_sum', title: '最小路径和', titleEn: 'Minimum Path Sum', category: '多维DP', difficulty: 'Medium', tags: ['数组', '矩阵', 'DP'], hasVisualization: false },
-  { id: 5, slug: '005_longest_palindrome', title: '最长回文子串', titleEn: 'Longest Palindromic Substring', category: '多维DP', difficulty: 'Medium', tags: ['字符串', 'DP'], hasVisualization: false },
-  { id: 1143, slug: '1143_lcs', title: '最长公共子序列', titleEn: 'Longest Common Subsequence', category: '多维DP', difficulty: 'Medium', tags: ['字符串', 'DP'], hasVisualization: false },
-  { id: 72, slug: '072_edit_distance', title: '编辑距离', titleEn: 'Edit Distance', category: '多维DP', difficulty: 'Medium', tags: ['字符串', 'DP'], hasVisualization: false },
-  { id: 312, slug: '312_burst_balloons', title: '戳气球', titleEn: 'Burst Balloons', category: '多维DP', difficulty: 'Hard', tags: ['数组', '记忆化', 'DP'], hasVisualization: false },
+  { id: 62, slug: '062_unique_paths', title: '不同路径', titleEn: 'Unique Paths', category: '多维DP', difficulty: 'Medium', tags: ['数学', '组合', 'DP'], hasVisualization: true },
+  { id: 64, slug: '064_min_path_sum', title: '最小路径和', titleEn: 'Minimum Path Sum', category: '多维DP', difficulty: 'Medium', tags: ['数组', '矩阵', 'DP'], hasVisualization: true },
+  { id: 5, slug: '005_longest_palindrome', title: '最长回文子串', titleEn: 'Longest Palindromic Substring', category: '多维DP', difficulty: 'Medium', tags: ['字符串', 'DP'], hasVisualization: true },
+  { id: 1143, slug: '1143_lcs', title: '最长公共子序列', titleEn: 'Longest Common Subsequence', category: '多维DP', difficulty: 'Medium', tags: ['字符串', 'DP'], hasVisualization: true },
+  { id: 72, slug: '072_edit_distance', title: '编辑距离', titleEn: 'Edit Distance', category: '多维DP', difficulty: 'Medium', tags: ['字符串', 'DP'], hasVisualization: true },
+  { id: 312, slug: '312_burst_balloons', title: '戳气球', titleEn: 'Burst Balloons', category: '多维DP', difficulty: 'Hard', tags: ['数组', '记忆化', 'DP'], hasVisualization: true },
 
   // ── 技巧 ────────────────────────────────────────────────────
-  { id: 136, slug: '136_single_number', title: '只出现一次的数字', titleEn: 'Single Number', category: '技巧', difficulty: 'Easy', tags: ['位运算', '数组'], hasVisualization: false },
-  { id: 169, slug: '169_majority_element', title: '多数元素', titleEn: 'Majority Element', category: '技巧', difficulty: 'Easy', tags: ['数组', '哈希表', '分治'], hasVisualization: false },
-  { id: 75, slug: '075_sort_colors', title: '颜色分类', titleEn: 'Sort Colors', category: '技巧', difficulty: 'Medium', tags: ['数组', '双指针', '排序'], hasVisualization: false },
-  { id: 31, slug: '031_next_permutation', title: '下一个排列', titleEn: 'Next Permutation', category: '技巧', difficulty: 'Medium', tags: ['数组', '双指针'], hasVisualization: false },
+  { id: 136, slug: '136_single_number', title: '只出现一次的数字', titleEn: 'Single Number', category: '技巧', difficulty: 'Easy', tags: ['位运算', '数组'], hasVisualization: true },
+  { id: 169, slug: '169_majority_element', title: '多数元素', titleEn: 'Majority Element', category: '技巧', difficulty: 'Easy', tags: ['数组', '哈希表', '分治'], hasVisualization: true },
+  { id: 75, slug: '075_sort_colors', title: '颜色分类', titleEn: 'Sort Colors', category: '技巧', difficulty: 'Medium', tags: ['数组', '双指针', '排序'], hasVisualization: true },
+  { id: 31, slug: '031_next_permutation', title: '下一个排列', titleEn: 'Next Permutation', category: '技巧', difficulty: 'Medium', tags: ['数组', '双指针'], hasVisualization: true },
 ]

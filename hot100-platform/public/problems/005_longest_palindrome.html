@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>最长回文子串 - LeetCode 5</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+    <style>
+      :root { --dark:#141413; --line:#e8e6dc; --mid:#b0aea5; --orange:#d97757; --blue:#6a9bcc; --green:#788c5d; }
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:"Poppins","PingFang SC",sans-serif; background:#fdfcf9; color:var(--dark); overflow:hidden; }
+      .container { display:flex; height:100vh; padding:15px; gap:15px; }
+      .sidebar { width:280px; flex-shrink:0; background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; overflow-y:auto; }
+      .sidebar h1 { font-family:"Lora",serif; font-size:18px; color:var(--orange); margin-bottom:4px; }
+      .subtitle { font-size:11px; color:var(--mid); margin-bottom:20px; }
+      .control-section { margin-bottom:18px; }
+      .control-section h3 { font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+      .control-section h3::before { content:""; width:4px; height:14px; background:var(--orange); border-radius:2px; }
+      .control-group { margin-bottom:10px; }
+      .control-group label { display:block; font-size:12px; margin-bottom:4px; color:#666; }
+      .slider-container { display:flex; align-items:center; gap:10px; }
+      input[type="range"] { flex:1; height:4px; background:var(--line); border-radius:2px; appearance:none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; background:var(--orange); border-radius:50%; border:2px solid #fff; }
+      .value-display { font-family:"JetBrains Mono",monospace; font-size:11px; min-width:24px; text-align:right; }
+      .seed-input { width:100%; padding:8px; border:1px solid var(--line); border-radius:6px; margin-bottom:8px; font-family:"JetBrains Mono",monospace; font-size:12px; }
+      .button { width:100%; border:none; background:var(--orange); color:#fff; border-radius:6px; padding:10px; font-size:13px; font-weight:500; cursor:pointer; }
+      .preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+      .preset { border:1px solid var(--line); border-radius:6px; padding:7px 6px; background:#fff; font-family:"JetBrains Mono",monospace; font-size:11px; cursor:pointer; text-align:center; }
+      .canvas-area { flex:1; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+      .canvas-header { padding:10px 20px; border-bottom:1px solid var(--line); font-size:13px; color:#888; display:flex; justify-content:space-between; }
+      #canvas-container { flex:1; width:100%; height:100%; }
+      .right-panel { flex:1; min-width:0; display:flex; flex-direction:column; gap:15px; }
+      .code-box { flex:1.08; background:#1e1e1e; border:1px solid #333; border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+      .box-header.dark { background:#282828; border-bottom:1px solid #1e1e1e; padding:10px 15px 0; display:flex; justify-content:space-between; align-items:center; }
+      .box-title.dark { color:#ccc; font-size:12px; font-weight:600; padding-bottom:10px; }
+      .tabs.dark { display:flex; gap:1px; align-items:flex-end; }
+      .tabs.dark .tab { padding:8px 16px; background:#2d2d2d; color:#888; border-radius:6px 6px 0 0; font-size:11px; cursor:pointer; }
+      .tabs.dark .tab.active { background:#1e1e1e; color:#4ec9b0; border-top:2px solid #007acc; }
+      .code-content { flex:1; margin:0; overflow:auto; }
+      #code-viewer { font-family:Consolas,"JetBrains Mono",monospace; font-size:14px; line-height:1.55; color:#d4d4d4; padding:15px; }
+      .logic-box { flex:.92; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+      .box-header { padding:8px 15px; border-bottom:1px solid #eee; }
+      .box-title { font-size:12px; font-weight:600; color:#555; }
+      .data-viz { padding:12px; background:#fffcf9; border-bottom:1px solid #eee; }
+      .data-title { font-size:11px; font-weight:600; color:var(--orange); margin-bottom:6px; text-transform:uppercase; }
+      .data-array { display:flex; flex-wrap:wrap; gap:5px; min-height:30px; }
+      .data-node { min-width:26px; height:26px; padding:0 8px; background:var(--orange); color:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700; }
+      .log-area { flex:1; padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; font-size:11.5px; }
+      .log-item { padding:6px 10px; border-radius:4px; background:#fcfcfc; border-left:2px solid #ddd; color:#444; line-height:1.4; }
+      .log-item.highlight { border-left-color:var(--orange); background:#fff9f5; font-weight:500; }
+      .log-item.success { border-left-color:var(--green); background:#f6fbef; }
+      .log-item .log-time { font-size:9px; color:#aaa; margin-bottom:2px; }
+      .memo-card { margin-top:18px; border-top:1px solid var(--line); padding-top:14px; }
+      .memo-card h3 { font-size:12px; font-weight:600; margin-bottom:10px; }
+      .memo-badges { display:flex; gap:6px; margin-bottom:10px; }
+      .memo-badge { padding:2px 8px; border-radius:4px; font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:600; }
+      .memo-time { background:#fff3ee; color:var(--orange); border:1px solid #f0c8b0; }
+      .memo-space { background:#eef3ff; color:var(--blue); border:1px solid #b8d0f0; }
+      .memo-tip { padding:6px 9px; font-size:11px; line-height:1.5; color:#555; background:#fffcf9; border-left:3px solid var(--orange); border-radius:0 5px 5px 0; margin-bottom:6px; }
+      .memo-tip.g { border-left-color:var(--green); }
+      .memo-tip.w { border-left-color:#e8a838; background:#fffdf2; }
+      ::-webkit-scrollbar { width:6px; }
+      ::-webkit-scrollbar-thumb { background:#e0e0e0; border-radius:3px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>最长回文子串</h1>
+        <div class="subtitle">LeetCode 5 · 区间 DP</div>
+        <div class="control-section">
+          <h3>随机种子</h3>
+          <input type="number" id="seed-input" class="seed-input" value="5001" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机生成字符串</button>
+        </div>
+        <div class="control-section">
+          <h3>参数控制</h3>
+          <div class="control-group">
+            <label>动画速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>字符串长度</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="4" max="14" step="1" value="8" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">8</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>预设样例</label>
+            <div class="preset-grid">
+              <button class="preset" onclick="setPreset('babad')">babad</button>
+              <button class="preset" onclick="setPreset('cbbd')">cbbd</button>
+              <button class="preset" onclick="setPreset('forgeeksskeegfor')">geeksskeeg</button>
+              <button class="preset" onclick="setPreset('abacdfgdcaba')">abacdf...</button>
+            </div>
+          </div>
+        </div>
+        <div class="control-section" style="display:flex; gap:10px">
+          <button id="pause-btn" class="button" style="background:var(--dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background:var(--blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+        <div class="memo-card">
+          <h3>算法备忘</h3>
+          <div class="memo-badges">
+            <span class="memo-badge memo-time">时间 O(n²)</span>
+            <span class="memo-badge memo-space">空间 O(n²)</span>
+          </div>
+          <div class="memo-tip">dp[l][r] 表示子串 s[l..r] 是否为回文。</div>
+          <div class="memo-tip g">转移条件：s[l]==s[r] 且 (r-l&lt;=2 或 dp[l+1][r-1])。</div>
+          <div class="memo-tip w">按子串长度从小到大枚举，保证依赖已计算。</div>
+        </div>
+      </div>
+      <div class="canvas-area">
+        <div class="canvas-header"><span>区间 DP 状态填表</span><span id="result-label">运行中</span></div>
+        <div id="canvas-container"></div>
+      </div>
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+        <div class="logic-box">
+          <div class="box-header"><div class="box-title">执行日志</div></div>
+          <div class="data-viz">
+            <div class="data-title">字符数组</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def longestPalindrome(s: str) -> str:
+    n = len(s)
+    if n < 2:
+        return s
+    # dp[l][r]：s[l..r] 是否回文
+    dp = [[False] * n for _ in range(n)]
+    best_l, best_len = 0, 1
+
+    for length in range(1, n + 1):
+        for l in range(0, n - length + 1):
+            r = l + length - 1
+            if s[l] == s[r] and (length <= 2 or dp[l + 1][r - 1]):
+                dp[l][r] = True
+                if length > best_len:
+                    best_l, best_len = l, length
+    return s[best_l:best_l + best_len]`,
+        ts: `// TypeScript
+function longestPalindrome(s: string): string {
+  const n = s.length;
+  if (n < 2) return s;
+  // dp[l][r]：区间是否回文
+  const dp = Array.from({ length: n }, () => new Array(n).fill(false));
+  let bestL = 0, bestLen = 1;
+
+  for (let len = 1; len <= n; len++) {
+    for (let l = 0; l + len - 1 < n; l++) {
+      const r = l + len - 1;
+      if (s[l] === s[r] && (len <= 2 || dp[l + 1][r - 1])) {
+        dp[l][r] = true;
+        if (len > bestLen) {
+          bestL = l;
+          bestLen = len;
+        }
+      }
+    }
+  }
+  return s.slice(bestL, bestL + bestLen);
+}`,
+        java: `// Java
+class Solution {
+  public String longestPalindrome(String s) {
+    int n = s.length();
+    if (n < 2) return s;
+    // dp[l][r] 表示 s[l..r] 是否回文
+    boolean[][] dp = new boolean[n][n];
+    int bestL = 0, bestLen = 1;
+
+    for (int len = 1; len <= n; len++) {
+      for (int l = 0; l + len - 1 < n; l++) {
+        int r = l + len - 1;
+        if (s.charAt(l) == s.charAt(r) && (len <= 2 || dp[l + 1][r - 1])) {
+          dp[l][r] = true;
+          if (len > bestLen) {
+            bestL = l;
+            bestLen = len;
+          }
+        }
+      }
+    }
+    return s.substring(bestL, bestL + bestLen);
+  }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+  string longestPalindrome(string s) {
+    int n = (int)s.size();
+    if (n < 2) return s;
+    // dp[l][r]：区间是否为回文
+    vector<vector<char>> dp(n, vector<char>(n, 0));
+    int bestL = 0, bestLen = 1;
+
+    for (int len = 1; len <= n; len++) {
+      for (int l = 0; l + len - 1 < n; l++) {
+        int r = l + len - 1;
+        if (s[l] == s[r] && (len <= 2 || dp[l + 1][r - 1])) {
+          dp[l][r] = 1;
+          if (len > bestLen) bestL = l, bestLen = len;
+        }
+      }
+    }
+    return s.substr(bestL, bestLen);
+  }
+};`,
+        c: `// C
+char* longestPalindrome(char* s) {
+  int n = (int)strlen(s);
+  if (n < 2) return s;
+  // dp[l][r]：是否回文
+  char** dp = (char**)malloc(sizeof(char*) * n);
+  for (int i = 0; i < n; i++) dp[i] = (char*)calloc(n, sizeof(char));
+  int bestL = 0, bestLen = 1;
+
+  for (int len = 1; len <= n; len++) {
+    for (int l = 0; l + len - 1 < n; l++) {
+      int r = l + len - 1;
+      if (s[l] == s[r] && (len <= 2 || dp[l + 1][r - 1])) {
+        dp[l][r] = 1;
+        if (len > bestLen) bestL = l, bestLen = len;
+      }
+    }
+  }
+
+  char* ans = (char*)malloc(bestLen + 1);
+  memcpy(ans, s + bestL, bestLen);
+  ans[bestLen] = '\\0';
+  for (int i = 0; i < n; i++) free(dp[i]);
+  free(dp);
+  return ans;
+}`
+      };
+
+      let params = { seed: 5001, speed: 1.0, n: 8 };
+      let currentLang = "python";
+      let s = "";
+      let dp = [];
+      let presetRaw = "";
+      let isDone = false;
+      let isPaused = false;
+      let timer = 0;
+      let len = 1;
+      let l = 0;
+      let bestL = 0;
+      let bestLen = 1;
+      let stepInfo = null;
+
+      function makeRng(seed) {
+        let x = (seed >>> 0) || 1;
+        return () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296);
+      }
+      function genStr(n, seed) {
+        const chars = "abcde";
+        const rnd = makeRng(seed);
+        let out = "";
+        for (let i = 0; i < n; i++) out += chars[Math.floor(rnd() * chars.length)];
+        return out;
+      }
+
+      function setup() {
+        const container = document.getElementById("canvas-container");
+        const canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth || 500, container.offsetHeight || 600));
+        switchLang("python");
+      }
+
+      function initializeSystem() {
+        s = presetRaw || genStr(params.n, params.seed);
+        if (s.length < 2) s = "ab";
+        dp = Array.from({ length: s.length }, () => Array(s.length).fill(false));
+        isDone = false;
+        isPaused = false;
+        timer = 0;
+        len = 1;
+        l = 0;
+        bestL = 0;
+        bestLen = 1;
+        stepInfo = null;
+        document.getElementById("log-container").innerHTML = "";
+        updateDataNodes();
+        updateResult("运行中", "#888");
+        const btn = document.getElementById("pause-btn");
+        btn.innerHTML = "⏸ 暂停";
+        btn.style.background = "var(--dark)";
+        logMsg(`输入字符串：${s}，开始区间 DP。`, true);
+      }
+
+      function draw() {
+        background(255);
+        drawStringRow();
+        drawMatrix();
+        drawStatus();
+        if (isPaused || isDone) return;
+        timer += (deltaTime / 1000) * params.speed;
+        if (timer >= 0.8) {
+          performStep();
+          timer = 0;
+        }
+      }
+
+      function drawStringRow() {
+        const n = s.length;
+        const gap = Math.max(26, Math.min(40, (width - 120) / Math.max(n - 1, 1)));
+        const nodeW = Math.max(22, Math.min(32, gap - 3));
+        const startX = Math.max(50, width / 2 - ((n - 1) * gap) / 2);
+        const y = 100;
+        fill(90); noStroke(); textSize(13); textAlign(LEFT, CENTER); text("字符串 s", 24, 60);
+        for (let i = 0; i < n; i++) {
+          const x = startX + i * gap;
+          const inBest = i >= bestL && i < bestL + bestLen;
+          stroke(inBest ? "#788c5d" : "#ddd");
+          strokeWeight(inBest ? 2 : 1.2);
+          fill(inBest ? "#f6fbef" : "#fff");
+          rect(x - nodeW / 2, y - 18, nodeW, 36, 6);
+          noStroke(); fill("#222"); textAlign(CENTER, CENTER); textSize(15); text(s[i], x, y);
+        }
+      }
+
+      function drawMatrix() {
+        const n = s.length;
+        const cell = Math.floor(Math.min((width - 120) / Math.max(n, 1), (height - 300) / Math.max(n, 1)));
+        const sx = (width - cell * n) / 2;
+        const sy = 155;
+        fill(90); noStroke(); textSize(12); textAlign(LEFT, CENTER); text("dp[l][r]（上三角有效）", 24, 130);
+        for (let r = 0; r < n; r++) {
+          for (let c = 0; c < n; c++) {
+            const x = sx + c * cell;
+            const y = sy + r * cell;
+            let fc = "#fff", sc = "#ddd";
+            if (r > c) { fc = "#fafafa"; sc = "#eee"; }
+            if (dp[r][c]) { fc = "#eef3ff"; sc = "#6a9bcc"; }
+            if (stepInfo && r === stepInfo.l && c === stepInfo.r) { fc = "#fff3ee"; sc = "#d97757"; }
+            if (stepInfo && stepInfo.mid && r === stepInfo.mid[0] && c === stepInfo.mid[1]) { fc = "#f6fbef"; sc = "#788c5d"; }
+            stroke(sc); strokeWeight(1.1); fill(fc); rect(x, y, cell, cell, 4);
+            noStroke(); fill("#333"); textAlign(CENTER, CENTER); textSize(Math.max(9, cell * 0.25));
+            text(dp[r][c] ? "T" : "F", x + cell / 2, y + cell / 2);
+          }
+        }
+      }
+
+      function drawStatus() {
+        const bw = Math.min(560, width - 48);
+        const bh = 152;
+        const bx = (width - bw) / 2;
+        const by = height - bh - 16;
+        fill("#fffcf9"); stroke("#e8e6dc"); strokeWeight(1.4); rect(bx, by, bw, bh, 10); noStroke();
+        fill("#666"); textAlign(CENTER, CENTER); textSize(12); text(`len=${len}  l=${l}  best="${s.slice(bestL, bestL + bestLen)}"`, bx + bw / 2, by + 22);
+        textAlign(LEFT, CENTER); textSize(14);
+        if (stepInfo) {
+          fill("#6a9bcc"); text(stepInfo.d1, bx + 20, by + 56);
+          fill("#d97757"); text(stepInfo.d2, bx + 20, by + 88);
+          fill("#788c5d"); text(stepInfo.d3, bx + 20, by + 120);
+        } else {
+          fill("#777"); text("等待首个状态更新...", bx + 20, by + 88);
+        }
+      }
+
+      function performStep() {
+        const n = s.length;
+        if (len > n) {
+          isDone = true;
+          updateResult(`最终结果：${s.slice(bestL, bestL + bestLen)}`, "var(--green)");
+          logMsg(`遍历完成，最长回文为 "${s.slice(bestL, bestL + bestLen)}"。`, true, "success");
+          return;
+        }
+        const r = l + len - 1;
+        let ok = false;
+        let mid = null;
+        if (len === 1) ok = true;
+        else if (len === 2) ok = s[l] === s[r];
+        else {
+          mid = [l + 1, r - 1];
+          ok = s[l] === s[r] && dp[l + 1][r - 1];
+        }
+        dp[l][r] = ok;
+        if (ok && len > bestLen) {
+          bestLen = len;
+          bestL = l;
+        }
+        stepInfo = {
+          l, r, mid,
+          d1: `检查区间 [${l},${r}] => "${s.slice(l, r + 1)}"`,
+          d2: `首尾比较：${s[l]} vs ${s[r]}，结果=${ok}`,
+          d3: `dp[${l}][${r}] = ${ok}，当前 best="${s.slice(bestL, bestL + bestLen)}"`
+        };
+        logMsg(`[${l},${r}] -> ${ok}`, true);
+        l++;
+        if (l + len - 1 >= n) {
+          len++;
+          l = 0;
+        }
+      }
+
+      function updateDataNodes() {
+        const c = document.getElementById("data-nodes");
+        c.innerHTML = "";
+        s.split("").forEach((ch) => {
+          const node = document.createElement("div");
+          node.className = "data-node";
+          node.textContent = ch;
+          c.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false, extraClass = "") {
+        const c = document.getElementById("log-container");
+        const item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "") + (extraClass ? ` ${extraClass}` : "");
+        const t = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="log-time">${t}</div>${msg}`;
+        c.appendChild(item);
+        c.scrollTop = c.scrollHeight;
+      }
+
+      function updateResult(text, color) {
+        const el = document.getElementById("result-label");
+        el.textContent = text;
+        el.style.color = color;
+      }
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const map = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        document.querySelectorAll(".tab")[map[lang]].classList.add("active");
+        const codeEl = document.getElementById("code-viewer");
+        const hl = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hl[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        initializeSystem();
+      }
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        document.getElementById(id + "-value").textContent = val;
+      }
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value, 10) || 5001;
+        presetRaw = "";
+        initializeSystem();
+      }
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        presetRaw = "";
+        initializeSystem();
+      }
+      function setPreset(raw) { presetRaw = raw; initializeSystem(); }
+      function togglePause() {
+        isPaused = !isPaused;
+        const btn = document.getElementById("pause-btn");
+        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--green)"; }
+        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--dark)"; }
+      }
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

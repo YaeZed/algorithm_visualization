@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>完全平方数 - LeetCode 279</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+    <style>
+      :root {
+        --dark: #141413;
+        --line: #e8e6dc;
+        --mid: #b0aea5;
+        --orange: #d97757;
+        --blue: #6a9bcc;
+        --green: #788c5d;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+      .sidebar { width: 280px; flex-shrink: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; overflow-y: auto; }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; color: var(--orange); margin-bottom: 4px; }
+      .subtitle { font-size: 11px; color: var(--mid); margin-bottom: 20px; }
+      .control-section { margin-bottom: 18px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--orange); border-radius: 2px; }
+      .control-group { margin-bottom: 10px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--line); border-radius: 2px; appearance: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--orange); border-radius: 50%; border: 2px solid #fff; }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 24px; text-align: right; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+      .button { width: 100%; border: none; background: var(--orange); color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 500; cursor: pointer; }
+      .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--line); border-radius: 6px; padding: 7px 6px; background: #fff; font-family: "JetBrains Mono", monospace; font-size: 11px; cursor: pointer; }
+      .canvas-area { flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--line); font-size: 13px; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.08; background: #1e1e1e; border: 1px solid #333; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0; display: flex; justify-content: space-between; align-items: center; }
+      .box-title.dark { color: #ccc; font-size: 12px; font-weight: 600; padding-bottom: 10px; }
+      .tabs.dark { display: flex; gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; background: #2d2d2d; color: #888; border-radius: 6px 6px 0 0; font-size: 11px; cursor: pointer; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; overflow: auto; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.55; color: #d4d4d4; padding: 15px; }
+      .logic-box { flex: .92; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .box-header { padding: 8px 15px; border-bottom: 1px solid #eee; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--orange); margin-bottom: 6px; text-transform: uppercase; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { width: 26px; height: 26px; background: var(--orange); color: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; color: #444; line-height: 1.4; }
+      .log-item.highlight { border-left-color: var(--orange); background: #fff9f5; font-weight: 500; }
+      .log-item.success { border-left-color: var(--green); background: #f6fbef; }
+      .log-item .log-time { font-size: 9px; color: #aaa; margin-bottom: 2px; }
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600; }
+      .memo-time { background: #fff3ee; color: var(--orange); border: 1px solid #f0c8b0; }
+      .memo-space { background: #eef3ff; color: var(--blue); border: 1px solid #b8d0f0; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--orange); border-radius: 0 5px 5px 0; margin-bottom: 6px; }
+      .memo-tip.g { border-left-color: var(--green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>完全平方数</h1>
+        <div class="subtitle">LeetCode 279 · 完全背包式 DP</div>
+        <div class="control-section">
+          <h3>目标值</h3>
+          <input type="number" id="seed-input" class="seed-input" value="12" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成随机目标</button>
+        </div>
+        <div class="control-section">
+          <h3>参数控制</h3>
+          <div class="control-group">
+            <label>动画速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>目标 n</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="1" max="25" step="1" value="12" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">12</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>预设样例</label>
+            <div class="preset-grid">
+              <button class="preset" onclick="setPreset('12')">12</button>
+              <button class="preset" onclick="setPreset('13')">13</button>
+              <button class="preset" onclick="setPreset('16')">16</button>
+              <button class="preset" onclick="setPreset('23')">23</button>
+            </div>
+          </div>
+        </div>
+        <div class="control-section" style="display:flex; gap:10px">
+          <button id="pause-btn" class="button" style="background:var(--dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background:var(--blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+        <div class="memo-card">
+          <h3>算法备忘</h3>
+          <div class="memo-badges">
+            <span class="memo-badge memo-time">时间 O(n√n)</span>
+            <span class="memo-badge memo-space">空间 O(n)</span>
+          </div>
+          <div class="memo-tip">dp[i] 表示凑成数字 i 的最少完全平方数个数。</div>
+          <div class="memo-tip g">对于每个 i，枚举所有 s<=i 的平方数，取 dp[i-s] + 1 的最小值。</div>
+          <div class="memo-tip w">这是完全背包：同一个平方数可以重复使用。</div>
+        </div>
+      </div>
+      <div class="canvas-area">
+        <div class="canvas-header"><span>完全背包 DP 可视化</span><span id="result-label">运行中</span></div>
+        <div id="canvas-container"></div>
+      </div>
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+        <div class="logic-box">
+          <div class="box-header"><div class="box-title">执行日志</div></div>
+          <div class="data-viz">
+            <div class="data-title">完全平方数</div>
+            <div id="square-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def numSquares(n: int) -> int:
+    # dp[i]：凑出 i 的最少平方数个数
+    dp = [0] + [10**9] * n
+    squares = []
+    k = 1
+    while k * k <= n:
+        squares.append(k * k)
+        k += 1
+
+    for i in range(1, n + 1):
+        # 枚举所有可用平方数
+        for s in squares:
+            if s > i:
+                break
+            # 完全背包转移：dp[i] = min(dp[i], dp[i-s] + 1)
+            dp[i] = min(dp[i], dp[i - s] + 1)
+    return dp[n]`,
+        ts: `// TypeScript
+function numSquares(n: number): number {
+  // dp[i]：凑出数字 i 的最少平方数个数
+  const dp = new Array(n + 1).fill(Infinity);
+  dp[0] = 0;
+  const squares: number[] = [];
+  for (let k = 1; k * k <= n; k++) squares.push(k * k);
+
+  for (let i = 1; i <= n; i++) {
+    // 枚举所有不超过 i 的平方数
+    for (const s of squares) {
+      if (s > i) break;
+      dp[i] = Math.min(dp[i], dp[i - s] + 1);
+    }
+  }
+  return dp[n];
+}`,
+        java: `// Java
+class Solution {
+  public int numSquares(int n) {
+    // dp[i] 表示凑出 i 的最少平方数个数
+    int[] dp = new int[n + 1];
+    Arrays.fill(dp, 1 << 30);
+    dp[0] = 0;
+    List<Integer> squares = new ArrayList<>();
+    for (int k = 1; k * k <= n; k++) squares.add(k * k);
+
+    for (int i = 1; i <= n; i++) {
+      // 完全背包转移：每个平方数可以重复使用
+      for (int s : squares) {
+        if (s > i) break;
+        dp[i] = Math.min(dp[i], dp[i - s] + 1);
+      }
+    }
+    return dp[n];
+  }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+  int numSquares(int n) {
+    // dp[i]：凑出 i 的最少平方数个数
+    vector<int> dp(n + 1, 1e9);
+    dp[0] = 0;
+    vector<int> squares;
+    for (int k = 1; k * k <= n; k++) squares.push_back(k * k);
+
+    for (int i = 1; i <= n; i++) {
+      // 完全背包：平方数可无限重复取用
+      for (int s : squares) {
+        if (s > i) break;
+        dp[i] = min(dp[i], dp[i - s] + 1);
+      }
+    }
+    return dp[n];
+  }
+};`,
+        c: `// C
+int numSquares(int n) {
+  // dp[i]：凑出 i 的最少平方数个数
+  int* dp = (int*)malloc(sizeof(int) * (n + 1));
+  dp[0] = 0;
+  for (int i = 1; i <= n; i++) dp[i] = 1e9;
+
+  int squares[32];
+  int sc = 0;
+  for (int k = 1; k * k <= n; k++) squares[sc++] = k * k;
+
+  for (int i = 1; i <= n; i++) {
+    // 完全背包转移：尝试每个可用平方数
+    for (int t = 0; t < sc; t++) {
+      int s = squares[t];
+      if (s > i) break;
+      int cand = dp[i - s] + 1;
+      if (cand < dp[i]) dp[i] = cand;
+    }
+  }
+  int ans = dp[n];
+  free(dp);
+  return ans;
+}`
+      };
+
+      let params = { seed: 12, speed: 1.0, n: 12 };
+      let currentLang = "python";
+      let n = 12;
+      let squares = [];
+      let dp = [];
+      let presetRaw = "";
+      let isDone = false;
+      let isPaused = false;
+      let timer = 0;
+      let i = 1;
+      let si = 0;
+      let best = Infinity;
+      let stepInfo = null;
+
+      function setup() {
+        const container = document.getElementById("canvas-container");
+        const canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+      }
+
+      function initializeSystem() {
+        n = presetRaw ? parseInt(presetRaw, 10) : params.n;
+        if (!Number.isFinite(n) || n < 1) n = 1;
+        params.n = n;
+        document.getElementById("n").value = n;
+        document.getElementById("n-value").textContent = String(n);
+        squares = generateSquares(n);
+        dp = new Array(n + 1).fill(Infinity);
+        dp[0] = 0;
+        isDone = false;
+        isPaused = false;
+        timer = 0;
+        i = 1;
+        si = 0;
+        best = Infinity;
+        stepInfo = null;
+        document.getElementById("log-container").innerHTML = "";
+        updateSquaresUI(squares);
+        updateResult("运行中", "#888");
+        const btn = document.getElementById("pause-btn");
+        btn.innerHTML = "⏸ 暂停";
+        btn.style.background = "var(--dark)";
+        logMsg(`目标值 n=${n}。完全平方数：${squares.join(", ")}。`, true);
+      }
+
+      function generateSquares(limit) {
+        const out = [];
+        for (let k = 1; k * k <= limit; k++) out.push(k * k);
+        return out;
+      }
+
+      function draw() {
+        background(255);
+        drawSquares();
+        drawDp();
+        drawStatus();
+        if (isPaused || isDone) return;
+        timer += (deltaTime / 1000) * params.speed;
+        if (timer >= 1.0) {
+          performStep();
+          timer = 0;
+        }
+      }
+
+      function drawSquares() {
+        const gap = Math.max(30, Math.min(48, (width - 130) / Math.max(squares.length - 1, 1)));
+        const nodeW = Math.max(24, Math.min(36, gap - 4));
+        const nodeH = 40;
+        const startX = Math.max(54, width / 2 - ((squares.length - 1) * gap) / 2);
+        const y = 120;
+        fill(90); noStroke(); textSize(13); textAlign(LEFT, CENTER); text("可用平方数", 24, 72);
+        for (let idx = 0; idx < squares.length; idx++) {
+          const cx = startX + idx * gap;
+          const active = stepInfo && stepInfo.square === squares[idx];
+          stroke(active ? "#d97757" : "#6a9bcc");
+          strokeWeight(active ? 2.2 : 1.2);
+          fill(active ? "#fff3ee" : "#eef3ff");
+          rect(cx - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 7);
+          noStroke(); fill("#222"); textAlign(CENTER, CENTER); textSize(nodeW < 30 ? 14 : 16); text(squares[idx], cx, y);
+          fill("#aaa"); textSize(10); text(idx, cx, y + 30);
+        }
+      }
+
+      function drawDp() {
+        const gap = Math.max(30, Math.min(48, (width - 130) / Math.max(n - 1, 1)));
+        const nodeW = Math.max(24, Math.min(36, gap - 4));
+        const nodeH = 40;
+        const startX = Math.max(54, width / 2 - ((n - 1) * gap) / 2);
+        const y = 250;
+        fill(90); noStroke(); textSize(13); textAlign(LEFT, CENTER); text("dp[0..n]", 24, 202);
+        for (let idx = 0; idx <= n; idx++) {
+          const cx = startX + idx * gap;
+          const isCurrent = idx === i && !isDone;
+          const isSource = stepInfo && idx === stepInfo.source;
+          const isFinal = idx < i;
+          let fillColor = "#fff", strokeColor = "#ddd";
+          if (isFinal) { fillColor = "#eef3ff"; strokeColor = "#6a9bcc"; }
+          if (isCurrent) { fillColor = "#fff3ee"; strokeColor = "#d97757"; }
+          if (isSource) { fillColor = "#f6fbef"; strokeColor = "#788c5d"; }
+          stroke(strokeColor); strokeWeight((isCurrent || isSource) ? 2.2 : 1.2); fill(fillColor);
+          rect(cx - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 7);
+          noStroke(); fill("#222"); textAlign(CENTER, CENTER); textSize(nodeW < 30 ? 14 : 16);
+          text(dp[idx] === Infinity ? "∞" : dp[idx], cx, y);
+          fill("#aaa"); textSize(10); text(idx, cx, y + 30);
+        }
+      }
+
+      function drawStatus() {
+        const bw = Math.min(450, width - 48);
+        const bh = 170;
+        const bx = (width - bw) / 2;
+        const minBy = 292;
+        const maxBy = height - bh - 16;
+        const by = Math.max(minBy, Math.min(maxBy, height / 2 + 78));
+        fill("#fffcf9"); stroke("#e8e6dc"); strokeWeight(1.4); rect(bx, by, bw, bh, 10);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        fill("#666"); textSize(12); text(`i=${Math.min(i, n)}  当前最优=${best === Infinity ? "∞" : best}  dp[n]=${dp[n] === Infinity ? "∞" : dp[n]}`, bx + bw / 2, by + 24);
+        textAlign(LEFT, CENTER);
+        textSize(14);
+        if (stepInfo) {
+          fill("#6a9bcc"); text(`当前平方数 s=${stepInfo.square}`, bx + 20, by + 58);
+          fill("#d97757"); text(`候选值 dp[i-s]+1 = ${stepInfo.candidate}`, bx + 20, by + 88);
+          fill("#788c5d"); text(`更新后 best = ${best === Infinity ? "∞" : best}`, bx + 20, by + 118);
+          fill("#444"); text(`状态：${stepInfo.append ? "新增平方数层" : "继续压缩当前层"}`, bx + 20, by + 148);
+        } else {
+          fill("#777"); text("等待第一步转移...", bx + 20, by + 88);
+        }
+      }
+
+      // 对当前 i 和当前平方数 s 做一次转移
+      function performStep() {
+        if (i > n) {
+          isDone = true;
+          updateResult(`最少个数：${dp[n]}`, "var(--green)");
+          logMsg(`计算结束，答案为 ${dp[n]}。`, true, "success");
+          return;
+        }
+
+        if (si === 0) best = Infinity;
+
+        while (si < squares.length && squares[si] > i) si++;
+        if (si >= squares.length) {
+          dp[i] = best;
+          logMsg(`i=${i} 可用平方数已用尽，dp[${i}] = ${dp[i]}。`, true);
+          i++;
+          si = 0;
+          stepInfo = null;
+          return;
+        }
+
+        const s = squares[si];
+        const source = i - s;
+        const candidate = dp[source] + 1;
+        if (candidate < best) best = candidate;
+        dp[i] = best;
+        stepInfo = { square: s, source, candidate, append: false };
+        logMsg(`i=${i}, s=${s}：dp[${source}] + 1 = ${candidate}，当前 best=${best}。`, true);
+        si++;
+        if (si >= squares.length || squares[si] > i) {
+          dp[i] = best;
+          logMsg(`dp[${i}] 最终确定为 ${dp[i]}。`, true);
+          i++;
+          si = 0;
+          stepInfo.append = true;
+          if (i > n) {
+            isDone = true;
+            updateResult(`最少个数：${dp[n]}`, "var(--green)");
+            logMsg(`全部处理完成，答案为 ${dp[n]}。`, true, "success");
+          }
+        }
+      }
+
+      function updateResult(text, color) {
+        const el = document.getElementById("result-label");
+        el.textContent = text;
+        el.style.color = color;
+      }
+
+      function updateSquaresUI(array) {
+        const c = document.getElementById("square-nodes");
+        c.innerHTML = "";
+        array.forEach((v) => {
+          const node = document.createElement("div");
+          node.className = "data-node";
+          node.textContent = v;
+          c.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false, extraClass = "") {
+        const c = document.getElementById("log-container");
+        const item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "") + (extraClass ? ` ${extraClass}` : "");
+        const t = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="log-time">${t}</div>${msg}`;
+        c.appendChild(item);
+        c.scrollTop = c.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const map = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        document.querySelectorAll(".tab")[map[lang]].classList.add("active");
+        const codeEl = document.getElementById("code-viewer");
+        const hl = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hl[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        document.getElementById(id + "-value").textContent = val;
+        if (id !== "speed") {
+          presetRaw = "";
+          initializeSystem();
+        }
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value, 10) || 12;
+        presetRaw = "";
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        presetRaw = "";
+        initializeSystem();
+      }
+
+      function setPreset(raw) {
+        presetRaw = raw;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        const btn = document.getElementById("pause-btn");
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

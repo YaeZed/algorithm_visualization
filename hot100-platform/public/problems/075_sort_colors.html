@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>颜色分类 - LeetCode 75</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+    <style>
+      :root { --dark:#141413; --line:#e8e6dc; --orange:#d97757; --blue:#6a9bcc; --green:#788c5d; --mid:#b0aea5; --red:#c75f5f; --yellow:#d6a83f; }
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:"Poppins","PingFang SC",sans-serif; background:#fdfcf9; color:var(--dark); overflow:hidden; }
+      .container { display:flex; height:100vh; padding:15px; gap:15px; }
+      .sidebar { width:280px; flex-shrink:0; background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; overflow-y:auto; }
+      .sidebar h1 { font-family:"Lora",serif; font-size:18px; color:var(--orange); margin-bottom:4px; }
+      .subtitle { font-size:11px; color:var(--mid); margin-bottom:20px; }
+      .control-section { margin-bottom:18px; }
+      .control-section h3 { font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+      .control-section h3::before { content:""; width:4px; height:14px; background:var(--orange); border-radius:2px; }
+      .control-group { margin-bottom:10px; }
+      .control-group label { display:block; font-size:12px; margin-bottom:4px; color:#666; }
+      .slider-container { display:flex; align-items:center; gap:10px; }
+      input[type="range"] { flex:1; height:4px; background:var(--line); border-radius:2px; appearance:none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; background:var(--orange); border-radius:50%; border:2px solid #fff; }
+      .value-display { font-family:"JetBrains Mono",monospace; font-size:11px; min-width:24px; text-align:right; }
+      .seed-input { width:100%; padding:8px; border:1px solid var(--line); border-radius:6px; margin-bottom:8px; font-family:"JetBrains Mono",monospace; font-size:12px; }
+      .button { width:100%; border:none; background:var(--orange); color:#fff; border-radius:6px; padding:10px; font-size:13px; font-weight:500; cursor:pointer; }
+      .preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+      .preset { border:1px solid var(--line); border-radius:6px; padding:7px 6px; background:#fff; font-family:"JetBrains Mono",monospace; font-size:11px; cursor:pointer; }
+      .canvas-area { flex:1; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+      .canvas-header { padding:10px 20px; border-bottom:1px solid var(--line); font-size:13px; color:#888; display:flex; justify-content:space-between; }
+      #canvas-container { flex:1; width:100%; height:100%; }
+      .right-panel { flex:1; min-width:0; display:flex; flex-direction:column; gap:15px; }
+      .code-box { flex:1.08; background:#1e1e1e; border:1px solid #333; border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+      .box-header.dark { background:#282828; border-bottom:1px solid #1e1e1e; padding:10px 15px 0; display:flex; justify-content:space-between; align-items:center; }
+      .box-title.dark { color:#ccc; font-size:12px; font-weight:600; padding-bottom:10px; }
+      .tabs.dark { display:flex; gap:1px; align-items:flex-end; }
+      .tabs.dark .tab { padding:8px 16px; background:#2d2d2d; color:#888; border-radius:6px 6px 0 0; font-size:11px; cursor:pointer; }
+      .tabs.dark .tab.active { background:#1e1e1e; color:#4ec9b0; border-top:2px solid #007acc; }
+      .code-content { flex:1; margin:0; overflow:auto; }
+      #code-viewer { font-family:Consolas,"JetBrains Mono",monospace; font-size:14px; line-height:1.55; color:#d4d4d4; padding:15px; }
+      .logic-box { flex:.92; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+      .box-header { padding:8px 15px; border-bottom:1px solid #eee; }
+      .box-title { font-size:12px; font-weight:600; color:#555; }
+      .data-viz { padding:12px; background:#fffcf9; border-bottom:1px solid #eee; }
+      .data-title { font-size:11px; font-weight:600; color:var(--orange); margin-bottom:6px; text-transform:uppercase; }
+      .data-array { display:flex; flex-wrap:wrap; gap:5px; min-height:30px; }
+      .data-node { width:26px; height:26px; color:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700; }
+      .log-area { flex:1; padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; font-size:11.5px; }
+      .log-item { padding:6px 10px; border-radius:4px; background:#fcfcfc; border-left:2px solid #ddd; color:#444; line-height:1.4; }
+      .log-item.highlight { border-left-color:var(--orange); background:#fff9f5; font-weight:500; }
+      .log-item .log-time { font-size:9px; color:#aaa; margin-bottom:2px; }
+      .memo-card { margin-top:18px; border-top:1px solid var(--line); padding-top:14px; }
+      .memo-card h3 { font-size:12px; font-weight:600; margin-bottom:10px; }
+      .memo-badges { display:flex; gap:6px; margin-bottom:10px; }
+      .memo-badge { padding:2px 8px; border-radius:4px; font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:600; }
+      .memo-time { background:#fff3ee; color:var(--orange); border:1px solid #f0c8b0; }
+      .memo-space { background:#eef3ff; color:var(--blue); border:1px solid #b8d0f0; }
+      .memo-tip { padding:6px 9px; font-size:11px; line-height:1.5; color:#555; background:#fffcf9; border-left:3px solid var(--orange); border-radius:0 5px 5px 0; margin-bottom:6px; }
+      .memo-tip.g { border-left-color:var(--green); }
+      .memo-tip.w { border-left-color:var(--yellow); background:#fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>颜色分类</h1>
+        <div class="subtitle">LeetCode 75 · 三指针荷兰国旗</div>
+        <div class="control-section">
+          <h3>随机种子</h3>
+          <input type="number" id="seed-input" class="seed-input" value="7501" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成随机样例</button>
+        </div>
+        <div class="control-section">
+          <h3>参数控制</h3>
+          <div class="control-group">
+            <label>动画速度</label>
+            <div class="slider-container"><input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" /><span class="value-display" id="speed-value">1.0</span></div>
+          </div>
+          <div class="control-group">
+            <label>数组长度（偶数/奇数）</label>
+            <div class="slider-container"><input type="range" id="n" min="6" max="18" step="2" value="12" oninput="updateParam('n', this.value)" /><span class="value-display" id="n-value">12</span></div>
+          </div>
+          <div class="control-group">
+            <label>预设样例</label>
+            <div class="preset-grid">
+              <button class="preset" onclick="setPreset('2,0,2,1,1,0')">2,0,2,1,1,0</button>
+              <button class="preset" onclick="setPreset('2,0,1,1,0,2')">2,0,1,1,0,2</button>
+              <button class="preset" onclick="setPreset('1,2,0,1,2,0')">1,2,0,1,2,0</button>
+              <button class="preset" onclick="setPreset('0,1,2,0,1,2')">0,1,2,0,1,2</button>
+            </div>
+          </div>
+        </div>
+        <div class="control-section" style="display:flex; gap:10px">
+          <button id="pause-btn" class="button" style="background:var(--dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background:var(--blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+        <div class="memo-card">
+          <h3>算法备忘</h3>
+          <div class="memo-badges"><span class="memo-badge memo-time">时间 O(n)</span><span class="memo-badge memo-space">空间 O(1)</span></div>
+          <div class="memo-tip">`low` 之前全是 0，`mid` 正在扫描，`high` 之后全是 2。</div>
+          <div class="memo-tip">当 `mid` 看到 0，就和 `low` 交换；看到 2，就和 `high` 交换；看到 1 直接前进。</div>
+          <div class="memo-tip g">核心是不需要排序整个数组，只要维护三个区间边界就能原地完成分类。</div>
+          <div class="memo-tip w">和 `high` 交换后，`mid` 不能立刻加一，因为换过来的元素还没检查。</div>
+        </div>
+      </div>
+      <div class="canvas-area">
+        <div class="canvas-header"><span>三色区间划分可视化</span><span id="result-label">运行中</span></div>
+        <div id="canvas-container"></div>
+      </div>
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+        <div class="logic-box">
+          <div class="box-header"><div class="box-title">执行日志</div></div>
+          <div class="data-viz"><div class="data-title">数组状态</div><div id="data-nodes" class="data-array"></div></div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def sortColors(nums: list[int]) -> None:
+    # low: 下一个 0 的放置位置
+    low = 0
+    # mid: 当前扫描位置
+    mid = 0
+    # high: 下一个 2 的放置位置
+    high = len(nums) - 1
+    while mid <= high:
+        if nums[mid] == 0:
+            nums[low], nums[mid] = nums[mid], nums[low]
+            low += 1
+            mid += 1
+        elif nums[mid] == 1:
+            mid += 1
+        else:
+            nums[mid], nums[high] = nums[high], nums[mid]
+            high -= 1`,
+        ts: `// TypeScript
+function sortColors(nums: number[]): void {
+  // low: 下一个 0 应放置的位置
+  let low = 0;
+  // mid: 当前扫描位置
+  let mid = 0;
+  // high: 下一个 2 应放置的位置
+  let high = nums.length - 1;
+  while (mid <= high) {
+    if (nums[mid] === 0) {
+      // 0 放到左侧，low/mid 一起前进
+      [nums[low], nums[mid]] = [nums[mid], nums[low]];
+      low++;
+      mid++;
+    } else if (nums[mid] === 1) {
+      // 1 在中间区，直接跳过
+      mid++;
+    } else {
+      // 2 放到右侧，仅 high 左移，mid 暂不前进
+      [nums[mid], nums[high]] = [nums[high], nums[mid]];
+      high--;
+    }
+  }
+}`,
+        java: `// Java
+class Solution {
+    public void sortColors(int[] nums) {
+        // low: 左区（0 区）边界；mid: 扫描指针；high: 右区（2 区）边界
+        int low = 0, mid = 0, high = nums.length - 1;
+        while (mid <= high) {
+            if (nums[mid] == 0) {
+                // 把 0 交换到 low 位置，low/mid 同步右移
+                int tmp = nums[low]; nums[low] = nums[mid]; nums[mid] = tmp;
+                low++; mid++;
+            } else if (nums[mid] == 1) {
+                // 1 已在中间区，mid 右移
+                mid++;
+            } else {
+                // 把 2 交换到 high 位置，high 左移，mid 保持原位复查
+                int tmp = nums[mid]; nums[mid] = nums[high]; nums[high] = tmp;
+                high--;
+            }
+        }
+    }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+    void sortColors(vector<int>& nums) {
+        // three pointers: [0, low) 全 0，(high, end] 全 2
+        int low = 0, mid = 0, high = (int)nums.size() - 1;
+        while (mid <= high) {
+            if (nums[mid] == 0) {
+                // 0 交换到左区，low/mid 前进
+                swap(nums[low], nums[mid]);
+                low++; mid++;
+            } else if (nums[mid] == 1) {
+                // 1 留在中间，mid 前进
+                mid++;
+            } else {
+                // 2 交换到右区，high 后退，mid 不动
+                swap(nums[mid], nums[high]);
+                high--;
+            }
+        }
+    }
+};`,
+        c: `// C
+void sortColors(int* nums, int numsSize) {
+    // low/mid/high 三指针分别维护 0 区、中间扫描区、2 区
+    int low = 0, mid = 0, high = numsSize - 1;
+    while (mid <= high) {
+        if (nums[mid] == 0) {
+            // 交换到 low，low/mid 同时右移
+            int t = nums[low]; nums[low] = nums[mid]; nums[mid] = t;
+            low++; mid++;
+        } else if (nums[mid] == 1) {
+            // 1 属于中间区，直接前进
+            mid++;
+        } else {
+            // 交换到 high，high 左移，mid 继续检查当前位置
+            int t = nums[mid]; nums[mid] = nums[high]; nums[high] = t;
+            high--;
+        }
+    }
+}`,
+      };
+      const LANG_VARS = {
+        python: { low: "low", mid: "mid", high: "high" },
+        ts: { low: "low", mid: "mid", high: "high" },
+        java: { low: "low", mid: "mid", high: "high" },
+        cpp: { low: "low", mid: "mid", high: "high" },
+        c: { low: "low", mid: "mid", high: "high" },
+      };
+      let params = { seed: 7501, speed: 1.0, n: 12 };
+      let currentLang = "python";
+      let arr = [];
+      let low = 0, mid = 0, high = 0;
+      let isDone = false, isPaused = false, timer = 0;
+      let presetRaw = "";
+      let ptrX = 80, ptrTargetX = 80;
+
+      function setup() {
+        const container = document.getElementById("canvas-container");
+        const canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        arr = presetRaw ? presetRaw.split(",").map((s) => parseInt(s.trim(), 10)) : generateArray(params.n);
+        low = 0; mid = 0; high = arr.length - 1;
+        isDone = false; isPaused = false; timer = 0;
+        ptrX = 80; ptrTargetX = 80;
+        document.getElementById("log-container").innerHTML = "";
+        updateDataUI(arr);
+        updateResult("运行中", "#888");
+        const btn = document.getElementById("pause-btn"); btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--dark)";
+        logMsg(`输入数组：${arr.join(", ")}。开始荷兰国旗划分。`, true);
+      }
+
+      function generateArray(n) {
+        const out = [];
+        for (let i = 0; i < n; i++) out.push(floor(random(0, 3)));
+        if (!out.includes(0)) out[floor(random(n))] = 0;
+        if (!out.includes(1)) out[floor(random(n))] = 1;
+        if (!out.includes(2)) out[floor(random(n))] = 2;
+        return out;
+      }
+
+      function draw() {
+        background(255);
+        drawArray();
+        drawStatus();
+        if (!isDone && !isPaused) {
+          timer += 0.018 * params.speed;
+          if (timer > 1) { timer = 0; performStep(); }
+        }
+      }
+
+      function drawArray() {
+        const gap = Math.max(28, Math.min(48, (width - 150) / Math.max(arr.length - 1, 1)));
+        const startX = 80, y = 145;
+        const nodeW = Math.max(24, Math.min(36, gap - 4));
+        const nodeH = 40;
+        ptrX = lerp(ptrX, ptrTargetX, 0.12 * params.speed);
+        fill(90); noStroke(); textSize(13); textAlign(LEFT, CENTER); text("输入数组 nums", 30, 70);
+        for (let i = 0; i < arr.length; i++) {
+          const cx = startX + i * gap;
+          const val = arr[i];
+          const active = i === mid && !isDone;
+          const inLow = i < low;
+          const inHigh = i > high;
+          let fillColor = "#fff", strokeColor = "#ddd";
+          if (val === 0) { fillColor = "#eef6ea"; strokeColor = "#788c5d"; }
+          if (val === 1) { fillColor = "#eef3ff"; strokeColor = "#6a9bcc"; }
+          if (val === 2) { fillColor = "#fff3ee"; strokeColor = "#d97757"; }
+          if (inLow) { fillColor = "#dff0d6"; }
+          if (inHigh) { fillColor = "#f8d3c6"; }
+          if (active) { strokeColor = "#222"; }
+          stroke(strokeColor); strokeWeight(active ? 2.2 : 1.2); fill(fillColor);
+          rect(cx - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 7);
+          noStroke(); fill("#222"); textAlign(CENTER, CENTER); textSize(nodeW < 30 ? 14 : 16); text(val, cx, y);
+          fill("#aaa"); textSize(10); text(i, cx, y + 30);
+        }
+        if (!isDone) {
+          stroke("#d97757"); strokeWeight(2); line(ptrX, y + 50, ptrX, y + 26);
+          fill("#d97757"); noStroke(); triangle(ptrX, y + 20, ptrX - 5, y + 30, ptrX + 5, y + 30);
+          fill("#d97757"); textSize(11); text(LANG_VARS[currentLang].mid, ptrX, y + 66);
+        }
+      }
+
+      function drawStatus() {
+        const bw = Math.min(380, width - 50);
+        const bh = 140;
+        const bx = (width - bw) / 2;
+        const minBy = 230;
+        const maxBy = height - bh - 16;
+        const by = Math.max(minBy, Math.min(maxBy, height / 2 + 36));
+        fill("#fffcf9"); stroke("#e8e6dc"); strokeWeight(1.4); rect(bx, by, bw, bh, 10);
+        noStroke(); textAlign(CENTER, CENTER);
+        fill("#666"); textSize(12); text(`low=${low}  mid=${mid}  high=${high}`, bx + bw / 2, by + 24);
+        textAlign(LEFT, CENTER); textSize(16);
+        fill("#788c5d"); text(`0 区间: [0, ${low - 1}]`, bx + 20, by + 56);
+        fill("#6a9bcc"); text(`1 区间: [${low}, ${mid - 1}]`, bx + 20, by + 84);
+        fill("#d97757"); text(`2 区间: [${high + 1}, ${arr.length - 1}]`, bx + 20, by + 112);
+      }
+
+      function performStep() {
+        if (mid > high) {
+          isDone = true;
+          updateResult("完成", "var(--green)");
+          logMsg(`划分结束，数组已按 0/1/2 排好。`, true);
+          return;
+        }
+        ptrTargetX = 80 + mid * Math.max(28, Math.min(48, (width - 150) / Math.max(arr.length - 1, 1)));
+        const v = arr[mid];
+        if (v === 0) {
+          [arr[low], arr[mid]] = [arr[mid], arr[low]];
+          logMsg(`nums[mid]=0，与 low=${low} 交换，low++，mid++。`, true);
+          low++; mid++;
+        } else if (v === 1) {
+          logMsg(`nums[mid]=1，直接 mid++。`, false);
+          mid++;
+        } else {
+          [arr[mid], arr[high]] = [arr[high], arr[mid]];
+          logMsg(`nums[mid]=2，与 high=${high} 交换，high--。`, true);
+          high--;
+        }
+        updateDataUI(arr);
+      }
+
+      function setPreset(s) { presetRaw = s; params.n = s.split(",").length; document.getElementById("n").value = params.n; document.getElementById("n-value").textContent = params.n; initializeSystem(); }
+      function updateResult(text, color) { const el = document.getElementById("result-label"); el.textContent = text; el.style.color = color; }
+      function updateDataUI(array) { const c = document.getElementById("data-nodes"); c.innerHTML = ""; array.forEach((v) => { const n = document.createElement("div"); n.className = "data-node"; n.textContent = v; n.style.background = v === 0 ? "var(--green)" : v === 1 ? "var(--blue)" : "var(--orange)"; c.appendChild(n); }); }
+      function logMsg(msg, highlight = false) { const c = document.getElementById("log-container"); const item = document.createElement("div"); item.className = "log-item" + (highlight ? " highlight" : ""); const t = new Date().toLocaleTimeString("zh-CN", { hour12:false, hour:"2-digit", minute:"2-digit", second:"2-digit" }); item.innerHTML = `<div class="log-time">${t}</div>${msg}`; c.appendChild(item); c.scrollTop = c.scrollHeight; }
+      function switchLang(lang) { currentLang = lang; document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active")); const map = { python:0, ts:1, java:2, cpp:3, c:4 }; document.querySelectorAll(".tab")[map[lang]].classList.add("active"); const codeEl = document.getElementById("code-viewer"); const hl = { python:"language-python", ts:"language-typescript", java:"language-java", cpp:"language-cpp", c:"language-c" }; codeEl.className = "hljs " + hl[lang]; codeEl.textContent = SNIPPETS[lang]; codeEl.removeAttribute("data-highlighted"); if (window.hljs) hljs.highlightElement(codeEl); initializeSystem(); }
+      function updateParam(id, val) { if (id in params) params[id] = parseFloat(val); document.getElementById(id + "-value").textContent = val; if (id !== "speed") { presetRaw = ""; initializeSystem(); } }
+      function updateSeed() { params.seed = parseInt(document.getElementById("seed-input").value, 10) || 7501; presetRaw = ""; initializeSystem(); }
+      function randomSeedAndUpdate() { params.seed = floor(random(1, 99999)); document.getElementById("seed-input").value = params.seed; presetRaw = ""; initializeSystem(); }
+      function togglePause() {
+        isPaused = !isPaused;
+        const btn = document.getElementById("pause-btn");
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--dark)";
+        }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

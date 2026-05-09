@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>分割等和子集 - LeetCode 416</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+    <style>
+      :root {
+        --dark: #141413;
+        --line: #e8e6dc;
+        --mid: #b0aea5;
+        --orange: #d97757;
+        --blue: #6a9bcc;
+        --green: #788c5d;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+      .sidebar { width: 280px; flex-shrink: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; overflow-y: auto; }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; color: var(--orange); margin-bottom: 4px; }
+      .subtitle { font-size: 11px; color: var(--mid); margin-bottom: 20px; }
+      .control-section { margin-bottom: 18px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--orange); border-radius: 2px; }
+      .control-group { margin-bottom: 10px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--line); border-radius: 2px; appearance: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--orange); border-radius: 50%; border: 2px solid #fff; }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 24px; text-align: right; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+      .button { width: 100%; border: none; background: var(--orange); color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 500; cursor: pointer; }
+      .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--line); border-radius: 6px; padding: 7px 6px; background: #fff; font-family: "JetBrains Mono", monospace; font-size: 11px; cursor: pointer; }
+      .canvas-area { flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--line); font-size: 13px; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.08; background: #1e1e1e; border: 1px solid #333; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0; display: flex; justify-content: space-between; align-items: center; }
+      .box-title.dark { color: #ccc; font-size: 12px; font-weight: 600; padding-bottom: 10px; }
+      .tabs.dark { display: flex; gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; background: #2d2d2d; color: #888; border-radius: 6px 6px 0 0; font-size: 11px; cursor: pointer; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; overflow: auto; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.55; color: #d4d4d4; padding: 15px; }
+      .logic-box { flex: .92; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .box-header { padding: 8px 15px; border-bottom: 1px solid #eee; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--orange); margin-bottom: 6px; text-transform: uppercase; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node {
+        min-width: 26px;
+        height: 26px;
+        padding: 0 8px;
+        background: var(--orange);
+        color: #fff;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; color: #444; line-height: 1.4; }
+      .log-item.highlight { border-left-color: var(--orange); background: #fff9f5; font-weight: 500; }
+      .log-item.success { border-left-color: var(--green); background: #f6fbef; }
+      .log-item .log-time { font-size: 9px; color: #aaa; margin-bottom: 2px; }
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600; }
+      .memo-time { background: #fff3ee; color: var(--orange); border: 1px solid #f0c8b0; }
+      .memo-space { background: #eef3ff; color: var(--blue); border: 1px solid #b8d0f0; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--orange); border-radius: 0 5px 5px 0; margin-bottom: 6px; }
+      .memo-tip.g { border-left-color: var(--green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>分割等和子集</h1>
+        <div class="subtitle">LeetCode 416 · 0/1 背包一维 DP</div>
+        <div class="control-section">
+          <h3>随机种子</h3>
+          <input type="number" id="seed-input" class="seed-input" value="41601" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机选择数组</button>
+        </div>
+        <div class="control-section">
+          <h3>参数控制</h3>
+          <div class="control-group">
+            <label>动画速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>数组长度</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="4" max="10" step="1" value="6" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">6</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>预设样例</label>
+            <div class="preset-grid">
+              <button class="preset" onclick="setPreset('1,5,11,5')">1,5,11,5</button>
+              <button class="preset" onclick="setPreset('1,2,3,5')">1,2,3,5</button>
+              <button class="preset" onclick="setPreset('2,2,1,1')">2,2,1,1</button>
+              <button class="preset" onclick="setPreset('3,3,3,4,5')">3,3,3,4,5</button>
+            </div>
+          </div>
+        </div>
+        <div class="control-section" style="display:flex; gap:10px">
+          <button id="pause-btn" class="button" style="background:var(--dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background:var(--blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+        <div class="memo-card">
+          <h3>算法备忘</h3>
+          <div class="memo-badges">
+            <span class="memo-badge memo-time">时间 O(n*target)</span>
+            <span class="memo-badge memo-space">空间 O(target)</span>
+          </div>
+          <div class="memo-tip">总和为偶数时，问题转化为是否能凑出 target=sum/2。</div>
+          <div class="memo-tip g">dp[j] 表示能否用前若干个数恰好凑出和 j。</div>
+          <div class="memo-tip w">每个数只能用一次，所以 j 必须从大到小倒序更新。</div>
+        </div>
+      </div>
+      <div class="canvas-area">
+        <div class="canvas-header"><span>0/1 背包状态转移可视化</span><span id="result-label">运行中</span></div>
+        <div id="canvas-container"></div>
+      </div>
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+        <div class="logic-box">
+          <div class="box-header"><div class="box-title">执行日志</div></div>
+          <div class="data-viz">
+            <div class="data-title">输入数组</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def canPartition(nums: list[int]) -> bool:
+    total = sum(nums)
+    # 总和为奇数，不可能平分
+    if total % 2 == 1:
+        return False
+
+    target = total // 2
+    # dp[j] 表示是否能凑出和 j
+    dp = [False] * (target + 1)
+    dp[0] = True
+
+    for x in nums:
+        # 0/1 背包：容量倒序，避免同一轮重复使用 x
+        for j in range(target, x - 1, -1):
+            dp[j] = dp[j] or dp[j - x]
+    return dp[target]`,
+        ts: `// TypeScript
+function canPartition(nums: number[]): boolean {
+  const total = nums.reduce((s, x) => s + x, 0);
+  // 奇数和无法二分
+  if (total % 2 === 1) return false;
+
+  const target = total / 2;
+  // dp[j]：是否可凑出和 j
+  const dp = new Array(target + 1).fill(false);
+  dp[0] = true;
+
+  for (const x of nums) {
+    // 倒序枚举容量，保证每个数只用一次
+    for (let j = target; j >= x; j--) {
+      dp[j] = dp[j] || dp[j - x];
+    }
+  }
+  return dp[target];
+}`,
+        java: `// Java
+class Solution {
+  public boolean canPartition(int[] nums) {
+    int total = 0;
+    for (int x : nums) total += x;
+    // 奇数总和不可平分
+    if ((total & 1) == 1) return false;
+
+    int target = total / 2;
+    // dp[j] 表示是否能凑出和 j
+    boolean[] dp = new boolean[target + 1];
+    dp[0] = true;
+
+    for (int x : nums) {
+      // 倒序更新，避免重复使用当前元素
+      for (int j = target; j >= x; j--) {
+        dp[j] = dp[j] || dp[j - x];
+      }
+    }
+    return dp[target];
+  }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+  bool canPartition(vector<int>& nums) {
+    int total = accumulate(nums.begin(), nums.end(), 0);
+    // 总和为奇数，直接失败
+    if (total & 1) return false;
+
+    int target = total / 2;
+    vector<char> dp(target + 1, 0); // dp[j]: 是否可达
+    dp[0] = 1;
+
+    for (int x : nums) {
+      // 倒序遍历容量，确保每个元素只使用一次
+      for (int j = target; j >= x; --j) {
+        dp[j] = dp[j] || dp[j - x];
+      }
+    }
+    return dp[target];
+  }
+};`,
+        c: `// C
+bool canPartition(int* nums, int numsSize) {
+  int total = 0;
+  for (int i = 0; i < numsSize; i++) total += nums[i];
+  // 奇数和不能拆成两个相等子集
+  if (total & 1) return false;
+
+  int target = total / 2;
+  // dp[j] 表示能否凑出和 j
+  bool* dp = (bool*)calloc(target + 1, sizeof(bool));
+  dp[0] = true;
+
+  for (int i = 0; i < numsSize; i++) {
+    int x = nums[i];
+    // 倒序容量，保证 x 只使用一次
+    for (int j = target; j >= x; j--) {
+      dp[j] = dp[j] || dp[j - x];
+    }
+  }
+
+  bool ans = dp[target];
+  free(dp);
+  return ans;
+}`
+      };
+
+      let params = { seed: 41601, speed: 1.0, n: 6 };
+      let currentLang = "python";
+      let arr = [];
+      let sum = 0;
+      let target = 0;
+      let dp = [];
+      let presetRaw = "";
+      let isDone = false;
+      let isPaused = false;
+      let timer = 0;
+      let idx = 0;
+      let j = 0;
+      let oddCase = false;
+      let stepInfo = null;
+
+      function makeRng(seed) {
+        let s = (seed >>> 0) || 1;
+        return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+      }
+
+      function generateArray(n, seed) {
+        const rnd = makeRng(seed);
+        const out = [];
+        for (let k = 0; k < n; k++) out.push(1 + Math.floor(rnd() * 12));
+        return out;
+      }
+
+      function parsePreset(raw) {
+        return raw.split(",").map((x) => parseInt(x.trim(), 10)).filter((x) => !Number.isNaN(x) && x > 0);
+      }
+
+      function setup() {
+        const container = document.getElementById("canvas-container");
+        const canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => {
+          resizeCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        });
+        switchLang("python");
+      }
+
+      function initializeSystem() {
+        arr = presetRaw ? parsePreset(presetRaw) : generateArray(params.n, params.seed);
+        if (arr.length < 2) arr = [1, 5, 11, 5];
+
+        sum = arr.reduce((acc, x) => acc + x, 0);
+        oddCase = (sum % 2) === 1;
+        target = oddCase ? 0 : Math.floor(sum / 2);
+        dp = new Array(target + 1).fill(false);
+        if (!oddCase) dp[0] = true;
+
+        isDone = false;
+        isPaused = false;
+        timer = 0;
+        idx = 0;
+        j = target;
+        stepInfo = null;
+
+        document.getElementById("log-container").innerHTML = "";
+        updateDataNodes(arr);
+        const btn = document.getElementById("pause-btn");
+        btn.innerHTML = "⏸ 暂停";
+        btn.style.background = "var(--dark)";
+
+        if (oddCase) {
+          updateResult("总和为奇数 => false", "var(--green)");
+          logMsg(`输入数组：${arr.join(", ")}，sum=${sum} 为奇数，无法平分。`, true, "success");
+          isDone = true;
+          return;
+        }
+
+        updateResult("运行中", "#888");
+        logMsg(`输入数组：${arr.join(", ")}，sum=${sum}，target=${target}，初始化 dp[0]=true。`, true);
+      }
+
+      function draw() {
+        background(255);
+        drawArrayRow();
+        drawDpRow();
+        drawStatusCard();
+
+        if (isPaused || isDone || oddCase) return;
+        timer += (deltaTime / 1000) * params.speed;
+        if (timer >= 1.0) {
+          performStep();
+          timer = 0;
+        }
+      }
+
+      function drawArrayRow() {
+        const n = arr.length;
+        const gap = Math.max(38, Math.min(58, (width - 120) / Math.max(n - 1, 1)));
+        const nodeW = Math.max(26, Math.min(40, gap - 6));
+        const nodeH = 38;
+        const startX = Math.max(56, width / 2 - ((n - 1) * gap) / 2);
+        const y = 120;
+
+        fill(90);
+        noStroke();
+        textSize(13);
+        textAlign(LEFT, CENTER);
+        text("数组 nums", 24, 70);
+
+        for (let k = 0; k < n; k++) {
+          const x = startX + k * gap;
+          const isCur = !isDone && !oddCase && k === idx;
+          stroke(isCur ? "#d97757" : "#ddd");
+          strokeWeight(isCur ? 2.2 : 1.2);
+          fill(isCur ? "#fff3ee" : "#fff");
+          rect(x - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 7);
+
+          noStroke();
+          fill("#222");
+          textAlign(CENTER, CENTER);
+          textSize(15);
+          text(arr[k], x, y);
+
+          fill("#aaa");
+          textSize(10);
+          text(k, x, y + 28);
+        }
+      }
+
+      function drawDpRow() {
+        if (oddCase) return;
+        const m = target + 1;
+        const gap = Math.max(20, Math.min(34, (width - 120) / Math.max(m - 1, 1)));
+        const nodeW = Math.max(18, Math.min(28, gap - 3));
+        const nodeH = 32;
+        const startX = Math.max(44, width / 2 - ((m - 1) * gap) / 2);
+        const y = 250;
+
+        fill(90);
+        noStroke();
+        textSize(13);
+        textAlign(LEFT, CENTER);
+        text(`dp[0..${target}]`, 24, 200);
+
+        for (let k = 0; k <= target; k++) {
+          const x = startX + k * gap;
+          const isCurJ = !isDone && k === j;
+          const fromPos = stepInfo ? stepInfo.from : -1;
+          const isFrom = !isDone && k === fromPos;
+          let fillColor = "#fff";
+          let strokeColor = "#ddd";
+          if (dp[k]) {
+            fillColor = "#eef3ff";
+            strokeColor = "#6a9bcc";
+          }
+          if (isCurJ) {
+            fillColor = "#fff3ee";
+            strokeColor = "#d97757";
+          }
+          if (isFrom) {
+            fillColor = "#f6fbef";
+            strokeColor = "#788c5d";
+          }
+
+          stroke(strokeColor);
+          strokeWeight(isCurJ || isFrom ? 2.1 : 1.1);
+          fill(fillColor);
+          rect(x - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 6);
+
+          noStroke();
+          fill("#222");
+          textAlign(CENTER, CENTER);
+          textSize(11);
+          text(dp[k] ? "T" : "F", x, y);
+
+          fill("#999");
+          textSize(8);
+          text(k, x, y + 24);
+        }
+      }
+
+      function drawStatusCard() {
+        const bw = Math.min(520, width - 48);
+        const bh = 180;
+        const bx = (width - bw) / 2;
+        const minBy = 300;
+        const maxBy = height - bh - 16;
+        const by = Math.max(minBy, Math.min(maxBy, height / 2 + 72));
+
+        fill("#fffcf9");
+        stroke("#e8e6dc");
+        strokeWeight(1.4);
+        rect(bx, by, bw, bh, 10);
+        noStroke();
+
+        textAlign(CENTER, CENTER);
+        fill("#666");
+        textSize(12);
+        const doneText = oddCase ? "odd-case" : `idx=${Math.min(idx, arr.length)}  j=${Math.max(0, Math.min(j, target))}  dp[target]=${dp[target] ? "true" : "false"}`;
+        text(doneText, bx + bw / 2, by + 24);
+
+        textAlign(LEFT, CENTER);
+        textSize(14);
+        if (oddCase) {
+          fill("#d97757");
+          text("sum 为奇数，直接返回 false。", bx + 20, by + 90);
+          return;
+        }
+
+        if (stepInfo) {
+          fill("#6a9bcc");
+          text(`当前元素 nums[${idx}] = ${stepInfo.x}`, bx + 20, by + 58);
+          fill("#d97757");
+          text(`检查 dp[${stepInfo.j}]：旧值=${stepInfo.before}，候选来源 dp[${stepInfo.from}]=${stepInfo.fromVal}`, bx + 20, by + 90);
+          fill("#788c5d");
+          text(`更新后 dp[${stepInfo.j}] = ${stepInfo.after}`, bx + 20, by + 122);
+          fill("#444");
+          text(`下一步：${stepInfo.nextHint}`, bx + 20, by + 152);
+        } else {
+          fill("#777");
+          text("等待首个状态更新...", bx + 20, by + 90);
+        }
+      }
+
+      function performStep() {
+        if (idx >= arr.length) {
+          isDone = true;
+          updateResult(`最终结果：${dp[target] ? "true" : "false"}`, "var(--green)");
+          logMsg(`遍历结束，dp[target]=${dp[target]}。`, true, "success");
+          return;
+        }
+
+        const x = arr[idx];
+        if (j < x) {
+          idx++;
+          if (idx >= arr.length) {
+            isDone = true;
+            updateResult(`最终结果：${dp[target] ? "true" : "false"}`, "var(--green)");
+            logMsg(`遍历结束，dp[target]=${dp[target]}。`, true, "success");
+            return;
+          }
+          j = target;
+          stepInfo = null;
+          logMsg(`切换到下一个元素 nums[${idx}] = ${arr[idx]}。`, true);
+          return;
+        }
+
+        const before = dp[j];
+        const from = j - x;
+        const fromVal = dp[from];
+        const after = before || fromVal;
+        dp[j] = after;
+        stepInfo = {
+          x,
+          j,
+          from,
+          before,
+          fromVal,
+          after,
+          nextHint: j - 1 >= x ? `继续检查 j=${j - 1}` : "当前元素处理完成，进入下一个元素"
+        };
+        logMsg(`idx=${idx}, x=${x}, j=${j}: dp[${j}] ${before} -> ${after}（来源 dp[${from}]=${fromVal}）`, true);
+        j--;
+
+        if (dp[target]) {
+          isDone = true;
+          updateResult("提前命中 target => true", "var(--green)");
+          logMsg("已命中 dp[target]=true，可提前结束。", true, "success");
+        }
+      }
+
+      function updateDataNodes(array) {
+        const c = document.getElementById("data-nodes");
+        c.innerHTML = "";
+        array.forEach((v) => {
+          const node = document.createElement("div");
+          node.className = "data-node";
+          node.textContent = v;
+          c.appendChild(node);
+        });
+      }
+
+      function updateResult(text, color) {
+        const el = document.getElementById("result-label");
+        el.textContent = text;
+        el.style.color = color;
+      }
+
+      function logMsg(msg, highlight = false, extraClass = "") {
+        const c = document.getElementById("log-container");
+        const item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "") + (extraClass ? ` ${extraClass}` : "");
+        const t = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="log-time">${t}</div>${msg}`;
+        c.appendChild(item);
+        c.scrollTop = c.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const map = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        document.querySelectorAll(".tab")[map[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hl = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hl[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        document.getElementById(id + "-value").textContent = val;
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value, 10) || 41601;
+        presetRaw = "";
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        presetRaw = "";
+        initializeSystem();
+      }
+
+      function setPreset(raw) {
+        presetRaw = raw;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        const btn = document.getElementById("pause-btn");
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>

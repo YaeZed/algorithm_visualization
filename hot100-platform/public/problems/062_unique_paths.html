@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>不同路径 - LeetCode 62</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+    <style>
+      :root {
+        --dark: #141413;
+        --line: #e8e6dc;
+        --mid: #b0aea5;
+        --orange: #d97757;
+        --blue: #6a9bcc;
+        --green: #788c5d;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+      .sidebar { width: 280px; flex-shrink: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; overflow-y: auto; }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; color: var(--orange); margin-bottom: 4px; }
+      .subtitle { font-size: 11px; color: var(--mid); margin-bottom: 20px; }
+      .control-section { margin-bottom: 18px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--orange); border-radius: 2px; }
+      .control-group { margin-bottom: 10px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--line); border-radius: 2px; appearance: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--orange); border-radius: 50%; border: 2px solid #fff; }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 24px; text-align: right; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+      .button { width: 100%; border: none; background: var(--orange); color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 500; cursor: pointer; }
+      .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+      .preset { border: 1px solid var(--line); border-radius: 6px; padding: 7px 6px; background: #fff; font-family: "JetBrains Mono", monospace; font-size: 11px; cursor: pointer; }
+      .canvas-area { flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--line); font-size: 13px; color: #888; display: flex; justify-content: space-between; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+      .code-box { flex: 1.08; background: #1e1e1e; border: 1px solid #333; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0; display: flex; justify-content: space-between; align-items: center; }
+      .box-title.dark { color: #ccc; font-size: 12px; font-weight: 600; padding-bottom: 10px; }
+      .tabs.dark { display: flex; gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; background: #2d2d2d; color: #888; border-radius: 6px 6px 0 0; font-size: 11px; cursor: pointer; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+      .code-content { flex: 1; margin: 0; overflow: auto; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.55; color: #d4d4d4; padding: 15px; }
+      .logic-box { flex: .92; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+      .box-header { padding: 8px 15px; border-bottom: 1px solid #eee; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--orange); margin-bottom: 6px; text-transform: uppercase; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node {
+        min-width: 42px;
+        height: 26px;
+        padding: 0 8px;
+        background: var(--orange);
+        color: #fff;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; }
+      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; color: #444; line-height: 1.4; }
+      .log-item.highlight { border-left-color: var(--orange); background: #fff9f5; font-weight: 500; }
+      .log-item.success { border-left-color: var(--green); background: #f6fbef; }
+      .log-item .log-time { font-size: 9px; color: #aaa; margin-bottom: 2px; }
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600; }
+      .memo-time { background: #fff3ee; color: var(--orange); border: 1px solid #f0c8b0; }
+      .memo-space { background: #eef3ff; color: var(--blue); border: 1px solid #b8d0f0; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--orange); border-radius: 0 5px 5px 0; margin-bottom: 6px; }
+      .memo-tip.g { border-left-color: var(--green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>不同路径</h1>
+        <div class="subtitle">LeetCode 62 · 网格路径计数 DP</div>
+        <div class="control-section">
+          <h3>随机种子</h3>
+          <input type="number" id="seed-input" class="seed-input" value="62001" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机选择参数</button>
+        </div>
+        <div class="control-section">
+          <h3>参数控制</h3>
+          <div class="control-group">
+            <label>动画速度</label>
+            <div class="slider-container">
+              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <span class="value-display" id="speed-value">1.0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>行数 m</label>
+            <div class="slider-container">
+              <input type="range" id="m" min="2" max="8" step="1" value="4" oninput="updateParam('m', this.value)" />
+              <span class="value-display" id="m-value">4</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>列数 n</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="2" max="8" step="1" value="6" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">6</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>预设样例</label>
+            <div class="preset-grid">
+              <button class="preset" onclick="setPreset('3,7')">3x7</button>
+              <button class="preset" onclick="setPreset('3,2')">3x2</button>
+              <button class="preset" onclick="setPreset('4,4')">4x4</button>
+              <button class="preset" onclick="setPreset('5,6')">5x6</button>
+            </div>
+          </div>
+        </div>
+        <div class="control-section" style="display:flex; gap:10px">
+          <button id="pause-btn" class="button" style="background:var(--dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background:var(--blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+        <div class="memo-card">
+          <h3>算法备忘</h3>
+          <div class="memo-badges">
+            <span class="memo-badge memo-time">时间 O(m*n)</span>
+            <span class="memo-badge memo-space">空间 O(m*n)</span>
+          </div>
+          <div class="memo-tip">dp[i][j] 表示从左上角走到 (i,j) 的路径总数。</div>
+          <div class="memo-tip g">第一行和第一列都只能直走，路径数恒为 1。</div>
+          <div class="memo-tip w">其他格子：dp[i][j]=dp[i-1][j]+dp[i][j-1]。</div>
+        </div>
+      </div>
+      <div class="canvas-area">
+        <div class="canvas-header"><span>网格 DP 填表可视化</span><span id="result-label">运行中</span></div>
+        <div id="canvas-container"></div>
+      </div>
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">最优解代码</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+        <div class="logic-box">
+          <div class="box-header"><div class="box-title">执行日志</div></div>
+          <div class="data-viz">
+            <div class="data-title">当前参数</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const SNIPPETS = {
+        python: `# Python
+def uniquePaths(m: int, n: int) -> int:
+    # dp[i][j]：到达 (i,j) 的路径数
+    dp = [[0] * n for _ in range(m)]
+
+    for i in range(m):
+        for j in range(n):
+            # 第一行/列只能直走
+            if i == 0 or j == 0:
+                dp[i][j] = 1
+            else:
+                # 状态转移：上方 + 左方
+                dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
+    return dp[m - 1][n - 1]`,
+        ts: `// TypeScript
+function uniquePaths(m: number, n: number): number {
+  // dp[i][j] 表示到达 (i,j) 的路径条数
+  const dp = Array.from({ length: m }, () => new Array(n).fill(0));
+
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j < n; j++) {
+      // 边界格子只有一种走法
+      if (i === 0 || j === 0) dp[i][j] = 1;
+      else {
+        // 转移：来自上方和左方
+        dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+      }
+    }
+  }
+  return dp[m - 1][n - 1];
+}`,
+        java: `// Java
+class Solution {
+  public int uniquePaths(int m, int n) {
+    // dp[i][j]：走到 (i,j) 的路径总数
+    int[][] dp = new int[m][n];
+
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        // 第一行和第一列都只能单向前进
+        if (i == 0 || j == 0) dp[i][j] = 1;
+        else {
+          // 状态转移：上 + 左
+          dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+        }
+      }
+    }
+    return dp[m - 1][n - 1];
+  }
+}`,
+        cpp: `// C++
+class Solution {
+public:
+  int uniquePaths(int m, int n) {
+    // dp[i][j]：到达网格位置 (i,j) 的路径条数
+    vector<vector<int>> dp(m, vector<int>(n, 0));
+
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        // 边界格子路径数固定为 1
+        if (i == 0 || j == 0) dp[i][j] = 1;
+        else {
+          // 普通格子由上方和左方汇总
+          dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+        }
+      }
+    }
+    return dp[m - 1][n - 1];
+  }
+};`,
+        c: `// C
+int uniquePaths(int m, int n) {
+  // dp[i][j]：走到 (i,j) 的路径数量
+  int** dp = (int**)malloc(sizeof(int*) * m);
+  for (int i = 0; i < m; i++) {
+    dp[i] = (int*)calloc(n, sizeof(int));
+  }
+
+  for (int i = 0; i < m; i++) {
+    for (int j = 0; j < n; j++) {
+      // 第一行和第一列只有一条路径
+      if (i == 0 || j == 0) dp[i][j] = 1;
+      else {
+        // 状态转移：来自上边和左边
+        dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+      }
+    }
+  }
+
+  int ans = dp[m - 1][n - 1];
+  for (int i = 0; i < m; i++) free(dp[i]);
+  free(dp);
+  return ans;
+}`
+      };
+
+      let params = { seed: 62001, speed: 1.0, m: 4, n: 6 };
+      let currentLang = "python";
+      let m = 4;
+      let n = 6;
+      let dp = [];
+      let presetRaw = "";
+      let isDone = false;
+      let isPaused = false;
+      let timer = 0;
+      let i = 0;
+      let j = 0;
+      let stepInfo = null;
+
+      function makeRng(seed) {
+        let x = (seed >>> 0) || 1;
+        return () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296);
+      }
+
+      function setup() {
+        const container = document.getElementById("canvas-container");
+        const canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => {
+          resizeCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        });
+        switchLang("python");
+      }
+
+      function parsePreset(raw) {
+        const parts = raw.split(",").map((x) => parseInt(x.trim(), 10));
+        if (parts.length !== 2 || parts.some((x) => Number.isNaN(x))) return null;
+        return { m: Math.max(2, Math.min(8, parts[0])), n: Math.max(2, Math.min(8, parts[1])) };
+      }
+
+      function initializeSystem() {
+        if (presetRaw) {
+          const p = parsePreset(presetRaw);
+          if (p) {
+            m = p.m;
+            n = p.n;
+          }
+        } else {
+          const rnd = makeRng(params.seed);
+          m = 2 + Math.floor(rnd() * 7);
+          n = 2 + Math.floor(rnd() * 7);
+        }
+        m = Math.max(2, Math.min(8, m || params.m));
+        n = Math.max(2, Math.min(8, n || params.n));
+        params.m = m;
+        params.n = n;
+        document.getElementById("m").value = String(m);
+        document.getElementById("m-value").textContent = String(m);
+        document.getElementById("n").value = String(n);
+        document.getElementById("n-value").textContent = String(n);
+
+        dp = Array.from({ length: m }, () => new Array(n).fill(0));
+        isDone = false;
+        isPaused = false;
+        timer = 0;
+        i = 0;
+        j = 0;
+        stepInfo = null;
+
+        document.getElementById("log-container").innerHTML = "";
+        updateDataNodes();
+        updateResult("运行中", "#888");
+        const btn = document.getElementById("pause-btn");
+        btn.innerHTML = "⏸ 暂停";
+        btn.style.background = "var(--dark)";
+        logMsg(`初始化网格：m=${m}, n=${n}，准备按行填表。`, true);
+      }
+
+      function draw() {
+        background(255);
+        drawGrid();
+        drawStatus();
+        if (isPaused || isDone) return;
+
+        timer += (deltaTime / 1000) * params.speed;
+        if (timer >= 0.8) {
+          performStep();
+          timer = 0;
+        }
+      }
+
+      function drawGrid() {
+        const maxW = width - 80;
+        const maxH = height - 220;
+        const cell = Math.floor(Math.min(maxW / n, maxH / m));
+        const gridW = cell * n;
+        const gridH = cell * m;
+        const sx = (width - gridW) / 2;
+        const sy = 92;
+
+        fill(90);
+        noStroke();
+        textSize(13);
+        textAlign(LEFT, CENTER);
+        text("DP 网格（值为到达路径数）", 24, 58);
+
+        for (let r = 0; r < m; r++) {
+          for (let c = 0; c < n; c++) {
+            const x = sx + c * cell;
+            const y = sy + r * cell;
+            const isCur = !isDone && r === i && c === j;
+            const isFromTop = stepInfo && stepInfo.fromTop && stepInfo.fromTop.r === r && stepInfo.fromTop.c === c;
+            const isFromLeft = stepInfo && stepInfo.fromLeft && stepInfo.fromLeft.r === r && stepInfo.fromLeft.c === c;
+
+            let fillColor = "#fff";
+            let strokeColor = "#ddd";
+            if (dp[r][c] > 0) {
+              fillColor = "#eef3ff";
+              strokeColor = "#6a9bcc";
+            }
+            if (isFromTop || isFromLeft) {
+              fillColor = "#f6fbef";
+              strokeColor = "#788c5d";
+            }
+            if (isCur) {
+              fillColor = "#fff3ee";
+              strokeColor = "#d97757";
+            }
+
+            stroke(strokeColor);
+            strokeWeight(isCur || isFromTop || isFromLeft ? 2.1 : 1.1);
+            fill(fillColor);
+            rect(x, y, cell, cell, 6);
+
+            noStroke();
+            fill("#222");
+            textAlign(CENTER, CENTER);
+            textSize(Math.max(10, Math.min(14, cell * 0.26)));
+            text(dp[r][c], x + cell / 2, y + cell / 2);
+          }
+        }
+      }
+
+      function drawStatus() {
+        const bw = Math.min(520, width - 48);
+        const bh = 154;
+        const bx = (width - bw) / 2;
+        const by = height - bh - 18;
+
+        fill("#fffcf9");
+        stroke("#e8e6dc");
+        strokeWeight(1.4);
+        rect(bx, by, bw, bh, 10);
+        noStroke();
+
+        fill("#666");
+        textAlign(CENTER, CENTER);
+        textSize(12);
+        text(`i=${Math.min(i, m - 1)}  j=${Math.min(j, n - 1)}  当前答案=${dp[m - 1][n - 1]}`, bx + bw / 2, by + 22);
+
+        textAlign(LEFT, CENTER);
+        textSize(14);
+        if (stepInfo) {
+          fill("#6a9bcc");
+          text(`处理单元 (${stepInfo.i}, ${stepInfo.j})`, bx + 20, by + 54);
+          fill("#d97757");
+          text(stepInfo.detail1, bx + 20, by + 86);
+          fill("#788c5d");
+          text(stepInfo.detail2, bx + 20, by + 118);
+        } else {
+          fill("#777");
+          text("等待首个状态更新...", bx + 20, by + 86);
+        }
+      }
+
+      function performStep() {
+        if (i >= m) {
+          isDone = true;
+          updateResult(`最终结果：${dp[m - 1][n - 1]}`, "var(--green)");
+          logMsg(`填表完成，答案为 ${dp[m - 1][n - 1]}。`, true, "success");
+          return;
+        }
+
+        let detail1 = "";
+        let detail2 = "";
+        let fromTop = null;
+        let fromLeft = null;
+
+        if (i === 0 || j === 0) {
+          dp[i][j] = 1;
+          detail1 = "位于第一行或第一列，路径数固定为 1。";
+          detail2 = `dp[${i}][${j}] = 1`;
+        } else {
+          fromTop = { r: i - 1, c: j };
+          fromLeft = { r: i, c: j - 1 };
+          dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+          detail1 = `来自上方 dp[${i - 1}][${j}]=${dp[i - 1][j]} 和左方 dp[${i}][${j - 1}]=${dp[i][j - 1]}。`;
+          detail2 = `dp[${i}][${j}] = ${dp[i][j]}`;
+        }
+
+        stepInfo = { i, j, fromTop, fromLeft, detail1, detail2 };
+        logMsg(`(${i},${j}) => ${dp[i][j]}`, true);
+
+        j++;
+        if (j >= n) {
+          j = 0;
+          i++;
+        }
+
+        if (i >= m) {
+          isDone = true;
+          updateResult(`最终结果：${dp[m - 1][n - 1]}`, "var(--green)");
+          logMsg(`状态计算完成，答案为 ${dp[m - 1][n - 1]}。`, true, "success");
+        }
+      }
+
+      function updateDataNodes() {
+        const c = document.getElementById("data-nodes");
+        c.innerHTML = "";
+        [`m=${m}`, `n=${n}`, `目标=(${m - 1},${n - 1})`].forEach((v) => {
+          const node = document.createElement("div");
+          node.className = "data-node";
+          node.textContent = v;
+          c.appendChild(node);
+        });
+      }
+
+      function updateResult(text, color) {
+        const el = document.getElementById("result-label");
+        el.textContent = text;
+        el.style.color = color;
+      }
+
+      function logMsg(msg, highlight = false, extraClass = "") {
+        const c = document.getElementById("log-container");
+        const item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "") + (extraClass ? ` ${extraClass}` : "");
+        const t = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="log-time">${t}</div>${msg}`;
+        c.appendChild(item);
+        c.scrollTop = c.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const map = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        document.querySelectorAll(".tab")[map[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hl = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        codeEl.className = "hljs " + hl[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+        initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        document.getElementById(id + "-value").textContent = val;
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value, 10) || 62001;
+        presetRaw = "";
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        presetRaw = "";
+        initializeSystem();
+      }
+
+      function setPreset(raw) {
+        presetRaw = raw;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        const btn = document.getElementById("pause-btn");
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--dark)";
+        }
+      }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>
