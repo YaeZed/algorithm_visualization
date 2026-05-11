@@ -1,41 +1,46 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { HOT100, type Category, type Problem } from '@/data/hot100'
-import { useProgressStore } from '@/stores/progress'
-import CategorySidebar from '@/components/CategorySidebar.vue'
-import FilterBar from '@/components/FilterBar.vue'
-import TopProgressBar from '@/components/TopProgressBar.vue'
-import ProblemCard from '@/components/ProblemCard.vue'
+import { ref, computed } from "vue";
+import { HOT100, type Category, type Problem } from "@/data/hot100";
+import { useProgressStore } from "@/stores/progress";
+import CategorySidebar from "@/components/CategorySidebar.vue";
+import FilterBar from "@/components/FilterBar.vue";
+import TopProgressBar from "@/components/TopProgressBar.vue";
+import ProblemCard from "@/components/ProblemCard.vue";
 
-const store = useProgressStore()
+const store = useProgressStore();
 
 // 筛选状态
-const selectedCategory = ref<Category | null>(null)
-const selectedDifficulty = ref('')
-const selectedStatus = ref('')
-const searchQuery = ref('')
+const selectedCategory = ref<Category | null>(null);
+const selectedDifficulty = ref("");
+const selectedStatus = ref("");
+const searchQuery = ref("");
 
 // 过滤后题目列表
 const filteredProblems = computed<Problem[]>(() => {
-  return HOT100.filter(p => {
-    if (selectedCategory.value && p.category !== selectedCategory.value) return false
-    if (selectedDifficulty.value && p.difficulty !== selectedDifficulty.value) return false
+  return HOT100.filter((p) => {
+    if (selectedCategory.value && p.category !== selectedCategory.value)
+      return false;
+    if (selectedDifficulty.value && p.difficulty !== selectedDifficulty.value)
+      return false;
     if (selectedStatus.value) {
-      const status = store.getStatus(p.id)
-      if (status !== selectedStatus.value) return false
+      const status = store.getStatus(p.id);
+      if (status !== selectedStatus.value) return false;
     }
     if (searchQuery.value.trim()) {
-      const q = searchQuery.value.trim().toLowerCase()
-      if (!p.title.toLowerCase().includes(q) &&
-          !p.titleEn.toLowerCase().includes(q) &&
-          !String(p.id).includes(q)) return false
+      const q = searchQuery.value.trim().toLowerCase();
+      if (
+        !p.title.toLowerCase().includes(q) &&
+        !p.titleEn.toLowerCase().includes(q) &&
+        !String(p.id).includes(q)
+      )
+        return false;
     }
-    return true
-  })
-})
+    return true;
+  });
+});
 
-const totalFiltered = computed(() => filteredProblems.value.length)
-const stats = computed(() => store.stats)
+const totalFiltered = computed(() => filteredProblems.value.length);
+const stats = computed(() => store.stats);
 </script>
 
 <template>
@@ -53,22 +58,43 @@ const stats = computed(() => store.stats)
         <div class="topbar-left">
           <h1 class="topbar-title">LeetCode Hot 100</h1>
           <span class="topbar-sub">算法可视化平台</span>
+          <a
+            class="repo-link"
+            href="https://github.com/YaeZed/algorithm_visualization"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub 仓库"
+            title="GitHub 仓库"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.71.5.1.66-.22.66-.49 0-.24-.01-.89-.01-1.75-2.78.62-3.37-1.38-3.37-1.38-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.9 1.57 2.35 1.12 2.92.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.27-.45-1.3.1-2.72 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.8c.85 0 1.7.12 2.5.35 1.9-1.33 2.74-1.05 2.74-1.05.55 1.42.2 2.45.1 2.72.64.72 1.02 1.63 1.02 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.67.94.67 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.16.6.67.49A10.23 10.23 0 0 0 22 12.23C22 6.58 17.52 2 12 2z"
+              />
+            </svg>
+          </a>
         </div>
         <div class="topbar-center">
           <!-- 状态统计 -->
           <div class="stat-group">
             <div class="stat-item">
-              <span class="stat-num" style="color: var(--c-green)">{{ stats.mastered }}</span>
+              <span class="stat-num" style="color: var(--c-green)">{{
+                stats.mastered
+              }}</span>
               <span class="stat-label">已掌握</span>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
-              <span class="stat-num" style="color: var(--c-amber)">{{ stats.practicing }}</span>
+              <span class="stat-num" style="color: var(--c-amber)">{{
+                stats.practicing
+              }}</span>
               <span class="stat-label">练习中</span>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
-              <span class="stat-num" style="color: var(--c-blue)">{{ stats.viewed }}</span>
+              <span class="stat-num" style="color: var(--c-blue)">{{
+                stats.viewed
+              }}</span>
               <span class="stat-label">已查看</span>
             </div>
           </div>
@@ -95,8 +121,12 @@ const stats = computed(() => store.stats)
         <div class="grid-header">
           <span class="grid-count">
             共 <strong>{{ totalFiltered }}</strong> 道题目
-            <span v-if="selectedCategory" class="active-filter">· {{ selectedCategory }}</span>
-            <span v-if="selectedDifficulty" class="active-filter">· {{ selectedDifficulty }}</span>
+            <span v-if="selectedCategory" class="active-filter"
+              >· {{ selectedCategory }}</span
+            >
+            <span v-if="selectedDifficulty" class="active-filter"
+              >· {{ selectedDifficulty }}</span
+            >
           </span>
         </div>
 
@@ -168,6 +198,31 @@ const stats = computed(() => store.stats)
   font-size: 12px;
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+.repo-link {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  margin-left: 2px;
+  color: #8a8f99;
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.repo-link:hover {
+  color: #c7ccd6;
+  transform: translateY(-1px);
+}
+
+.repo-link svg {
+  width: 20px;
+  height: 20px;
 }
 
 .topbar-center {

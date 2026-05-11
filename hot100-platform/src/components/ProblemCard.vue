@@ -25,10 +25,11 @@ const difficultyTextColor = computed(() => ({
 
 const statusConfig = computed(() => ({
   unvisited:  { label: '未学习', type: 'info'    as const, icon: '○' },
-  viewed:     { label: '已查看', type: 'primary'  as const, icon: '👁' },
+  viewed:     { label: '已查看', type: 'primary'  as const, icon: '📘' },
   practicing: { label: '练习中', type: 'warning'  as const, icon: '⚡' },
   mastered:   { label: '已掌握', type: 'success'  as const, icon: '✓' },
 }[status.value]))
+const statusClass = computed(() => `status-${status.value}`)
 
 const borderColor = computed(() => ({
   unvisited:  'var(--border)',
@@ -100,7 +101,7 @@ function handleClick() {
           :type="statusConfig.type"
           effect="light"
           size="small"
-          class="status-tag"
+          :class="['status-tag', statusClass]"
         >
           {{ statusConfig.icon }} {{ statusConfig.label }}
         </el-tag>
@@ -197,5 +198,11 @@ function handleClick() {
 }
 .status-tag {
   font-size: 11px !important;
+}
+
+.status-tag.status-unvisited {
+  --el-tag-bg-color: #2f3135 !important;
+  --el-tag-border-color: #494d54 !important;
+  --el-tag-text-color: #b7bdc8 !important;
 }
 </style>
