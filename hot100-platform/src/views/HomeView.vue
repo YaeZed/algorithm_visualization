@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, computed } from "vue";
+﻿<script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
 import { HOT100, type Category, type Problem } from "@/data/hot100";
 import { useProgressStore } from "@/stores/progress";
 import CategorySidebar from "@/components/CategorySidebar.vue";
@@ -15,7 +15,7 @@ const selectedDifficulty = ref("");
 const selectedStatus = ref("");
 const searchQuery = ref("");
 
-// 过滤后题目列表
+// 过滤后的题目列表
 const filteredProblems = computed<Problem[]>(() => {
   return HOT100.filter((p) => {
     if (selectedCategory.value && p.category !== selectedCategory.value)
@@ -41,6 +41,37 @@ const filteredProblems = computed<Problem[]>(() => {
 
 const totalFiltered = computed(() => filteredProblems.value.length);
 const stats = computed(() => store.stats);
+
+const currentTheme = ref<"dark" | "light">("dark");
+const isDarkTheme = computed(() => currentTheme.value === "dark");
+const themeIcon = computed(() => (isDarkTheme.value ? "🌙" : "☀"));
+const themeSwitchHint = computed(() =>
+  isDarkTheme.value ? "切换到浅色模式" : "切换到深色模式"
+);
+
+function applyTheme(theme: "dark" | "light") {
+  currentTheme.value = theme;
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("hot100-theme", theme);
+}
+
+function toggleTheme() {
+  applyTheme(isDarkTheme.value ? "light" : "dark");
+}
+
+onMounted(() => {
+  const savedTheme = localStorage.getItem("hot100-theme");
+  if (savedTheme === "light" || savedTheme === "dark") {
+    applyTheme(savedTheme);
+    return;
+  }
+  const domTheme = document.documentElement.getAttribute("data-theme");
+  if (domTheme === "light" || domTheme === "dark") {
+    currentTheme.value = domTheme;
+    return;
+  }
+  applyTheme("dark");
+});
 </script>
 
 <template>
@@ -51,7 +82,7 @@ const stats = computed(() => store.stats);
       @update:selected-category="selectedCategory = $event"
     />
 
-    <!-- 右侧主区 -->
+    <!-- 右侧主区域 -->
     <div class="main-area">
       <!-- 顶部导航栏 -->
       <header class="topbar">
@@ -74,6 +105,7 @@ const stats = computed(() => store.stats);
             </svg>
           </a>
         </div>
+
         <div class="topbar-center">
           <!-- 状态统计 -->
           <div class="stat-group">
@@ -98,7 +130,19 @@ const stats = computed(() => store.stats);
               <span class="stat-label">已查看</span>
             </div>
           </div>
+
+          <el-tag
+            class="theme-toggle-tag"
+            effect="dark"
+            round
+            :aria-label="themeSwitchHint"
+            :title="themeSwitchHint"
+            @click="toggleTheme"
+          >
+            <span class="theme-icon">{{ themeIcon }}</span>
+          </el-tag>
         </div>
+
         <div class="topbar-right">
           <TopProgressBar />
         </div>
@@ -146,7 +190,7 @@ const stats = computed(() => store.stats);
         />
       </div>
 
-      <!-- 回顶 -->
+      <!-- 回到顶部 -->
       <el-backtop :right="24" :bottom="24" />
     </div>
   </div>
@@ -181,12 +225,14 @@ const stats = computed(() => store.stats);
   flex-shrink: 0;
   gap: 20px;
 }
+
 .topbar-left {
   display: flex;
   align-items: baseline;
   gap: 10px;
   flex-shrink: 0;
 }
+
 .topbar-title {
   font-family: var(--font-display);
   font-size: 18px;
@@ -194,6 +240,7 @@ const stats = computed(() => store.stats);
   color: var(--c-orange);
   white-space: nowrap;
 }
+
 .topbar-sub {
   font-size: 12px;
   color: var(--text-muted);
@@ -229,7 +276,10 @@ const stats = computed(() => store.stats);
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
+
 .stat-group {
   display: flex;
   align-items: center;
@@ -239,26 +289,60 @@ const stats = computed(() => store.stats);
   border-radius: 8px;
   padding: 6px 16px;
 }
+
 .stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1px;
 }
+
 .stat-num {
   font-family: var(--font-mono);
   font-size: 16px;
   font-weight: 600;
   line-height: 1;
 }
+
 .stat-label {
   font-size: 10px;
   color: var(--text-muted);
 }
+
 .stat-divider {
   width: 1px;
   height: 24px;
   background: var(--border);
+}
+
+.theme-toggle-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 38px;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.theme-toggle-tag:hover {
+  background: var(--bg-card-hover) !important;
+  border-color: var(--border-bright) !important;
+  transform: translateY(-1px);
+}
+
+.theme-icon {
+  font-size: 14px;
+  line-height: 1;
 }
 
 .topbar-right {
@@ -271,19 +355,23 @@ const stats = computed(() => store.stats);
   overflow-y: auto;
   padding: 20px 24px;
 }
+
 .grid-header {
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .grid-count {
   font-size: 13px;
   color: var(--text-muted);
 }
+
 .grid-count strong {
   color: var(--text-primary);
 }
+
 .active-filter {
   color: var(--c-orange);
 }
@@ -298,11 +386,12 @@ const stats = computed(() => store.stats);
 .empty-state {
   margin-top: 80px;
 }
+
 :deep(.el-empty__description) {
   color: var(--text-muted) !important;
 }
 
-/* 回顶按钮覆盖 */
+/* 回到顶部按钮覆盖 */
 :deep(.el-backtop) {
   background: var(--c-orange) !important;
   color: white !important;

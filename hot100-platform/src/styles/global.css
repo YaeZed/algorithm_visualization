@@ -35,6 +35,28 @@
   --font-mono:     'JetBrains Mono', 'Consolas', monospace;
 }
 
+:root[data-theme='light'] {
+  --c-orange:      #c46547;
+  --c-orange-dim:  #a44f34;
+  --c-blue:        #3f75a6;
+  --c-green:       #5e7a45;
+  --c-amber:       #a96f2f;
+  --c-red:         #b14949;
+
+  --bg-app:        #f7f4ee;
+  --bg-sidebar:    #f0ece4;
+  --bg-card:       #ffffff;
+  --bg-card-hover: #f5efe6;
+  --bg-topbar:     #efe9df;
+
+  --text-primary:  #2a241d;
+  --text-muted:    #6c655d;
+  --text-dim:      #9b9388;
+
+  --border:        #ddd3c6;
+  --border-bright: #cdbda9;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -67,6 +89,15 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #d97757;
+}
+
+/* 浅色主题：左侧分类栏滚动条常驻橙色 */
+:root[data-theme='light'] .sidebar::-webkit-scrollbar-thumb {
+  background: var(--c-orange) !important;
+}
+
+:root[data-theme='light'] .sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--c-orange) !important;
 }
 
 /* === 路由过渡动画 === */

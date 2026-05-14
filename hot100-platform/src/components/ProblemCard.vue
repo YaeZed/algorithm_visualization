@@ -11,18 +11,6 @@ const store = useProgressStore()
 
 const status = computed<LearningStatus>(() => store.getStatus(props.problem.id))
 
-const difficultyColor = computed(() => ({
-  Easy:   '#2a4a2a',
-  Medium: '#4a3808',
-  Hard:   '#4a1818',
-}[props.problem.difficulty] ?? '#333'))
-
-const difficultyTextColor = computed(() => ({
-  Easy:   '#788c5d',
-  Medium: '#c8893c',
-  Hard:   '#c85c5c',
-}[props.problem.difficulty] ?? '#888'))
-
 const statusConfig = computed(() => ({
   unvisited:  { label: '未学习', type: 'info'    as const, icon: '○' },
   viewed:     { label: '已查看', type: 'primary'  as const, icon: '📘' },
@@ -63,11 +51,10 @@ function handleClick() {
       <div class="card-header">
         <span class="problem-id">#{{ problem.id }}</span>
         <el-tag
-          :color="difficultyColor"
-          effect="dark"
+          effect="plain"
           size="small"
           round
-          :style="{ color: difficultyTextColor, borderColor: difficultyTextColor + '44' }"
+          :class="['difficulty-tag', `diff-${problem.difficulty.toLowerCase()}`]"
         >
           {{ problem.difficulty }}
         </el-tag>
@@ -112,7 +99,9 @@ function handleClick() {
 
 <style scoped>
 .problem-card {
-  background: var(--bg-card);
+  background: color-mix(in srgb, var(--bg-card) 80%, transparent);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
   border: 1px solid var(--border);
   border-left: 3px solid var(--status-border, var(--border));
   border-radius: 10px;
@@ -135,7 +124,7 @@ function handleClick() {
 }
 .problem-card:hover:not(.coming-soon) {
   transform: translateY(-3px);
-  background: var(--bg-card-hover);
+  background: color-mix(in srgb, var(--bg-card-hover) 82%, transparent);
   border-color: var(--border-bright);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
@@ -185,6 +174,25 @@ function handleClick() {
   gap: 6px;
   flex-wrap: wrap;
 }
+.difficulty-tag {
+  font-size: 11px !important;
+  font-weight: 500;
+}
+.difficulty-tag.diff-easy {
+  --el-tag-bg-color: rgba(120, 140, 93, 0.18) !important;
+  --el-tag-border-color: rgba(120, 140, 93, 0.55) !important;
+  --el-tag-text-color: #90a876 !important;
+}
+.difficulty-tag.diff-medium {
+  --el-tag-bg-color: rgba(200, 137, 60, 0.2) !important;
+  --el-tag-border-color: rgba(200, 137, 60, 0.55) !important;
+  --el-tag-text-color: #d8a45d !important;
+}
+.difficulty-tag.diff-hard {
+  --el-tag-bg-color: rgba(200, 92, 92, 0.18) !important;
+  --el-tag-border-color: rgba(200, 92, 92, 0.52) !important;
+  --el-tag-text-color: #d58484 !important;
+}
 .category-tag {
   font-size: 11px !important;
 }
@@ -204,5 +212,49 @@ function handleClick() {
   --el-tag-bg-color: #2f3135 !important;
   --el-tag-border-color: #494d54 !important;
   --el-tag-text-color: #b7bdc8 !important;
+}
+
+/* 浅色模式：提高标签鲜艳度，并减少突兀感 */
+:global(:root[data-theme='light']) .difficulty-tag.diff-easy {
+  --el-tag-bg-color: rgba(94, 122, 69, 0.18) !important;
+  --el-tag-border-color: rgba(94, 122, 69, 0.62) !important;
+  --el-tag-text-color: #4f6d34 !important;
+}
+:global(:root[data-theme='light']) .difficulty-tag.diff-medium {
+  --el-tag-bg-color: rgba(169, 111, 47, 0.19) !important;
+  --el-tag-border-color: rgba(169, 111, 47, 0.64) !important;
+  --el-tag-text-color: #8f5a1f !important;
+}
+:global(:root[data-theme='light']) .difficulty-tag.diff-hard {
+  --el-tag-bg-color: rgba(177, 73, 73, 0.18) !important;
+  --el-tag-border-color: rgba(177, 73, 73, 0.63) !important;
+  --el-tag-text-color: #963737 !important;
+}
+
+:global(:root[data-theme='light']) .category-tag {
+  --el-tag-bg-color: rgba(196, 101, 71, 0.14) !important;
+  --el-tag-border-color: rgba(196, 101, 71, 0.55) !important;
+  --el-tag-text-color: #a44f34 !important;
+}
+
+:global(:root[data-theme='light']) .status-tag.status-unvisited {
+  --el-tag-bg-color: #ece6dc !important;
+  --el-tag-border-color: #b7ab9b !important;
+  --el-tag-text-color: #5f584f !important;
+}
+:global(:root[data-theme='light']) .status-tag.status-viewed {
+  --el-tag-bg-color: rgba(63, 117, 166, 0.16) !important;
+  --el-tag-border-color: rgba(63, 117, 166, 0.55) !important;
+  --el-tag-text-color: #2f6796 !important;
+}
+:global(:root[data-theme='light']) .status-tag.status-practicing {
+  --el-tag-bg-color: rgba(169, 111, 47, 0.17) !important;
+  --el-tag-border-color: rgba(169, 111, 47, 0.58) !important;
+  --el-tag-text-color: #8f5a1f !important;
+}
+:global(:root[data-theme='light']) .status-tag.status-mastered {
+  --el-tag-bg-color: rgba(94, 122, 69, 0.16) !important;
+  --el-tag-border-color: rgba(94, 122, 69, 0.56) !important;
+  --el-tag-text-color: #4f6d34 !important;
 }
 </style>

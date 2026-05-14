@@ -186,4 +186,13 @@ function selectCategory(cat: Category) {
   color: var(--c-green);
   font-family: var(--font-mono);
 }
+
+/* 浅色主题：分类栏滚动条常驻橙色 */
+:global(:root[data-theme='light']) .sidebar::-webkit-scrollbar-thumb {
+  background: var(--c-orange);
+}
+
+:global(:root[data-theme='light']) .sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--c-orange);
+}
 </style>

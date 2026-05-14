@@ -98,6 +98,7 @@ const statusOptions = [
 }
 .search-icon {
   font-size: 12px;
+  color: var(--text-muted);
 }
 .filter-group {
   display: flex;
@@ -126,5 +127,31 @@ const statusOptions = [
 }
 :deep(.el-radio-button__inner:hover) {
   color: var(--c-orange) !important;
+}
+
+/* 搜索框（深浅主题统一适配） */
+:deep(.search-input .el-input__wrapper) {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+:deep(.search-input .el-input__inner) {
+  color: var(--text-primary) !important;
+}
+
+:deep(.search-input .el-input__inner::placeholder) {
+  color: var(--text-muted) !important;
+}
+
+:deep(.search-input .el-input__prefix-inner) {
+  color: var(--text-muted) !important;
+}
+
+:deep(.search-input.is-focus .el-input__wrapper),
+:deep(.search-input .el-input__wrapper.is-focus),
+:deep(.search-input .el-input__wrapper:hover) {
+  border-color: var(--c-orange) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-orange) 35%, transparent) !important;
 }
 </style>

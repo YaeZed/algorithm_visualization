@@ -8,6 +8,13 @@ import { useProgressStore } from './stores/progress'
 import './styles/element-override.css'
 import './styles/global.css'
 
+const savedTheme = localStorage.getItem('hot100-theme')
+if (savedTheme === 'light' || savedTheme === 'dark') {
+  document.documentElement.setAttribute('data-theme', savedTheme)
+} else {
+  document.documentElement.setAttribute('data-theme', 'dark')
+}
+
 const app = createApp(App)
 const pinia = createPinia()
 
