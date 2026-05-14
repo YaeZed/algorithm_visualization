@@ -1,5 +1,6 @@
 ﻿<script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { onBeforeRouteLeave } from "vue-router";
 import { HOT100, type Category, type Problem } from "@/data/hot100";
 import { useProgressStore } from "@/stores/progress";
 import CategorySidebar from "@/components/CategorySidebar.vue";
@@ -41,6 +42,8 @@ const filteredProblems = computed<Problem[]>(() => {
 
 const totalFiltered = computed(() => filteredProblems.value.length);
 const stats = computed(() => store.stats);
+const contentAreaRef = ref<HTMLElement | null>(null);
+const HOME_SCROLL_KEY = "hot100-home-scroll-top";
 
 const currentTheme = ref<"dark" | "light">("dark");
 const isDarkTheme = computed(() => currentTheme.value === "dark");
@@ -59,18 +62,54 @@ function toggleTheme() {
   applyTheme(isDarkTheme.value ? "light" : "dark");
 }
 
+function saveHomeScrollPosition() {
+  if (!contentAreaRef.value) return;
+  sessionStorage.setItem(HOME_SCROLL_KEY, String(contentAreaRef.value.scrollTop));
+}
+
+function restoreHomeScrollPosition() {
+  if (!contentAreaRef.value) return;
+  const raw = sessionStorage.getItem(HOME_SCROLL_KEY);
+  if (!raw) return;
+  const top = Number(raw);
+  if (Number.isFinite(top) && top >= 0) {
+    contentAreaRef.value.scrollTop = top;
+  }
+}
+
+function handleContentScroll() {
+  saveHomeScrollPosition();
+}
+
 onMounted(() => {
   const savedTheme = localStorage.getItem("hot100-theme");
   if (savedTheme === "light" || savedTheme === "dark") {
     applyTheme(savedTheme);
-    return;
+  } else {
+    const domTheme = document.documentElement.getAttribute("data-theme");
+    if (domTheme === "light" || domTheme === "dark") {
+      currentTheme.value = domTheme;
+    } else {
+      applyTheme("dark");
+    }
   }
-  const domTheme = document.documentElement.getAttribute("data-theme");
-  if (domTheme === "light" || domTheme === "dark") {
-    currentTheme.value = domTheme;
-    return;
-  }
-  applyTheme("dark");
+
+  // 等网格渲染后恢复滚动位置，避免回到首页时跳到顶部
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        restoreHomeScrollPosition();
+      });
+    });
+  });
+});
+
+onBeforeRouteLeave(() => {
+  saveHomeScrollPosition();
+});
+
+onBeforeUnmount(() => {
+  saveHomeScrollPosition();
 });
 </script>
 
@@ -161,7 +200,11 @@ onMounted(() => {
       />
 
       <!-- 题目网格 -->
-      <div class="content-area">
+      <div
+        ref="contentAreaRef"
+        class="content-area"
+        @scroll.passive="handleContentScroll"
+      >
         <div class="grid-header">
           <span class="grid-count">
             共 <strong>{{ totalFiltered }}</strong> 道题目
