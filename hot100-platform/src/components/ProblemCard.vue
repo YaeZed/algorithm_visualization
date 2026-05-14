@@ -43,7 +43,7 @@ function handleClick() {
   >
     <div
       class="problem-card"
-      :class="{ 'coming-soon': isComingSoon }"
+      :class="[{ 'coming-soon': isComingSoon }, `status-${status}`]"
       :style="{ '--status-border': borderColor }"
       @click="handleClick"
     >
@@ -232,9 +232,12 @@ function handleClick() {
 }
 
 :global(:root[data-theme='light']) .category-tag {
-  --el-tag-bg-color: rgba(196, 101, 71, 0.14) !important;
-  --el-tag-border-color: rgba(196, 101, 71, 0.55) !important;
-  --el-tag-text-color: #a44f34 !important;
+  --el-tag-bg-color: #f8ebd9 !important;
+  --el-tag-border-color: #dfb178 !important;
+  --el-tag-text-color: #8d5a21 !important;
+  background-color: #f8ebd9 !important;
+  border-color: #dfb178 !important;
+  color: #8d5a21 !important;
 }
 
 :global(:root[data-theme='light']) .status-tag.status-unvisited {
@@ -256,5 +259,19 @@ function handleClick() {
   --el-tag-bg-color: rgba(94, 122, 69, 0.16) !important;
   --el-tag-border-color: rgba(94, 122, 69, 0.56) !important;
   --el-tag-text-color: #4f6d34 !important;
+}
+
+/* 浅色模式：题卡左侧状态色条更鲜艳 */
+:global(:root[data-theme='light']) .problem-card.status-unvisited {
+  border-left-color: #8d95a2 !important;
+}
+:global(:root[data-theme='light']) .problem-card.status-viewed {
+  border-left-color: #2f7fcd !important;
+}
+:global(:root[data-theme='light']) .problem-card.status-practicing {
+  border-left-color: #cb7b21 !important;
+}
+:global(:root[data-theme='light']) .problem-card.status-mastered {
+  border-left-color: #5f8f37 !important;
 }
 </style>
