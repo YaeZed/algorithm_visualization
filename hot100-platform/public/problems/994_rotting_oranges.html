@@ -1,29 +1,17 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>腐烂的橘子 - 算法全流程可视化</title>
 
-    <!-- Core Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
 
-    <!-- Code Highlight Engine -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
-      id="hljs-theme"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css" id="hljs-theme" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
@@ -79,7 +67,7 @@
       .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
 
       .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
-      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
 
       .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
       .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
@@ -93,6 +81,11 @@
 
       .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
 
+      .data-viz { padding: 10px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; align-items: center; }
+      .data-node { padding: 4px 8px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 500; }
+      
       .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
       .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
       .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
@@ -121,15 +114,15 @@
         <div class="subtitle">多源广度优先搜索 (Multi-source BFS)</div>
 
         <div class="control-section">
-          <h3>场景配置</h3>
-          <input type="number" id="seed-input" class="seed-input" value="456" onchange="updateSeed()" />
-          <button class="button" onclick="randomSeedAndUpdate()">生成新随机橘子分布</button>
+          <h3>拓扑配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="1024" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">随机生成新矩阵</button>
         </div>
 
         <div class="control-section">
-          <h3>动画控制</h3>
+          <h3>状态机控制</h3>
           <div class="control-group">
-            <label>运行速度</label>
+            <label>执行速率</label>
             <div class="slider-container">
               <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
               <span class="value-display" id="speed-value">1.0</span>
@@ -153,7 +146,7 @@
 
         <div class="control-section" style="display: flex; gap: 10px">
           <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
-          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新执行</button>
         </div>
 
         <div class="memo-card">
@@ -163,25 +156,25 @@
             <span class="memo-badge space">□ O(m*n)</span>
           </div>
           <div class="memo-tips">
-            <div class="memo-tip">💡 第一步（寻找源头）：遍历全部网格，统计出好橘子的数量，并将所有烂橘子的坐标存入队列。</div>
-            <div class="memo-tip">💡 第二步（BFS 传播）：开始按层遍历。队列中现有的是“这一分钟”即将向外传播的烂橘子。</div>
-            <div class="memo-tip g">🔍 为什么用 BFS 而不是 DFS？因为病毒传播/水波扩散这种“求最短时间/最短路径”的问题，用 BFS 可以保证每次只推进一分钟。</div>
-            <div class="memo-tip w">⚠️ 核心细节：每一分钟开始时，必须记录队列的 `size`，并在一个 `for` 循环里一次性处理这 `size` 个橘子，否则会导致时间计算错误。</div>
+            <div class="memo-tip">💡 数据收集：预扫描整个矩阵，记录所有的多源起点（值2）入队，并统计目标节点（值1）的总数。</div>
+            <div class="memo-tip">💡 层级限界：使用单队列机制，严格依赖 `size = queue.length` 截断每一次 While 循环的 For 遍历深度。</div>
+            <div class="memo-tip g">🔍 状态隔离：当前层处理的节点与下层入队的节点共存于一个队列中，通过 For 循环的界限避免了“提前透支”下一分钟的状态。</div>
+            <div class="memo-tip w">⚠️ 边界返回：BFS 结束后，必须复查目标节点总数 `freshCount`。若不为 0，说明存在无法达到的非连通分量，返回 -1。</div>
           </div>
         </div>
       </div>
 
       <div class="canvas-area">
-        <div class="canvas-header" id="phase-header">算法执行动画展示区</div>
+        <div class="canvas-header" id="phase-header">网格状态投影区</div>
         <div id="canvas-container"></div>
       </div>
 
       <div class="right-panel">
         <div class="code-box">
           <div class="box-header dark">
-            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div class="box-title dark">单队列 size 分层逻辑 (最优代码)</div>
             <div id="lang-tabs" class="tabs dark">
-              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab active" onclick="switchLang('python')">Python</div>
               <div class="tab" onclick="switchLang('ts')">TS</div>
               <div class="tab" onclick="switchLang('java')">Java</div>
               <div class="tab" onclick="switchLang('cpp')">C++</div>
@@ -193,7 +186,12 @@
 
         <div class="logic-box">
           <div class="box-header" style="border-bottom: 1px solid #eee">
-            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+            <div class="box-title">底层状态跟踪器</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">单向队列 (Queue) 实时状态投影</div>
+            <div id="data-nodes" class="data-array">
+              </div>
           </div>
           <div id="log-container" class="log-area"></div>
         </div>
@@ -202,14 +200,14 @@
 
     <script>
       const SNIPPETS = {
-        python: `# Python\nimport collections\n\nclass Solution:\n    def orangesRotting(self, grid: List[List[int]]) -> int:\n        rows, cols = len(grid), len(grid[0])\n        queue = collections.deque()\n        fresh_count = 0\n        \n        # 1. 扫描整个网格，将所有初始的烂橘子加入队列，并统计好橘子的总数\n        for r in range(rows):\n            for c in range(cols):\n                if grid[r][c] == 2:\n                    queue.append((r, c))\n                elif grid[r][c] == 1:\n                    fresh_count += 1\n                    \n        minutes = 0\n        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]\n        \n        # 2. 多源广度优先搜索 (Multi-source BFS)\n        while queue and fresh_count > 0:\n            minutes += 1\n            # 当前这一分钟内，所有已经烂了的橘子会向四周传播\n            for _ in range(len(queue)):\n                r, c = queue.popleft()\n                for dr, dc in directions:\n                    nr, nc = r + dr, c + dc\n                    # 如果相邻的是好橘子，则它会被传染变烂\n                    if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == 1:\n                        grid[nr][nc] = 2\n                        fresh_count -= 1\n                        queue.append((nr, nc))\n                        \n        # 3. 检查是否还有永远无法被传染的好橘子\n        return minutes if fresh_count == 0 else -1`,
-        ts: `// TypeScript\nfunction orangesRotting(grid: number[][]): number {\n    const rows = grid.length, cols = grid[0].length;\n    let queue: [number, number][] = [];\n    let freshCount = 0;\n    \n    // 初始化：找出所有烂橘子入队，并记录好橘子的数量\n    for (let r = 0; r < rows; r++) {\n        for (let c = 0; c < cols; c++) {\n            if (grid[r][c] === 2) queue.push([r, c]);\n            else if (grid[r][c] === 1) freshCount++;\n        }\n    }\n    \n    let minutes = 0;\n    const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];\n    \n    // 队列不为空且还有好橘子时，说明还可以继续传播\n    while (queue.length > 0 && freshCount > 0) {\n        minutes++;\n        let nextQueue: [number, number][] = []; // 使用新数组模拟当前这一分钟被传染的橘子\n        \n        for (const [r, c] of queue) {\n            for (const [dr, dc] of dirs) {\n                const nr = r + dr, nc = c + dc;\n                // 判断是否越界以及是否是好橘子\n                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] === 1) {\n                    grid[nr][nc] = 2; // 被传染变烂\n                    freshCount--;\n                    nextQueue.push([nr, nc]);\n                }\n            }\n        }\n        queue = nextQueue; // 进入下一分钟\n    }\n    \n    return freshCount === 0 ? minutes : -1;\n}`,
-        java: `// Java\nclass Solution {\n    public int orangesRotting(int[][] grid) {\n        int rows = grid.length, cols = grid[0].length;\n        Queue<int[]> queue = new LinkedList<>();\n        int freshCount = 0;\n        \n        // 步骤1：多源 BFS 的初始化\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                if (grid[r][c] == 2) {\n                    queue.offer(new int[]{r, c});\n                } else if (grid[r][c] == 1) {\n                    freshCount++;\n                }\n            }\n        }\n        \n        int minutes = 0;\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        \n        // 步骤2：开始 BFS\n        while (!queue.isEmpty() && freshCount > 0) {\n            minutes++;\n            int size = queue.size();\n            // 一次性处理掉当前队列里的所有烂橘子，这代表“1分钟”的时间流逝\n            for (int i = 0; i < size; i++) {\n                int[] curr = queue.poll();\n                for (int[] d : dirs) {\n                    int nr = curr[0] + d[0];\n                    int nc = curr[1] + d[1];\n                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] == 1) {\n                        grid[nr][nc] = 2;\n                        freshCount--;\n                        queue.offer(new int[]{nr, nc});\n                    }\n                }\n            }\n        }\n        \n        // 如果还有好橘子说明它在一个无法到达的孤岛上\n        return freshCount == 0 ? minutes : -1;\n    }\n}`,
-        cpp: `// C++\nclass Solution {\npublic:\n    int orangesRotting(vector<vector<int>>& grid) {\n        int rows = grid.size(), cols = grid[0].size();\n        queue<pair<int, int>> q;\n        int freshCount = 0;\n        \n        // 收集所有的污染源\n        for (int r = 0; r < rows; ++r) {\n            for (int c = 0; c < cols; ++c) {\n                if (grid[r][c] == 2) q.push({r, c});\n                else if (grid[r][c] == 1) freshCount++;\n            }\n        }\n        \n        int minutes = 0;\n        vector<pair<int, int>> dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        \n        // BFS 逐层向外扩张\n        while (!q.empty() && freshCount > 0) {\n            minutes++;\n            int size = q.size(); // 当前层的元素个数\n            \n            for (int i = 0; i < size; ++i) {\n                auto [r, c] = q.front();\n                q.pop();\n                \n                for (auto& d : dirs) {\n                    int nr = r + d.first;\n                    int nc = c + d.second;\n                    // 若周围有新鲜橘子则使其腐烂，并加入下一层的队列\n                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] == 1) {\n                        grid[nr][nc] = 2;\n                        freshCount--;\n                        q.push({nr, nc});\n                    }\n                }\n            }\n        }\n        \n        return freshCount == 0 ? minutes : -1;\n    }\n};`,
-        c: `// C\nint orangesRotting(int** grid, int gridSize, int* gridColSize) {\n    int rows = gridSize, cols = gridColSize[0];\n    int queue[10000][2];\n    int head = 0, tail = 0;\n    int freshCount = 0;\n    \n    // 初始化多源 BFS 队列\n    for (int r = 0; r < rows; r++) {\n        for (int c = 0; c < cols; c++) {\n            if (grid[r][c] == 2) {\n                queue[tail][0] = r;\n                queue[tail][1] = c;\n                tail++;\n            } else if (grid[r][c] == 1) {\n                freshCount++;\n            }\n        }\n    }\n    \n    int minutes = 0;\n    int dirs[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n    \n    while (head < tail && freshCount > 0) {\n        minutes++;\n        int size = tail - head; // 记录当前分钟需要处理的橘子个数\n        \n        for (int i = 0; i < size; i++) {\n            int r = queue[head][0];\n            int c = queue[head][1];\n            head++;\n            \n            for (int d = 0; d < 4; d++) {\n                int nr = r + dirs[d][0];\n                int nc = c + dirs[d][1];\n                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] == 1) {\n                    grid[nr][nc] = 2;\n                    freshCount--;\n                    // 新腐烂的橘子入队，留到下一分钟处理\n                    queue[tail][0] = nr;\n                    queue[tail][1] = nc;\n                    tail++;\n                }\n            }\n        }\n    }\n    \n    return freshCount == 0 ? minutes : -1;\n}`
+        python: `# Python\nimport collections\nfrom typing import List\n\nclass Solution:\n    def orangesRotting(self, grid: List[List[int]]) -> int:\n        rows, cols = len(grid), len(grid[0])\n        queue = collections.deque()\n        fresh_count = 0\n        \n        # 1. 初始化\n        for r in range(rows):\n            for c in range(cols):\n                if grid[r][c] == 2:\n                    queue.append((r, c))\n                elif grid[r][c] == 1:\n                    fresh_count += 1\n                    \n        minutes = 0\n        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]\n        \n        # 2. 层序 BFS 循环\n        while queue and fresh_count > 0:\n            minutes += 1\n            # range 依据开始时的 len(queue) 固定了循环次数\n            for _ in range(len(queue)):\n                r, c = queue.popleft()\n                for dr, dc in directions:\n                    nr, nc = r + dr, c + dc\n                    if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == 1:\n                        grid[nr][nc] = 2\n                        fresh_count -= 1\n                        queue.append((nr, nc))\n                        \n        return minutes if fresh_count == 0 else -1`,
+        ts: `// TypeScript\nfunction orangesRotting(grid: number[][]): number {\n    const rows = grid.length, cols = grid[0].length;\n    let queue: number[][] = [];\n    let freshCount = 0;\n    \n    // 1. 初始化多源起点并统计鲜度\n    for (let r = 0; r < rows; r++) {\n        for (let c = 0; c < cols; c++) {\n            if (grid[r][c] === 2) queue.push([r, c]);\n            else if (grid[r][c] === 1) freshCount++;\n        }\n    }\n    \n    let minutes = 0;\n    const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];\n    \n    // 2. 单队列 + size 控制的层级 BFS\n    while (queue.length > 0 && freshCount > 0) {\n        minutes++;\n        // 关键逻辑：缓存当前层的长度，严防透支处理本层产生的新入队节点\n        let size = queue.length;\n        \n        for (let i = 0; i < size; i++) {\n            const [r, c] = queue.shift()!;\n            for (const [dr, dc] of dirs) {\n                const nr = r + dr, nc = c + dc;\n                // 若越界或不为目标状态 (1)，则跳过\n                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] === 1) {\n                    grid[nr][nc] = 2; // 就地翻转状态\n                    freshCount--;\n                    queue.push([nr, nc]); // 推入队尾（属于下一层）\n                }\n            }\n        }\n    }\n    \n    // 3. 连通性校验\n    return freshCount === 0 ? minutes : -1;\n}`,
+        java: `// Java\nimport java.util.LinkedList;\nimport java.util.Queue;\n\nclass Solution {\n    public int orangesRotting(int[][] grid) {\n        int rows = grid.length, cols = grid[0].length;\n        Queue<int[]> queue = new LinkedList<>();\n        int freshCount = 0;\n        \n        // 1. 初始化多源起点\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                if (grid[r][c] == 2) queue.offer(new int[]{r, c});\n                else if (grid[r][c] == 1) freshCount++;\n            }\n        }\n        \n        int minutes = 0;\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        \n        // 2. 利用 size 变量截断分层的 BFS\n        while (!queue.isEmpty() && freshCount > 0) {\n            minutes++;\n            int size = queue.size();\n            \n            for (int i = 0; i < size; i++) {\n                int[] curr = queue.poll();\n                for (int[] d : dirs) {\n                    int nr = curr[0] + d[0];\n                    int nc = curr[1] + d[1];\n                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] == 1) {\n                        grid[nr][nc] = 2;\n                        freshCount--;\n                        queue.offer(new int[]{nr, nc});\n                    }\n                }\n            }\n        }\n        \n        return freshCount == 0 ? minutes : -1;\n    }\n}`,
+        cpp: `// C++\n#include <vector>\n#include <queue>\nusing namespace std;\n\nclass Solution {\npublic:\n    int orangesRotting(vector<vector<int>>& grid) {\n        int rows = grid.size(), cols = grid[0].size();\n        queue<pair<int, int>> q;\n        int freshCount = 0;\n        \n        for (int r = 0; r < rows; ++r) {\n            for (int c = 0; c < cols; ++c) {\n                if (grid[r][c] == 2) q.push({r, c});\n                else if (grid[r][c] == 1) freshCount++;\n            }\n        }\n        \n        int minutes = 0;\n        vector<pair<int, int>> dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        \n        while (!q.empty() && freshCount > 0) {\n            minutes++;\n            int size = q.size(); // 缓存本层边界\n            \n            for (int i = 0; i < size; ++i) {\n                auto [r, c] = q.front();\n                q.pop();\n                \n                for (auto& d : dirs) {\n                    int nr = r + d.first;\n                    int nc = c + d.second;\n                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] == 1) {\n                        grid[nr][nc] = 2;\n                        freshCount--;\n                        q.push({nr, nc});\n                    }\n                }\n            }\n        }\n        \n        return freshCount == 0 ? minutes : -1;\n    }\n};`,
+        c: `// C\nint orangesRotting(int** grid, int gridSize, int* gridColSize) {\n    int rows = gridSize, cols = gridColSize[0];\n    int queue[10000][2]; // 模拟单向队列\n    int head = 0, tail = 0;\n    int freshCount = 0;\n    \n    for (int r = 0; r < rows; r++) {\n        for (int c = 0; c < cols; c++) {\n            if (grid[r][c] == 2) {\n                queue[tail][0] = r;\n                queue[tail][1] = c;\n                tail++;\n            } else if (grid[r][c] == 1) {\n                freshCount++;\n            }\n        }\n    }\n    \n    int minutes = 0;\n    int dirs[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n    \n    // 基于指针偏移量计算 size\n    while (head < tail && freshCount > 0) {\n        minutes++;\n        int size = tail - head;\n        \n        for (int i = 0; i < size; i++) {\n            int r = queue[head][0];\n            int c = queue[head][1];\n            head++;\n            \n            for (int d = 0; d < 4; d++) {\n                int nr = r + dirs[d][0];\n                int nc = c + dirs[d][1];\n                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] == 1) {\n                    grid[nr][nc] = 2;\n                    freshCount--;\n                    queue[tail][0] = nr;\n                    queue[tail][1] = nc;\n                    tail++;\n                }\n            }\n        }\n    }\n    \n    return freshCount == 0 ? minutes : -1;\n}`
       };
 
-      let params = { seed: 456, speed: 1.0, rows: 5, cols: 6 };
+      let params = { seed: 1024, speed: 1.0, rows: 5, cols: 6 };
       let isDone = false, isPaused = false, p5Timer = 0;
       let currentLang = "python";
 
@@ -217,14 +215,14 @@
       let freshCount = 0;
       let minutes = 0;
       let queue = [];
-      let nextQueue = [];
-      let justRotted = []; // Array of {r, c}
-
-      let phase = "INIT"; // INIT, POP_SPREAD
-      let currentScanR = 0, currentScanC = 0;
+      
+      // State Machine Variables mimicking Code execution
+      let phase = 'INIT'; // INIT, LEVEL_START, POP, EXPAND, DONE
+      let levelSize = 0;
+      let processedInLevel = 0;
       let currentPop = null;
-      let currentSpreadIndex = 0;
-      let dirs = [[1,0], [-1,0], [0,1], [0,-1]];
+      let activeProbes = []; // For rendering search directions
+      let dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
       function setup() {
         let container = document.getElementById("canvas-container");
@@ -232,7 +230,6 @@
         canvas.parent("canvas-container");
         window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
         switchLang("python");
-        initializeSystem();
       }
 
       function initializeSystem() {
@@ -241,15 +238,14 @@
         isPaused = false;
         p5Timer = 0;
         
-        phase = "INIT";
-        currentScanR = 0;
-        currentScanC = 0;
+        phase = 'INIT';
         freshCount = 0;
         minutes = 0;
         queue = [];
-        nextQueue = [];
-        justRotted = [];
+        levelSize = 0;
+        processedInLevel = 0;
         currentPop = null;
+        activeProbes = [];
 
         let rows = floor(params.rows);
         let cols = floor(params.cols);
@@ -259,9 +255,9 @@
             let rowArr = [];
             for (let c = 0; c < cols; c++) {
                 let rand = random();
-                if (rand < 0.25) rowArr.push(0); // 25% empty
-                else if (rand < 0.35) rowArr.push(2); // 10% rotten
-                else rowArr.push(1); // 65% fresh
+                if (rand < 0.25) rowArr.push(0); // 空格
+                else if (rand < 0.35) rowArr.push(2); // 初始多源点
+                else rowArr.push(1); // 目标点
             }
             grid.push(rowArr);
         }
@@ -269,9 +265,8 @@
         let btn = document.getElementById("pause-btn");
         if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
         document.getElementById("log-container").innerHTML = "";
-        document.getElementById("phase-header").innerHTML = "算法执行动画展示区 - 正在进行【第一步：扫描网格】";
-        
-        logMsg(`✅ 生成 ${rows}x${cols} 网格。开始全网格扫描，寻找初始污染源...`, true);
+        updateDataUI(queue, 0);
+        logMsg(`✅ [拓扑重建] 矩阵尺寸 ${rows}x${cols}。即将执行全图扫描。`);
       }
 
       function draw() {
@@ -287,196 +282,211 @@
 
         let rows = floor(params.rows);
         let cols = floor(params.cols);
-        let cellW = 50;
-        let cellH = 50;
+        let cellW = 45;
+        let cellH = 45;
         let gridW = cols * cellW;
         let gridH = rows * cellH;
         let startX = width/2 - gridW/2;
         let startY = height/2 - gridH/2 + 20;
 
-        // Draw grid
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 let x = startX + c * cellW;
                 let y = startY + r * cellH;
-                
                 let val = grid[r][c];
                 
-                // Draw background cell
-                fill(245);
-                stroke(220);
+                // Base grid square
+                noFill();
+                stroke(val === 0 ? 240 : 210);
                 strokeWeight(1);
-                rect(x, y, cellW, cellH, 6);
+                rect(x, y, cellW, cellH);
                 
-                // Draw Item
+                // Node Value
                 if (val === 1 || val === 2) {
-                    if (val === 1) {
-                        fill(249, 115, 22); // Fresh orange (Bright orange)
-                        stroke(194, 65, 12);
-                    } else if (val === 2) {
-                        fill(101, 163, 13); // Rotten orange (Moldy green)
-                        stroke(63, 98, 18);
-                    }
-                    strokeWeight(2);
-                    ellipse(x + cellW/2, y + cellH/2, 30, 30);
+                    fill(val === 1 ? '#f97316' : '#65a30d');
+                    noStroke();
+                    ellipse(x + cellW/2, y + cellH/2, 28, 28);
                     
-                    // Add a tiny green leaf for fresh orange
-                    if (val === 1) {
-                        fill(132, 204, 22); noStroke();
-                        ellipse(x + cellW/2, y + cellH/2 - 14, 8, 5);
-                    } else {
-                        // Add some mold dots for rotten
-                        fill(63, 98, 18); noStroke();
-                        ellipse(x + cellW/2 - 5, y + cellH/2 - 3, 4, 4);
-                        ellipse(x + cellW/2 + 6, y + cellH/2 + 4, 5, 5);
-                        ellipse(x + cellW/2 - 2, y + cellH/2 + 6, 3, 3);
-                    }
+                    fill(255);
+                    textAlign(CENTER, CENTER);
+                    textSize(12);
+                    text(val.toString(), x + cellW/2, y + cellH/2);
+                } else {
+                    fill(200);
+                    textAlign(CENTER, CENTER);
+                    textSize(10);
+                    text("0", x + cellW/2, y + cellH/2);
                 }
             }
         }
-        
-        // Draw Scan Pointer
-        if (phase === "INIT" && !isDone) {
-            let cx = startX + currentScanC * cellW;
-            let cy = startY + currentScanR * cellH;
-            noFill();
-            stroke(217, 119, 87);
-            strokeWeight(3);
-            rect(cx, cy, cellW, cellH, 6);
-        }
 
-        // Draw active BFS pop
-        if (phase === "POP_SPREAD" && currentPop) {
-            let cx = startX + currentPop[0] * cellW;
-            let cy = startY + currentPop[1] * cellH;
+        // Visualize EXPAND state: Render active probes from currentPop
+        if (phase === 'EXPAND' && currentPop) {
+            let cx = startX + currentPop[1] * cellW + cellW/2;
+            let cy = startY + currentPop[0] * cellH + cellH/2;
             
+            // Highlight current pop node
             noFill();
-            stroke(234, 179, 8); // Yellow outline
-            strokeWeight(4);
-            rect(cx, cy, cellW, cellH, 6);
-            
-            // Draw spread arrow
-            if (currentSpreadIndex < 4) {
-                let dr = dirs[currentSpreadIndex][0];
-                let dc = dirs[currentSpreadIndex][1];
-                let nx = cx + cellW/2 + dc * 35;
-                let ny = cy + cellH/2 + dr * 35;
+            stroke('#0284c7');
+            strokeWeight(3);
+            rect(startX + currentPop[1] * cellW, startY + currentPop[0] * cellH, cellW, cellH, 4);
+
+            // Draw probes to 4 orthogonal directions
+            for (let p of activeProbes) {
+                let tx = startX + p[1] * cellW + cellW/2;
+                let ty = startY + p[0] * cellH + cellH/2;
                 
-                stroke(234, 179, 8, 150);
-                strokeWeight(3);
-                line(cx + cellW/2, cy + cellH/2, nx, ny);
+                stroke('#0ea5e9');
+                strokeWeight(2);
+                line(cx, cy, tx, ty);
+                
+                // Draw target box for visual clarity
+                noFill();
+                stroke('rgba(14, 165, 233, 0.4)');
+                rect(startX + p[1] * cellW, startY + p[0] * cellH, cellW, cellH);
             }
         }
 
-        // Highlight Just Rotted
-        for (let jr of justRotted) {
-            let cx = startX + jr.c * cellW;
-            let cy = startY + jr.r * cellH;
-            noFill();
-            stroke(239, 68, 68); // Red outline for newly rotted
-            strokeWeight(3);
-            ellipse(cx + cellW/2, cy + cellH/2, 40, 40);
-        }
-
-        // HUD - Information
+        // Global State HUD
         fill(250, 240, 230); stroke(220, 180, 150); strokeWeight(2);
-        rect(10, 10, width - 20, 50, 8);
-        fill(217, 119, 87); noStroke(); textAlign(LEFT, TOP); textSize(14); fontStyle = "bold";
-        text(`⏱️ 分钟数 (Minutes): ${minutes}`, 30, 25);
+        rect(10, 10, width - 20, 45, 6);
+        fill(217, 119, 87); noStroke(); textAlign(LEFT, TOP); textSize(13); fontStyle = "bold";
+        text(`⏱️ 时间层数: ${minutes}`, 30, 22);
         fill(101, 163, 13);
-        text(`🤢 队列烂橘子数: ${queue.length}`, 220, 25);
+        text(`队列节点数: ${queue.length}`, 200, 22);
         fill(249, 115, 22);
-        text(`🍊 剩余好橘子数: ${freshCount}`, 400, 25);
+        text(`目标节点数 (freshCount): ${freshCount}`, 380, 22);
       }
 
       function performStep() {
         if (isDone) return;
         
-        if (phase === "INIT") {
-            if (currentScanR >= params.rows) {
-                logMsg(`✅ 扫描结束。队列中烂橘子=${queue.length}，全图好橘子=${freshCount}。`, true);
-                logMsg(`🚀 开始多源广度优先搜索...`, true);
-                phase = "POP_SPREAD";
-                document.getElementById("phase-header").innerHTML = "算法执行动画展示区 - 正在进行【第二步：BFS 传播】";
-                return;
-            }
-            
-            let val = grid[currentScanR][currentScanC];
-            if (val === 2) {
-                queue.push([currentScanR, currentScanC]);
-                logMsg(`🔸 记录初始污染源 [${currentScanR}, ${currentScanC}]`, false);
-            } else if (val === 1) {
-                freshCount++;
-            }
-            
-            currentScanC++;
-            if (currentScanC >= params.cols) {
-                currentScanC = 0;
-                currentScanR++;
-            }
-        } 
-        else if (phase === "POP_SPREAD") {
-            // Check win/lose condition
-            if (queue.length === 0 && nextQueue.length === 0 && !currentPop) {
-                isDone = true;
-                if (freshCount > 0) {
-                    logMsg(`🏁 传播停止！仍有 ${freshCount} 个好橘子未被传染（因为被阻隔）。返回 -1`, true);
-                } else {
-                    logMsg(`🏁 全部橘子已腐烂完毕！用时 ${minutes} 分钟。返回 ${minutes}`, true);
-                }
-                return;
-            }
-            
-            // Advance minute
-            if (queue.length === 0 && !currentPop) {
-                if (freshCount === 0) {
-                    isDone = true;
-                    logMsg(`🏁 全部橘子已腐烂完毕！用时 ${minutes} 分钟。返回 ${minutes}`, true);
-                    return;
-                }
-                minutes++;
-                logMsg(`⏱️ 第 ${minutes} 分钟开始，将有 ${nextQueue.length} 个新烂橘子向外传播...`, true);
-                queue = nextQueue;
-                nextQueue = [];
-                justRotted = []; // Clear red highlights from last minute
-            }
-            
-            if (!currentPop) {
-                currentPop = queue.shift();
-                currentSpreadIndex = 0;
-            }
-            
-            if (currentSpreadIndex < 4) {
-                let r = currentPop[0];
-                let c = currentPop[1];
-                let dr = dirs[currentSpreadIndex][0];
-                let dc = dirs[currentSpreadIndex][1];
-                let nr = r + dr;
-                let nc = c + dc;
-                
-                if (nr >= 0 && nr < params.rows && nc >= 0 && nc < params.cols) {
-                    if (grid[nr][nc] === 1) {
-                        grid[nr][nc] = 2; // Rotted!
-                        freshCount--;
-                        nextQueue.push([nr, nc]);
-                        justRotted.push({r: nr, c: nc});
-                        logMsg(`🦠 烂橘子 [${r}, ${c}] 传染了好橘子 [${nr}, ${nc}]！`, false);
+        switch (phase) {
+            case 'INIT':
+                // 瞬间完成初始化矩阵的扫描与入队（对齐代码行为）
+                for (let r = 0; r < params.rows; r++) {
+                    for (let c = 0; c < params.cols; c++) {
+                        if (grid[r][c] === 2) queue.push([r, c]);
+                        else if (grid[r][c] === 1) freshCount++;
                     }
                 }
-                currentSpreadIndex++;
-            } else {
-                currentPop = null;
-            }
+                logMsg(`初始化完毕：发现 ${queue.length} 个多源起点，剩余 ${freshCount} 个目标节点。`);
+                phase = 'LEVEL_START';
+                updateDataUI(queue, 0);
+                break;
+
+            case 'LEVEL_START':
+                // While 条件校验
+                if (queue.length > 0 && freshCount > 0) {
+                    minutes++;
+                    levelSize = queue.length;
+                    processedInLevel = 0;
+                    logMsg(`\n🕒 第 ${minutes} 层级开始，缓存本层深度 size = ${levelSize}`, true);
+                    phase = 'POP';
+                    updateDataUI(queue, levelSize);
+                } else {
+                    phase = 'DONE';
+                }
+                break;
+
+            case 'POP':
+                // For 循环边界校验
+                if (processedInLevel === levelSize) {
+                    currentPop = null;
+                    phase = 'LEVEL_START';
+                    return;
+                }
+                currentPop = queue.shift();
+                processedInLevel++;
+                
+                // 计算后续 4 探针方向供 UI 在等待进入 EXPAND 的间隙渲染
+                activeProbes = [];
+                for (let d of dirs) {
+                    activeProbes.push([currentPop[0] + d[0], currentPop[1] + d[1]]);
+                }
+                
+                logMsg(`  ├─ 出队节点 [${currentPop[0]}, ${currentPop[1]}] (循环索引 ${processedInLevel}/${levelSize})`);
+                phase = 'EXPAND';
+                // 计算队列中属于本层待处理的余量
+                updateDataUI(queue, levelSize - processedInLevel);
+                break;
+
+            case 'EXPAND':
+                // 批量处理 4 个正交方向的计算（等同代码中的内层 for(dirs) 循环）
+                let pushed = 0;
+                for (let p of activeProbes) {
+                    let nr = p[0], nc = p[1];
+                    if (nr >= 0 && nr < params.rows && nc >= 0 && nc < params.cols && grid[nr][nc] === 1) {
+                        grid[nr][nc] = 2; // 状态反转
+                        freshCount--;
+                        queue.push([nr, nc]);
+                        pushed++;
+                        logMsg(`  │    └─ 状态翻转 [${nr}, ${nc}] (1->2) 并推入队尾`);
+                    }
+                }
+                if (pushed === 0) logMsg(`  │    └─ 正交方向探测完毕，无合规连通点。`);
+                
+                activeProbes = [];
+                phase = 'POP';
+                updateDataUI(queue, levelSize - processedInLevel);
+                break;
+
+            case 'DONE':
+                isDone = true;
+                if (freshCount === 0) {
+                    logMsg(`🏁 运算结束。所有节点完成连通变更。返回 ${minutes}`, true);
+                } else {
+                    logMsg(`🏁 运算结束。队列已清空，但检测到 ${freshCount} 个完全隔离节点。返回 -1`, true);
+                }
+                break;
         }
       }
+
+      function updateDataUI(arr, remainingInLevel) {
+        let container = document.getElementById("data-nodes");
+        container.innerHTML = "";
+        
+        if (arr.length === 0) {
+            container.innerHTML = `<span style="color: #999; font-size: 11px;">[队列为空]</span>`;
+            return;
+        }
+
+        for (let i = 0; i < arr.length; i++) {
+            let v = arr[i];
+            let node = document.createElement("div");
+            node.className = "data-node";
+            node.innerText = `[${v[0]},${v[1]}]`;
+
+            // 依据 size 隔离当前层与新进入层
+            if (i < remainingInLevel) {
+                node.style.background = "#eab308";
+                node.style.color = "white";
+                node.style.border = "1px solid #ca8a04";
+            } else {
+                node.style.background = "#f5f5f4";
+                node.style.color = "#57534e";
+                node.style.border = "1px dashed #d6d3d1";
+            }
+            container.appendChild(node);
+
+            // 绘制明确的界限分隔符
+            if (i === remainingInLevel - 1 && i !== arr.length - 1) {
+                let sep = document.createElement("div");
+                sep.innerText = " | ";
+                sep.style.color = "#a8a29e";
+                sep.style.fontSize = "16px";
+                sep.style.padding = "0 2px";
+                container.appendChild(sep);
+            }
+        }
+    }
 
       function logMsg(msg, highlight = false) {
         let container = document.getElementById("log-container");
         if (!container) return;
         let item = document.createElement("div");
         item.className = "log-item" + (highlight ? " highlight" : "");
-        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        item.innerText = msg; // 保持严格纯文本，去特效化
         container.appendChild(item);
         container.scrollTop = container.scrollHeight;
       }
@@ -495,6 +505,9 @@
 
         codeEl.removeAttribute("data-highlighted");
         if (window.hljs) hljs.highlightElement(codeEl);
+        
+        // 切换语言时，自动重置可视化系统
+        initializeSystem();
       }
 
       function updateParam(id, val) {
@@ -505,7 +518,7 @@
       }
 
       function updateSeed() {
-        params.seed = parseInt(document.getElementById("seed-input").value) || 456;
+        params.seed = parseInt(document.getElementById("seed-input").value) || 1024;
         initializeSystem();
       }
 
