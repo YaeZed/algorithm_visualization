@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>电话号码的字母组合 - 回溯可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .digits-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 14px; letter-spacing: 2px; text-align: center; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box */
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.5; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { padding: 4px 8px; background: var(--anthropic-orange); color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: bold; }
+
+      /* Auto-scrolling Log */
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* Memo Card */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>电话号码的字母组合</h1>
+        <div class="subtitle">深度优先搜索 / 回溯算法全流程可视化</div>
+
+        <div class="control-section">
+          <h3>输入参数</h3>
+          <div class="control-group">
+            <label>按键数字 (限2-9, 最长3位以免树过大)</label>
+            <input
+              type="text"
+              id="digits-input"
+              class="digits-input"
+              value="23"
+              maxlength="3"
+              oninput="validateInput(this)"
+              onchange="updateDigits()"
+            />
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="speed"
+                min="0.05"
+                max="2.0"
+                step="0.05"
+                value="1"
+                oninput="updateParam('speed', this.value)"
+              />
+              <span class="value-display" id="speed-value">1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ O(3^m * 4^n)</span>
+            <span class="memo-badge space">□ O(m + n)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 递归深度等于输入数字的长度。每处理一个数字，就在对应的字母集合中发起 for 循环。</div>
+            <div class="memo-tip">💡 基础类型传值：字符串拼接(path+c)生成了新字符串，退回上一层时当前层变量未受污染，天然实现了“撤销选择”。</div>
+            <div class="memo-tip g">🔍 O(m+n) 空间主要为系统调用栈消耗。结果集数组通常不计入额外空间复杂度。</div>
+            <div class="memo-tip w">⚠️ 不要企图用确定的 for 循环层数来解，因为输入长度动态可变，必须使用递归来模拟多重循环。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">递归状态树与调用栈执行监控</div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">核心解法 (最优代码)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">结果集 Res 收集状态</div>
+            <div id="data-nodes" class="data-array"></div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SNIPPETS = {
+        python: `# Python 字符串拼接天然隔离状态
+def letterCombinations(digits: str) -> list[str]:
+    if not digits: return []
+    
+    phone_map = {
+        "2": "abc", "3": "def", "4": "ghi", "5": "jkl", 
+        "6": "mno", "7": "pqrs", "8": "tuv", "9": "wxyz"
+    }
+    res = []
+    
+    def backtrack(index: int, path: str):
+        # 触底：组合长度等于输入数字长度
+        if index == len(digits):
+            res.append(path)
+            return
+            
+        # 遍历当前数字对应的所有字母
+        for c in phone_map[digits[index]]:
+            # 向下递归：传入 path+c 会创建新字符串，
+            # 从而避免了像数组那样需要显式 path.pop()
+            backtrack(index + 1, path + c)
+            
+    backtrack(0, "")
+    return res`,
+        ts: `// TypeScript 字符串按值传递机制
+function letterCombinations(digits: string): string[] {
+    if (digits.length === 0) return [];
+    
+    const map: string[] = [
+        "", "", "abc", "def", "ghi", "jkl", 
+        "mno", "pqrs", "tuv", "wxyz"
+    ];
+    const res: string[] = [];
+    
+    function backtrack(index: number, path: string) {
+        // 递归终止条件
+        if (index === digits.length) {
+            res.push(path);
+            return;
+        }
+        
+        // 获取当前按键代表的字母集合
+        const letters = map[Number(digits[index])];
+        
+        for (let i = 0; i < letters.length; i++) {
+            // path + letters[i] 是一个全新生成的字符串
+            // 递归退栈后，当前作用域的 path 依然不变
+            backtrack(index + 1, path + letters[i]);
+        }
+    }
+    
+    backtrack(0, "");
+    return res;
+}`,
+        java: `// Java 使用 StringBuilder 控制内存
+class Solution {
+    private String[] map = {
+        "", "", "abc", "def", "ghi", "jkl", 
+        "mno", "pqrs", "tuv", "wxyz"
+    };
+    private List<String> res = new ArrayList<>();
+    
+    public List<String> letterCombinations(String digits) {
+        if (digits == null || digits.length() == 0) return res;
+        backtrack(digits, 0, new StringBuilder());
+        return res;
+    }
+    
+    private void backtrack(String digits, int index, StringBuilder path) {
+        if (index == digits.length()) {
+            res.add(path.toString()); // 拷贝一份转为 String 加入结果集
+            return;
+        }
+        
+        String letters = map[digits.charAt(index) - '0'];
+        for (char c : letters.toCharArray()) {
+            path.append(c);              // 做选择 (修改同一个对象)
+            backtrack(digits, index + 1, path); // 递归向下
+            path.deleteCharAt(path.length() - 1); // 撤销选择 (回溯现场)
+        }
+    }
+}`,
+        cpp: `// C++ std::string 传值与引用
+class Solution {
+    const vector<string> pad = {
+        "", "", "abc", "def", "ghi", "jkl", 
+        "mno", "pqrs", "tuv", "wxyz"
+    };
+public:
+    vector<string> letterCombinations(string digits) {
+        if (digits.empty()) return {};
+        vector<string> res;
+        string path = "";
+        backtrack(digits, 0, path, res);
+        return res;
+    }
+    
+    // 注意: path 若传值则每次拷贝，若传引用则需手动 pop_back
+    void backtrack(const string& digits, int index, string& path, vector<string>& res) {
+        if (index == digits.length()) {
+            res.push_back(path);
+            return;
+        }
+        
+        string letters = pad[digits[index] - '0'];
+        for (char c : letters) {
+            path.push_back(c);           // 状态更新
+            backtrack(digits, index + 1, path, res);
+            path.pop_back();             // 回溯，恢复状态
+        }
+    }
+};`,
+        c: `// C 语言手动内存与指针控制
+char** letterCombinations(char* digits, int* returnSize) {
+    *returnSize = 0;
+    int len = strlen(digits);
+    if (len == 0) return NULL;
+    
+    char* map[] = {"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+    
+    // 计算最大可能容量 (例如 4^len)
+    int maxCapacity = 1;
+    for(int i = 0; i < len; ++i) maxCapacity *= 4;
+    
+    char** res = (char**)malloc(maxCapacity * sizeof(char*));
+    char* path = (char*)malloc((len + 1) * sizeof(char));
+    path[len] = '\\0'; // 终结符
+    
+    // 嵌套辅助函数
+    void backtrack(int index) {
+        if (index == len) {
+            res[*returnSize] = strdup(path); // 申请内存拷贝字符串
+            (*returnSize)++;
+            return;
+        }
+        
+        char* letters = map[digits[index] - '0'];
+        for (int i = 0; letters[i] != '\\0'; i++) {
+            path[index] = letters[i]; // 覆盖写入，C语言数组回溯不需显式清理
+            backtrack(index + 1);
+        }
+    }
+    
+    backtrack(0);
+    free(path);
+    return res;
+}`
+      };
+
+      const PHONE_MAP = ["", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"];
+      
+      const LANG_VARS = {
+        python: { func: "backtrack", pth: "path", idx: "index" },
+        ts: { func: "backtrack", pth: "path", idx: "index" },
+        java: { func: "backtrack", pth: "path", idx: "index" },
+        cpp: { func: "backtrack", pth: "path", idx: "index" },
+        c: { func: "backtrack", pth: "path", idx: "index" }
+      };
+      let currentLang = "python";
+
+      let params = {
+        digits: "23",
+        speed: 0.5 
+      };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      let resultArr = [];
+      let treeNodes = {};   
+      let edges = [];       
+      let callStack = [];   
+
+      function validateInput(el) { el.value = el.value.replace(/[^2-9]/g, ''); }
+
+      function updateDigits() {
+        let val = document.getElementById("digits-input").value;
+        if (val.length === 0) { val = "2"; document.getElementById("digits-input").value = val; }
+        params.digits = val;
+        initializeSystem();
+      }
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 600, container.offsetHeight || 600);
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        switchLang("python");
+      }
+
+      function buildTreeLayout() {
+        treeNodes = {};
+        edges = [];
+        const digits = params.digits;
+        let levels = [ [{ path: "", parent: null }] ];
+        
+        for (let i = 0; i < digits.length; i++) {
+            let nextLevel = [];
+            let letters = PHONE_MAP[parseInt(digits[i])];
+            for (let node of levels[i]) {
+                for (let c of letters) {
+                    nextLevel.push({ path: node.path + c, parent: node.path });
+                }
+            }
+            levels.push(nextLevel);
+        }
+
+        // 更新：显著缩短边长，将 0.6 调整为 0.3
+        const depthY = (height * 0.3) / (digits.length > 0 ? digits.length : 1);
+        // 更新：稍微下调起始高度
+        const startY = 80;
+        
+        const leafLevel = levels[levels.length - 1];
+        const w = width - 100; 
+        let spacing = w / (leafLevel.length > 1 ? leafLevel.length - 1 : 1);
+        if (leafLevel.length === 1) spacing = 0;
+        
+        for (let i = 0; i < leafLevel.length; i++) {
+            let nx = 50 + (leafLevel.length === 1 ? w/2 : i * spacing);
+            let ny = startY + (levels.length - 1) * depthY;
+            treeNodes[leafLevel[i].path] = { x: nx, y: ny, label: leafLevel[i].path, state: 'hidden', level: levels.length - 1 };
+        }
+        
+        for (let l = levels.length - 2; l >= 0; l--) {
+            for (let node of levels[l]) {
+                let children = levels[l+1].filter(c => c.parent === node.path);
+                let cx = 0;
+                if (children.length > 0) {
+                    let sumX = children.reduce((sum, c) => sum + treeNodes[c.path].x, 0);
+                    cx = sumX / children.length;
+                } else {
+                    cx = width / 2;
+                }
+                let ny = startY + l * depthY;
+                treeNodes[node.path] = { 
+                    x: cx, y: ny, 
+                    label: node.path === "" ? "ROOT" : node.path, 
+                    state: node.path === "" ? "active" : "hidden",
+                    level: l 
+                };
+            }
+        }
+
+        for (let l = 1; l < levels.length; l++) {
+            for (let node of levels[l]) {
+                edges.push({ from: node.parent, to: node.path, state: 'hidden' });
+            }
+        }
+      }
+
+      function initializeSystem() {
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+        resultArr = [];
+        updateDataUI(resultArr);
+        document.getElementById("log-container").innerHTML = "";
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+
+        buildTreeLayout();
+        
+        callStack = [{ index: 0, path: "", childLoopIdx: 0 }];
+        logMsg(`✅ 开始解析输入 "${params.digits}"。初始化调用栈。`, true);
+      }
+
+      function draw() {
+        background(253, 252, 249);
+        
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed; 
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+
+        drawKeypadInfo();
+        drawTree();
+        drawCallStack();
+      }
+
+      function drawKeypadInfo() {
+        push();
+        noStroke();
+        fill(240);
+        rect(20, 10, width - 40, 30, 6);
+        fill(100);
+        textSize(12);
+        textAlign(LEFT, CENTER);
+        text(`按键映射:  ${params.digits.split('').map(d => `[${d} -> ${PHONE_MAP[parseInt(d)]}]`).join('  ')}`, 30, 25);
+        pop();
+      }
+
+      function drawTree() {
+        push();
+        for (let e of edges) {
+            if (e.state === 'hidden') continue;
+            let n1 = treeNodes[e.from];
+            let n2 = treeNodes[e.to];
+            strokeWeight(2);
+            if (e.state === 'active') stroke(217, 119, 87);
+            else if (e.state === 'completed') stroke(200);
+            line(n1.x, n1.y, n2.x, n2.y);
+        }
+
+        for (let key in treeNodes) {
+            let node = treeNodes[key];
+            if (node.state === 'hidden') continue;
+
+            strokeWeight(2);
+            if (node.state === 'active') { fill(217, 119, 87); stroke(255); } 
+            else if (node.state === 'completed') { fill(245); stroke(220); }
+
+            ellipse(node.x, node.y, 45, 45);
+            
+            noStroke();
+            if (node.state === 'active') fill(255);
+            else fill(150);
+            
+            textSize(15);
+            textAlign(CENTER, CENTER);
+            text(node.label, node.x, node.y);
+        }
+        pop();
+      }
+
+      function drawCallStack() {
+        push();
+        let boxWidth = 160;
+        let boxHeight = 25;
+        let startX = width - boxWidth - 20;
+        let startY = height - 30;
+
+        fill(100);
+        textSize(11);
+        textAlign(RIGHT, BOTTOM);
+        text("系统调用栈 (Call Stack)", width - 20, startY - callStack.length * boxHeight - 5);
+
+        for (let i = 0; i < callStack.length; i++) {
+            let frame = callStack[i];
+            let vars = LANG_VARS[currentLang];
+            let label = `${vars.func}(${frame.index}, "${frame.path}")`;
+            
+            let y = startY - (i * boxHeight);
+            
+            fill(i === callStack.length - 1 ? 245 : 252);
+            stroke(220);
+            if (i === callStack.length - 1) stroke(106, 155, 204);
+            rect(startX, y, boxWidth, boxHeight, 4);
+            
+            noStroke();
+            fill(60);
+            textAlign(CENTER, CENTER);
+            text(label, startX + boxWidth/2, y + boxHeight/2);
+        }
+        pop();
+      }
+
+      function performStep() {
+        if (callStack.length === 0) {
+            if (!isDone) {
+                isDone = true;
+                logMsg("🏁 栈已完全清空，全流程回溯结束！", true);
+            }
+            return;
+        }
+
+        let frame = callStack[callStack.length - 1];
+        let vars = LANG_VARS[currentLang];
+        const digits = params.digits;
+
+        if (frame.index === digits.length) {
+            logMsg(`📍 触底: index 等于输入长度。记录组合 [<b>${frame.path}</b>] 并 return。`, true);
+            resultArr.push(frame.path);
+            updateDataUI(resultArr);
+            
+            treeNodes[frame.path].state = 'completed';
+            let pEdge = edges.find(e => e.to === frame.path);
+            if (pEdge) pEdge.state = 'completed';
+            
+            callStack.pop();
+            return;
+        }
+
+        let currentDigit = digits[frame.index];
+        let letters = PHONE_MAP[parseInt(currentDigit)];
+
+        if (frame.childLoopIdx < letters.length) {
+            let c = letters[frame.childLoopIdx];
+            frame.childLoopIdx++; 
+            let nextPath = frame.path + c;
+            
+            logMsg(`🔄 处于 ${vars.func}(${frame.index}, "${frame.path}"): 取出数字 ${currentDigit} 的 "${c}", 压栈下一层。`, false);
+            
+            if(treeNodes[nextPath]) treeNodes[nextPath].state = 'active';
+            let e = edges.find(ed => ed.to === nextPath);
+            if (e) e.state = 'active';
+
+            callStack.push({ index: frame.index + 1, path: nextPath, childLoopIdx: 0 });
+        } else {
+            logMsg(`🔙 循环完毕。${vars.func}(${frame.index}, "${frame.path}") 结束，退回上一层。`, false);
+            treeNodes[frame.path].state = 'completed';
+            let pEdge = edges.find(ed => ed.to === frame.path);
+            if (pEdge) pEdge.state = 'completed';
+            callStack.pop();
+        }
+      }
+
+      function updateDataUI(arr) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        arr.forEach(v => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          node.innerText = v;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        const tabs = document.querySelectorAll('.tab');
+        const langMap = { python:0, ts:1, java:2, cpp:3, c:4 };
+        tabs[langMap[lang]].classList.add('active');
+        
+        const codeEl = document.getElementById('code-viewer');
+        const hljsMap = { python:'language-python', ts:'language-typescript', java:'language-java', cpp:'language-cpp', c:'language-c' };
+        codeEl.className = 'hljs ' + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute('data-highlighted');
+        if(window.hljs) hljs.highlightElement(codeEl);
+        
+        if (typeof initializeSystem === 'function') initializeSystem();
+      }
+
+      function updateParam(id, val) {
+        if(id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id+'-value');
+        if(display) display.textContent = val;
+        if(id !== 'speed') initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if(!btn) return;
+        if(isPaused) {
+            btn.innerHTML = "▶ 继续";
+            btn.style.background = "var(--anthropic-green)";
+        } else {
+            btn.innerHTML = "⏸ 暂停";
+            btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() { initializeSystem(); }
+    </script>
+  </body>
+</html>

@@ -107,7 +107,8 @@ export const HOT100: Problem[] = [
   // ── 回溯 ────────────────────────────────────────────────────
   { id: 46, slug: '046_permutations', title: '全排列', titleEn: 'Permutations', category: '回溯', difficulty: 'Medium', tags: ['数组', '回溯'], hasVisualization: true },
   { id: 78, slug: '078_subsets', title: '子集', titleEn: 'Subsets', category: '回溯', difficulty: 'Medium', tags: ['位运算', '回溯'], hasVisualization: true },
-  { id: 39, slug: '039_combination_sum', title: '组合总和', titleEn: 'Combination Sum', category: '回溯', difficulty: 'Medium', tags: ['数组', '回溯'], hasVisualization: true },
+  { id: 17, slug: '017_phone_number_sets', title: '电话号码的字母组合', titleEn: 'Phone Number Sets', category: '回溯', difficulty: 'Medium', tags: ['位运算', '回溯'], hasVisualization: true },
+  { id: 39, slug: '039_combination_sum', title: '组合总和', titleEn: 'Combination Sum', category: '回溯', difficulty: 'Medium', tags: ['字符串', '回溯'], hasVisualization: true },
   { id: 22, slug: '022_generate_parentheses', title: '括号生成', titleEn: 'Generate Parentheses', category: '回溯', difficulty: 'Medium', tags: ['回溯', '动态规划'], hasVisualization: true },
   { id: 79, slug: '079_word_search', title: '单词搜索', titleEn: 'Word Search', category: '回溯', difficulty: 'Medium', tags: ['数组', '回溯', '矩阵'], hasVisualization: true },
   { id: 131, slug: '131_palindrome_partition', title: '分割回文串', titleEn: 'Palindrome Partitioning', category: '回溯', difficulty: 'Medium', tags: ['回溯', '动态规划', 'BFS'], hasVisualization: true },
