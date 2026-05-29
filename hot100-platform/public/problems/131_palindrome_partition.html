@@ -188,11 +188,230 @@
 
     <script>
       const SNIPPETS = {
-        python: `# Python\nclass Solution:\n    def partition(self, s: str) -> List[List[str]]:\n        res = []\n        path = []\n        \n        # 判断子串 s[l:r+1] 是否是回文串\n        def isPalindrome(s: str, l: int, r: int) -> bool:\n            while l < r:\n                if s[l] != s[r]: return False\n                l += 1\n                r -= 1\n            return True\n            \n        def backtrack(startIndex):\n            # 如果切割线到了字符串尽头，说明找到了一组分割方案\n            if startIndex >= len(s):\n                res.append(path[:])\n                return\n                \n            for i in range(startIndex, len(s)):\n                # 如果截取的子串是回文串，才继续往下切\n                if isPalindrome(s, startIndex, i):\n                    path.append(s[startIndex : i + 1])\n                    # 从下一处继续切割\n                    backtrack(i + 1)\n                    # 回溯，撤销上一次的切割\n                    path.pop()\n                # 不是回文串的话直接跳过（剪枝）\n                \n        backtrack(0)\n        return res`,
-        ts: `// TypeScript\nfunction partition(s: string): string[][] {\n    const res: string[][] = [];\n    const path: string[] = [];\n    \n    function isPalindrome(str: string, l: number, r: number): boolean {\n        while (l < r) {\n            if (str[l] !== str[r]) return false;\n            l++; r--;\n        }\n        return true;\n    }\n    \n    function backtrack(startIndex: number) {\n        if (startIndex >= s.length) {\n            res.push([...path]);\n            return;\n        }\n        \n        for (let i = startIndex; i < s.length; i++) {\n            if (isPalindrome(s, startIndex, i)) {\n                path.push(s.substring(startIndex, i + 1));\n                \n                backtrack(i + 1);\n                \n                path.pop();\n            }\n        }\n    }\n    \n    backtrack(0);\n    return res;\n}`,
-        java: `// Java\nclass Solution {\n    public List<List<String>> partition(String s) {\n        List<List<String>> res = new ArrayList<>();\n        List<String> path = new ArrayList<>();\n        backtrack(s, 0, path, res);\n        return res;\n    }\n    \n    private boolean isPalindrome(String s, int l, int r) {\n        while (l < r) {\n            if (s.charAt(l) != s.charAt(r)) return false;\n            l++; r--;\n        }\n        return true;\n    }\n    \n    private void backtrack(String s, int startIndex, List<String> path, List<List<String>> res) {\n        if (startIndex >= s.length()) {\n            res.add(new ArrayList<>(path));\n            return;\n        }\n        \n        for (int i = startIndex; i < s.length(); i++) {\n            if (isPalindrome(s, startIndex, i)) {\n                path.add(s.substring(startIndex, i + 1));\n                \n                backtrack(s, i + 1, path, res);\n                \n                path.remove(path.size() - 1);\n            }\n        }\n    }\n}`,
-        cpp: `// C++\nclass Solution {\npublic:\n    vector<vector<string>> partition(string s) {\n        vector<vector<string>> res;\n        vector<string> path;\n        backtrack(s, 0, path, res);\n        return res;\n    }\n    \n    bool isPalindrome(const string& s, int l, int r) {\n        while (l < r) {\n            if (s[l] != s[r]) return false;\n            l++; r--;\n        }\n        return true;\n    }\n    \n    void backtrack(const string& s, int startIndex, vector<string>& path, vector<vector<string>>& res) {\n        if (startIndex >= s.length()) {\n            res.push_back(path);\n            return;\n        }\n        \n        for (int i = startIndex; i < s.length(); ++i) {\n            if (isPalindrome(s, startIndex, i)) {\n                path.push_back(s.substr(startIndex, i - startIndex + 1));\n                \n                backtrack(s, i + 1, path, res);\n                \n                path.pop_back();\n            }\n        }\n    }\n};`,
-        c: `// C\nbool isPalindrome(char* s, int l, int r) {\n    while (l < r) {\n        if (s[l] != s[r]) return false;\n        l++; r--;\n    }\n    return true;\n}\n\nvoid backtrack(char* s, int len, int startIndex, char** path, int pathSize, \n               char*** res, int* returnSize, int** returnColumnSizes) {\n    if (startIndex >= len) {\n        res[*returnSize] = (char**)malloc(pathSize * sizeof(char*));\n        for (int i = 0; i < pathSize; ++i) {\n            res[*returnSize][i] = (char*)malloc((strlen(path[i]) + 1) * sizeof(char));\n            strcpy(res[*returnSize][i], path[i]);\n        }\n        (*returnColumnSizes)[*returnSize] = pathSize;\n        (*returnSize)++;\n        return;\n    }\n    \n    for (int i = startIndex; i < len; ++i) {\n        if (isPalindrome(s, startIndex, i)) {\n            int subLen = i - startIndex + 1;\n            path[pathSize] = (char*)malloc((subLen + 1) * sizeof(char));\n            strncpy(path[pathSize], s + startIndex, subLen);\n            path[pathSize][subLen] = '\\0';\n            \n            backtrack(s, len, i + 1, path, pathSize + 1, res, returnSize, returnColumnSizes);\n            \n            free(path[pathSize]);\n        }\n    }\n}\n\nchar*** partition(char* s, int* returnSize, int** returnColumnSizes) {\n    int len = strlen(s);\n    int maxPossible = 1 << len; // 最多 2^n 种子集切割\n    \n    char*** res = (char***)malloc(maxPossible * sizeof(char**));\n    *returnColumnSizes = (int*)malloc(maxPossible * sizeof(int));\n    *returnSize = 0;\n    \n    char** path = (char**)malloc(len * sizeof(char*));\n    \n    backtrack(s, len, 0, path, 0, res, returnSize, returnColumnSizes);\n    \n    free(path);\n    return res;\n}`
+        python: `# Python
+class Solution:
+    def partition(self, s: str) -> List[List[str]]:
+        res = []   # 全局结果集，用于保存所有满足条件的完整子串数组
+        path = []  # 局部状态栈，用于维护当前递归路径上的回文子串集合
+        
+        # 辅助函数：利用双指针验证 s[l:r+1] 闭区间内的字符是否对称
+        def isPalindrome(s: str, l: int, r: int) -> bool:
+            while l < r:
+                if s[l] != s[r]: return False # 字符不匹配，直接判定为非回文
+                l += 1
+                r -= 1
+            return True
+            
+        def backtrack(startIndex):
+            # 终止条件：起始索引已达到或超过字符串长度，说明全部字符已分配完毕
+            if startIndex >= len(s):
+                res.append(path[:]) # 创建 path 的深拷贝并存入结果集
+                return
+                
+            # 枚举当前深度下的所有可能结束索引 i
+            for i in range(startIndex, len(s)):
+                # 条件判定：仅当子串 s[startIndex:i+1] 为回文串时，才允许向下递归
+                if isPalindrome(s, startIndex, i):
+                    # 状态写入：将有效回文子串压入当前状态栈
+                    path.append(s[startIndex : i + 1])
+                    
+                    # 递归调用：推进起始指针至 i + 1，处理剩余未验证的字符串
+                    backtrack(i + 1)
+                    
+                    # 状态回溯：弹出栈顶元素，恢复到递归前状态，以便在当前循环中测试下一个 i 值
+                    path.pop()
+                # 若判定非回文，则直接进入下一次循环（等效于分支剪枝）
+                
+        backtrack(0) # 以索引 0 为起点触发深度优先搜索
+        return res`,
+
+        ts: `// TypeScript
+function partition(s: string): string[][] {
+    const res: string[][] = []; // 二维数组存放所有合法的解空间
+    const path: string[] = [];  // 一维数组作为状态容器，记录单次递归链路
+    
+    // 辅助函数：闭区间 [l, r] 的字符序列对称性验证
+    function isPalindrome(str: string, l: number, r: number): boolean {
+        while (l < r) {
+            if (str[l] !== str[r]) return false;
+            l++; r--;
+        }
+        return true;
+    }
+    
+    // 回溯核心控制逻辑
+    function backtrack(startIndex: number) {
+        // 边界条件：当索引超出有效范围时，说明当前序列均符合条件
+        if (startIndex >= s.length) {
+            res.push([...path]); // 展开语法实现数组拷贝，防止后续 pop 操作污染该记录
+            return;
+        }
+        
+        // 线性扫描当前层级可生成的子串长度
+        for (let i = startIndex; i < s.length; i++) {
+            // 合法性校验：过滤无效的非回文序列
+            if (isPalindrome(s, startIndex, i)) {
+                // 更新上下文：捕获有效子串并推入数组
+                path.push(s.substring(startIndex, i + 1));
+                
+                // 下沉：变更偏移量，进入更深层级进行后续子串验证
+                backtrack(i + 1);
+                
+                // 还原上下文：移除末尾元素，回到前驱状态继续循环
+                path.pop();
+            }
+        }
+    }
+    
+    backtrack(0);
+    return res;
+}`,
+
+        java: `// Java
+class Solution {
+    public List<List<String>> partition(String s) {
+        List<List<String>> res = new ArrayList<>(); // 顶层容器
+        List<String> path = new ArrayList<>();      // 路径记录器
+        backtrack(s, 0, path, res);
+        return res;
+    }
+    
+    // 辅助判定逻辑：首尾指针向中心聚拢，时间复杂度 O(N)
+    private boolean isPalindrome(String s, int l, int r) {
+        while (l < r) {
+            if (s.charAt(l) != s.charAt(r)) return false;
+            l++; r--;
+        }
+        return true;
+    }
+    
+    private void backtrack(String s, int startIndex, List<String> path, List<List<String>> res) {
+        // 递归终止条件：游标触及边界
+        if (startIndex >= s.length()) {
+            res.add(new ArrayList<>(path)); // 实例化新的 ArrayList 以固化当前数据组合
+            return;
+        }
+        
+        // 步进长度控制
+        for (int i = startIndex; i < s.length(); i++) {
+            if (isPalindrome(s, startIndex, i)) {
+                // 追加有效回文对象
+                path.add(s.substring(startIndex, i + 1));
+                
+                // 层级递推，起始坐标偏移为 i + 1
+                backtrack(s, i + 1, path, res);
+                
+                // 数据清理，执行后退操作
+                path.remove(path.size() - 1);
+            }
+        }
+    }
+}`,
+
+        cpp: `// C++
+class Solution {
+public:
+    vector<vector<string>> partition(string s) {
+        vector<vector<string>> res;
+        vector<string> path;
+        backtrack(s, 0, path, res);
+        return res;
+    }
+    
+    // 回文判定函数，使用 const 引用避免不必要的字符串拷贝
+    bool isPalindrome(const string& s, int l, int r) {
+        while (l < r) {
+            if (s[l] != s[r]) return false;
+            l++; r--;
+        }
+        return true;
+    }
+    
+    void backtrack(const string& s, int startIndex, vector<string>& path, vector<vector<string>>& res) {
+        // 出口条件：起始索引指向 null 终止符所在的等价偏移量
+        if (startIndex >= s.length()) {
+            res.push_back(path); // vector 支持隐式拷贝构造，直接存入 res
+            return;
+        }
+        
+        // 枚举以 startIndex 为起点的所有可能子区间
+        for (int i = startIndex; i < s.length(); ++i) {
+            // 如果提取范围符合对称约束
+            if (isPalindrome(s, startIndex, i)) {
+                // substr 参数为 (起始位置, 跨度长度)
+                path.push_back(s.substr(startIndex, i - startIndex + 1));
+                
+                // 下探下一级空间
+                backtrack(s, i + 1, path, res);
+                
+                // 撤除对 path 容器末端的数据修改
+                path.pop_back();
+            }
+        }
+    }
+};`,
+
+        c: `// C
+// 由于 C 语言缺少泛型容器，必须手动管理内存块和多级指针
+bool isPalindrome(char* s, int l, int r) {
+    while (l < r) {
+        if (s[l] != s[r]) return false; // 字节比对
+        l++; r--;
+    }
+    return true;
+}
+
+void backtrack(char* s, int len, int startIndex, char** path, int pathSize, 
+               char*** res, int* returnSize, int** returnColumnSizes) {
+    // 终止触发条件：寻址偏移量达到字符串总长
+    if (startIndex >= len) {
+        // 在结果指针数组中分配一个新空间存储当前的路径组合
+        res[*returnSize] = (char**)malloc(pathSize * sizeof(char*));
+        for (int i = 0; i < pathSize; ++i) {
+            // 为具体字符串分配内存，包含空字符 '\\0' 的额外空间
+            res[*returnSize][i] = (char*)malloc((strlen(path[i]) + 1) * sizeof(char));
+            strcpy(res[*returnSize][i], path[i]);
+        }
+        // 记录该组解空间的子串数量
+        (*returnColumnSizes)[*returnSize] = pathSize;
+        (*returnSize)++;
+        return;
+    }
+    
+    for (int i = startIndex; i < len; ++i) {
+        // 执行验证函数拦截无效分配
+        if (isPalindrome(s, startIndex, i)) {
+            int subLen = i - startIndex + 1;
+            // 为临时 path 数组申请字符串挂载内存
+            path[pathSize] = (char*)malloc((subLen + 1) * sizeof(char));
+            strncpy(path[pathSize], s + startIndex, subLen);
+            path[pathSize][subLen] = '\\0'; // 显式写入字符串终止符
+            
+            // 指针及索引下移，注意 pathSize 采用值传递以隐式完成回溯过程中的计数器恢复
+            backtrack(s, len, i + 1, path, pathSize + 1, res, returnSize, returnColumnSizes);
+            
+            // 显式释放堆内存，完成物理状态的还原
+            free(path[pathSize]);
+        }
+    }
+}
+
+char*** partition(char* s, int* returnSize, int** returnColumnSizes) {
+    int len = strlen(s);
+    // 指数级上限预估：对于长度为 n 的字符串，至多存在 2^(n-1) 种可能的组合方式
+    int maxPossible = 1 << len; 
+    
+    char*** res = (char***)malloc(maxPossible * sizeof(char**));
+    *returnColumnSizes = (int*)malloc(maxPossible * sizeof(int));
+    *returnSize = 0;
+    
+    char** path = (char**)malloc(len * sizeof(char*));
+    
+    backtrack(s, len, 0, path, 0, res, returnSize, returnColumnSizes);
+    
+    free(path); // 释放临时指针数组
+    return res;
+}`
       };
 
       let params = { speed: 1.0 };
