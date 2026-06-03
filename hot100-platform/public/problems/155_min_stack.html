@@ -189,11 +189,210 @@
 
     <script>
       const SNIPPETS = {
-        python: `# Python\nclass MinStack:\n    def __init__(self):\n        # 主栈，存储常规的数字\n        self.stack = []\n        # 辅助栈，存储每次 push 操作时的“当前最小元素”\n        self.min_stack = []\n\n    def push(self, val: int) -> None:\n        self.stack.append(val)\n        if not self.min_stack:\n            # 如果是第一个元素，它自身就是最小值\n            self.min_stack.append(val)\n        else:\n            # 否则，当前最小值 = min(新元素, 之前记录的最小值)\n            self.min_stack.append(min(val, self.min_stack[-1]))\n\n    def pop(self) -> None:\n        # 同步弹出，保证两个栈的大小完全一致\n        self.stack.pop()\n        self.min_stack.pop()\n\n    def top(self) -> int:\n        return self.stack[-1]\n\n    def getMin(self) -> int:\n        # 辅助栈的栈顶永远保存着当前主栈中的最小元素\n        return self.min_stack[-1]`,
-        ts: `// TypeScript\nclass MinStack {\n    private stack: number[];\n    private minStack: number[];\n\n    constructor() {\n        this.stack = [];\n        this.minStack = [];\n    }\n\n    push(val: number): void {\n        this.stack.push(val);\n        if (this.minStack.length === 0) {\n            this.minStack.push(val);\n        } else {\n            const currMin = this.minStack[this.minStack.length - 1];\n            this.minStack.push(Math.min(val, currMin));\n        }\n    }\n\n    pop(): void {\n        this.stack.pop();\n        this.minStack.pop();\n    }\n\n    top(): number {\n        return this.stack[this.stack.length - 1];\n    }\n\n    getMin(): number {\n        return this.minStack[this.minStack.length - 1];\n    }\n}`,
-        java: `// Java\nclass MinStack {\n    private Deque<Integer> stack;\n    private Deque<Integer> minStack;\n\n    public MinStack() {\n        stack = new ArrayDeque<>();\n        minStack = new ArrayDeque<>();\n    }\n    \n    public void push(int val) {\n        stack.push(val);\n        if (minStack.isEmpty()) {\n            minStack.push(val);\n        } else {\n            // 比较新值和当前最小栈的栈顶，将较小值入栈\n            minStack.push(Math.min(val, minStack.peek()));\n        }\n    }\n    \n    public void pop() {\n        stack.pop();\n        minStack.pop();\n    }\n    \n    public int top() {\n        return stack.peek();\n    }\n    \n    public int getMin() {\n        return minStack.peek();\n    }\n}`,
-        cpp: `// C++\nclass MinStack {\nprivate:\n    stack<int> st;\n    stack<int> min_st;\n\npublic:\n    MinStack() {}\n    \n    void push(int val) {\n        st.push(val);\n        if (min_st.empty()) {\n            min_st.push(val);\n        } else {\n            min_st.push(min(val, min_st.top()));\n        }\n    }\n    \n    void pop() {\n        st.pop();\n        min_st.pop();\n    }\n    \n    int top() {\n        return st.top();\n    }\n    \n    int getMin() {\n        return min_st.top();\n    }\n};`,
-        c: `// C\ntypedef struct {\n    int* stack;\n    int* min_stack;\n    int top_idx;\n    int capacity;\n} MinStack;\n\nMinStack* minStackCreate() {\n    MinStack* obj = (MinStack*)malloc(sizeof(MinStack));\n    obj->capacity = 10000;\n    obj->stack = (int*)malloc(sizeof(int) * obj->capacity);\n    obj->min_stack = (int*)malloc(sizeof(int) * obj->capacity);\n    obj->top_idx = -1;\n    return obj;\n}\n\nvoid minStackPush(MinStack* obj, int val) {\n    obj->top_idx++;\n    obj->stack[obj->top_idx] = val;\n    if (obj->top_idx == 0) {\n        obj->min_stack[obj->top_idx] = val;\n    } else {\n        int curr_min = obj->min_stack[obj->top_idx - 1];\n        obj->min_stack[obj->top_idx] = (val < curr_min) ? val : curr_min;\n    }\n}\n\nvoid minStackPop(MinStack* obj) {\n    obj->top_idx--;\n}\n\nint minStackTop(MinStack* obj) {\n    return obj->stack[obj->top_idx];\n}\n\nint minStackGetMin(MinStack* obj) {\n    return obj->min_stack[obj->top_idx];\n}\n\nvoid minStackFree(MinStack* obj) {\n    free(obj->stack);\n    free(obj->min_stack);\n    free(obj);\n}`
+        python: `# Python
+class MinStack:
+    def __init__(self):
+        # 主栈，用于存储常规的数据元素
+        self.stack = []
+        # 辅助栈，用于同步存储每次 push 操作时的“当前最小元素”
+        self.min_stack = []
+
+    def push(self, val: int) -> None:
+        # 将新元素压入主栈
+        self.stack.append(val)
+        if not self.min_stack:
+            # 如果辅助栈为空，当前新元素即为当前的最小值
+            self.min_stack.append(val)
+        else:
+            # 否则，比较新元素与当前的最小值，将较小者压入辅助栈
+            self.min_stack.append(min(val, self.min_stack[-1]))
+
+    def pop(self) -> None:
+        # 主栈和辅助栈同步弹出，确保辅助栈的栈顶始终对应主栈当前的最小值
+        self.stack.pop()
+        self.min_stack.pop()
+
+    def top(self) -> int:
+        # 返回主栈的栈顶元素
+        return self.stack[-1]
+
+    def getMin(self) -> int:
+        # 辅助栈的栈顶元素即为当前主栈中的最小值
+        return self.min_stack[-1]`,
+        ts: `// TypeScript
+class MinStack {
+    private stack: number[];
+    private minStack: number[];
+
+    constructor() {
+        // 初始化主栈和辅助栈
+        this.stack = [];
+        this.minStack = [];
+    }
+
+    push(val: number): void {
+        // 新元素压入主栈
+        this.stack.push(val);
+        if (this.minStack.length === 0) {
+            // 若辅助栈为空，直接压入当前值作为首个最小值
+            this.minStack.push(val);
+        } else {
+            // 获取已有最小值，并将新元素与该最小值的较小者压入辅助栈
+            const currMin = this.minStack[this.minStack.length - 1];
+            this.minStack.push(Math.min(val, currMin));
+        }
+    }
+
+    pop(): void {
+        // 两个栈同步执行弹出操作，保持状态一致
+        this.stack.pop();
+        this.minStack.pop();
+    }
+
+    top(): number {
+        // 获取主栈栈顶元素
+        return this.stack[this.stack.length - 1];
+    }
+
+    getMin(): number {
+        // 获取辅助栈栈顶元素（即当前全局最小值）
+        return this.minStack[this.minStack.length - 1];
+    }
+}`,
+        java: `// Java
+class MinStack {
+    private Deque<Integer> stack;
+    private Deque<Integer> minStack;
+
+    public MinStack() {
+        // 使用 ArrayDeque 作为栈的实现，分别初始化主栈和辅助栈
+        stack = new ArrayDeque<>();
+        minStack = new ArrayDeque<>();
+    }
+    
+    public void push(int val) {
+        // 元素正常进入主栈
+        stack.push(val);
+        if (minStack.isEmpty()) {
+            // 辅助栈为空时，当前元素即为初始最小值
+            minStack.push(val);
+        } else {
+            // 比较新值和当前辅助栈的栈顶，将较小值入栈
+            minStack.push(Math.min(val, minStack.peek()));
+        }
+    }
+    
+    public void pop() {
+        // 同步弹出主栈和辅助栈的栈顶元素
+        stack.pop();
+        minStack.pop();
+    }
+    
+    public int top() {
+        // 返回主栈栈顶元素
+        return stack.peek();
+    }
+    
+    public int getMin() {
+        // 返回辅助栈栈顶元素（即当前栈内的最小值）
+        return minStack.peek();
+    }
+}`,
+        cpp: `// C++
+class MinStack {
+private:
+    // st 充当主栈，min_st 充当辅助栈
+    stack<int> st;
+    stack<int> min_st;
+
+public:
+    MinStack() {}
+    
+    void push(int val) {
+        // 将元素压入主栈
+        st.push(val);
+        if (min_st.empty()) {
+            // 辅助栈为空，直接压入初始最小值
+            min_st.push(val);
+        } else {
+            // 取新值和当前最小值的较小者，压入辅助栈
+            min_st.push(min(val, min_st.top()));
+        }
+    }
+    
+    void pop() {
+        // 两个栈同步出栈，保证对应层级的状态同步
+        st.pop();
+        min_st.pop();
+    }
+    
+    int top() {
+        // 获取主栈栈顶元素
+        return st.top();
+    }
+    
+    int getMin() {
+        // 获取辅助栈栈顶元素（全局最小值）
+        return min_st.top();
+    }
+};`,
+        c: `// C
+typedef struct {
+    int* stack;       // 指向主栈数组的内存指针
+    int* min_stack;   // 指向辅助栈数组的内存指针
+    int top_idx;      // 栈顶索引，初始为 -1 表示空栈
+    int capacity;     // 栈的容量大小
+} MinStack;
+
+MinStack* minStackCreate() {
+    // 分配 MinStack 结构体自身内存
+    MinStack* obj = (MinStack*)malloc(sizeof(MinStack));
+    obj->capacity = 10000; // 设定初始容量
+    // 为主栈和辅助栈分配对应容量的连续内存空间
+    obj->stack = (int*)malloc(sizeof(int) * obj->capacity);
+    obj->min_stack = (int*)malloc(sizeof(int) * obj->capacity);
+    obj->top_idx = -1; // 初始化栈顶索引
+    return obj;
+}
+
+void minStackPush(MinStack* obj, int val) {
+    // 栈顶索引加1，准备存入数据
+    obj->top_idx++;
+    // 将新元素存入主栈的当前索引位
+    obj->stack[obj->top_idx] = val;
+    if (obj->top_idx == 0) {
+        // 如果是首个元素，直接将其记入辅助栈对应位置
+        obj->min_stack[obj->top_idx] = val;
+    } else {
+        // 获取上一层记录的最小值
+        int curr_min = obj->min_stack[obj->top_idx - 1];
+        // 将当前值与上一层最小值做比较，较小者写入辅助栈的当前索引位
+        obj->min_stack[obj->top_idx] = (val < curr_min) ? val : curr_min;
+    }
+}
+
+void minStackPop(MinStack* obj) {
+    // 逻辑弹出：将栈顶索引减1即可。主栈和辅助栈共用 top_idx，实现天然同步
+    obj->top_idx--;
+}
+
+int minStackTop(MinStack* obj) {
+    // 返回主栈当前索引处的元素
+    return obj->stack[obj->top_idx];
+}
+
+int minStackGetMin(MinStack* obj) {
+    // 返回辅助栈当前索引处的元素（即记录的最小值）
+    return obj->min_stack[obj->top_idx];
+}
+
+void minStackFree(MinStack* obj) {
+    // 释放主栈和辅助栈的内存空间，防止内存泄漏
+    free(obj->stack);
+    free(obj->min_stack);
+    // 释放结构体本身的内存空间
+    free(obj);
+}`
       };
 
       let params = { speed: 1.0 };
