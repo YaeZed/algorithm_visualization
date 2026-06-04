@@ -3,17 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>数组中的第K个最大元素 - 算法可视化</title>
+    <title>数组中的第K个最大元素 - 快速选择</title>
 
-    <!-- Core Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
 
-    <!-- Code Highlight Engine -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css" id="hljs-theme" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
@@ -29,13 +37,14 @@
         --anthropic-orange: #d97757;
         --anthropic-blue: #6a9bcc;
         --anthropic-green: #788c5d;
-        --danger: #c75f5f;
       }
 
+      /* Foundation */
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
       .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
 
+      /* Left Sidebar - Controls */
       .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
       .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
       .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
@@ -46,21 +55,23 @@
       .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
       .slider-container { display: flex; align-items: center; gap: 10px; }
       input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
-      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
       .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
       .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
       .button:hover { background: #c86641; }
-      .preset-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
-      .preset { border: 1px solid var(--anthropic-light-gray); background: #fff; border-radius: 6px; padding: 7px 6px; font-family: "JetBrains Mono", monospace; cursor: pointer; color: #555; font-size: 12px; text-align: left; }
-      .preset:hover { border-color: var(--anthropic-orange); color: var(--anthropic-orange); }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
 
+      /* Middle - Canvas */
       .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
-      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; align-items: center; }
+      .stats-badge { background: #eef3ff; color: var(--anthropic-blue); padding: 4px 10px; border-radius: 20px; font-weight: 600; font-family: "JetBrains Mono", monospace; font-size: 12px; border: 1px solid #b8d0f0; }
       #canvas-container { flex: 1; width: 100%; height: 100%; }
 
+      /* Right Panel - Logic & Code */
       .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
 
-      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      /* Code Box (VS Code Dark+ Style) */
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
       .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
       .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
       .box-title { font-size: 12px; font-weight: 600; color: #555; }
@@ -74,6 +85,7 @@
       .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
       #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
 
+      /* Highlight.js CSS Overrides */
       .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
       .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
       .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
@@ -84,16 +96,26 @@
       .hljs-comment { color: #6a9955 !important; }
       .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
 
+      /* Logic Log Box */
       .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
 
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { padding: 4px 8px; background: var(--anthropic-light-gray); color: #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: bold; border: 1px solid #ddd; }
+      .data-node.active { background: var(--anthropic-orange); color: white; border-color: var(--anthropic-orange); }
+
+      /* Auto-scrolling Log */
       .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
       .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
       .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.success { border-left-color: var(--anthropic-green); background: #f5f9f2; }
       .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
 
       ::-webkit-scrollbar { width: 6px; }
       ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
 
+      /* ── 算法速记 ────────────────────────── */
       .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
       .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
       .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
@@ -110,56 +132,83 @@
   <body>
     <div class="container">
       <div class="sidebar">
-        <h1>第 K 个最大元素</h1>
-        <div class="subtitle">堆 (Priority Queue) · 小顶堆解法</div>
+        <h1>LeetCode 215</h1>
+        <div class="subtitle">
+          数组中的第K个最大元素 (快速选择)
+        </div>
 
         <div class="control-section">
-          <h3>预设输入参数</h3>
-          <div class="preset-grid">
-            <button class="preset" onclick="setPreset([3,2,1,5,6,4], 2)">[3,2,1,5,6,4], K=2</button>
-            <button class="preset" onclick="setPreset([3,2,3,1,2,4,5,5,6], 4)">[3,2,3,1...6], K=4</button>
-            <button class="preset" onclick="setPreset([10,9,8,7,6], 3)">递减数组, K=3</button>
-          </div>
+          <h3>场景配置</h3>
+          <input
+            type="number"
+            id="seed-input"
+            class="seed-input"
+            value="2026"
+            onchange="updateSeed()"
+          />
+          <button class="button" onclick="randomSeedAndUpdate()">
+            生成新随机数组
+          </button>
         </div>
 
         <div class="control-section">
           <h3>动画控制</h3>
           <div class="control-group">
-            <label>执行速度</label>
+            <label>运行速度</label>
             <div class="slider-container">
               <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
-              <span class="value-display" id="speed-value">1.0</span>
+              <span class="value-display" id="speed-value">1.0x</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>数组长度 (N)</label>
+            <div class="slider-container">
+              <input type="range" id="n" min="5" max="15" step="1" value="10" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">10</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>寻找第 K 大 (K)</label>
+            <div class="slider-container">
+              <input type="range" id="k" min="1" max="10" step="1" value="3" oninput="updateParam('k', this.value)" />
+              <span class="value-display" id="k-value">3</span>
             </div>
           </div>
         </div>
 
         <div class="control-section" style="display: flex; gap: 10px">
           <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
         </div>
 
         <div class="memo-card">
           <h3>算法速记</h3>
           <div class="memo-badges">
-            <span class="memo-badge time">⏱ O(N log K)</span>
-            <span class="memo-badge space">□ O(K)</span>
+            <span class="memo-badge time">⏱ 期望 O(N)</span>
+            <span class="memo-badge space">□ 空间 O(logN)</span>
           </div>
           <div class="memo-tips">
-            <div class="memo-tip">💡 **核心思想**：求第 K 个“最大”元素，我们维护一个大小只有 K 的 **小顶堆 (Min-Heap)**！</div>
-            <div class="memo-tip g">小顶堆的**堆顶**永远是这 K 个元素里**最小**的那一个（也就是排名第 K 大的守门员）。</div>
-            <div class="memo-tip w">当新来的数字比守门员（堆顶）还要大时，说明它有资格进入前 K 名。于是把原堆顶踢走，新数字入堆并重新调整树形。</div>
+            <div class="memo-tip">💡 本质：只进行“一半”的快速排序。基准值归位后，判断目标下标在基准值的左边还是右边，抛弃另一半区间。</div>
+            <div class="memo-tip g">🔍 降序划分：为了让第 K 大的元素直接对应索引 <code>K-1</code>，我们在划分时把<b>大于等于基准值</b>的数都甩到左边。</div>
+            <div class="memo-tip w">⚠️ 随机化防超时：LeetCode 加了很多极端测试用例（如全等数组、逆序数组）。划分前<b>必须</b>随机挑选基准值，否则会退化成 O(N²)。</div>
           </div>
         </div>
       </div>
 
       <div class="canvas-area">
-        <div class="canvas-header" id="phase-header">等待开始...</div>
+        <div class="canvas-header">
+          <span>快速选择划分动画 (降序)</span>
+          <span class="stats-badge" id="target-display">目标：下标 2 (第 3 大)</span>
+        </div>
         <div id="canvas-container"></div>
       </div>
 
       <div class="right-panel">
         <div class="code-box">
           <div class="box-header dark">
-            <div class="box-title dark">最优解代码 (优先队列)</div>
+            <div class="box-title dark">随机快速选择 (降序划分)</div>
             <div id="lang-tabs" class="tabs dark">
               <div class="tab" onclick="switchLang('python')">Python</div>
               <div class="tab" onclick="switchLang('ts')">TS</div>
@@ -173,7 +222,11 @@
 
         <div class="logic-box">
           <div class="box-header" style="border-bottom: 1px solid #eee">
-            <div class="box-title">执行日志 (Step-by-step Log)</div>
+            <div class="box-title">执行逻辑 (Step-by-step)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">当前数组状态</div>
+            <div id="data-nodes" class="data-array"></div>
           </div>
           <div id="log-container" class="log-area"></div>
         </div>
@@ -181,350 +234,651 @@
     </div>
 
     <script>
+      // ==========================================================
+      // REPLACE_CODE_SNIPPETS
+      // ==========================================================
       const SNIPPETS = {
-        python: `# Python\nimport heapq\n\nclass Solution:\n    def findKthLargest(self, nums: List[int], k: int) -> int:\n        # 维护一个大小为 k 的小顶堆\n        min_heap = []\n        \n        for num in nums:\n            heapq.heappush(min_heap, num)\n            # 如果堆的体积超过了 k，就弹出堆顶（目前最小的元素）\n            if len(min_heap) > k:\n                heapq.heappop(min_heap)\n                \n        # 最终堆里剩下的是最大的 k 个元素\n        # 由于是小顶堆，堆顶正好是这 k 个里最小的，即第 k 大\n        return min_heap[0]`,
-        ts: `// TypeScript\nfunction findKthLargest(nums: number[], k: number): number {\n    // TS 没有内置的 PriorityQueue，这里可以用类似 MinPriorityQueue 的第三方库\n    // 或者手写一个简单的堆（动画中即展示了手写堆的调整过程）。\n    const minHeap = new MinPriorityQueue();\n    \n    for (const num of nums) {\n        minHeap.enqueue(num);\n        if (minHeap.size() > k) {\n            minHeap.dequeue();\n        }\n    }\n    \n    return minHeap.front().element;\n}`,
-        java: `// Java\nclass Solution {\n    public int findKthLargest(int[] nums, int k) {\n        // PriorityQueue 默认就是小顶堆 (Min-Heap)\n        PriorityQueue<Integer> pq = new PriorityQueue<>();\n        \n        for (int num : nums) {\n            pq.offer(num);\n            // 维持堆的大小不超过 k\n            if (pq.size() > k) {\n                pq.poll();\n            }\n        }\n        \n        // 堆顶即为第 k 大的元素\n        return pq.peek();\n    }\n}`,
-        cpp: `// C++\nclass Solution {\npublic:\n    int findKthLargest(vector<int>& nums, int k) {\n        // std::priority_queue 默认大顶堆，我们需要使用 greater 实现小顶堆\n        priority_queue<int, vector<int>, greater<int>> minHeap;\n        \n        for (int num : nums) {\n            minHeap.push(num);\n            if (minHeap.size() > k) {\n                minHeap.pop();\n            }\n        }\n        \n        return minHeap.top();\n    }\n};`,
-        c: `// C\n// C 语言需要手动实现二叉堆操作（Heapify, Push, Pop）\n// 动画右侧直接展示了建堆和调整堆的详细过程。`
+        python: `# Python 随机快速选择 (三路划分防超时版)
+import random
+
+class Solution:
+    def findKthLargest(self, nums: List[int], k: int) -> int:
+        # 求第 k 大元素，对应降序数组的下标就是 k - 1
+        target_index = k - 1
+        
+        def quick_select(left: int, right: int) -> int:
+            if left == right:
+                return nums[left]
+                
+            # 1. 随机选择基准值，防止在极端有序数组中退化为 O(N^2)
+            pivot = random.choice(nums[left:right+1])
+            
+            # 2. 三路划分指针初始化
+            l = left      # l 维护的是严格大于 pivot 的区域右边界
+            r = right     # r 维护的是严格小于 pivot 的区域左边界
+            i = left      # i 是当前的扫描指针
+            
+            while i <= r:
+                if nums[i] > pivot:
+                    # 遇到比基准大的数，丢到左边去
+                    nums[l], nums[i] = nums[i], nums[l]
+                    l += 1
+                    i += 1
+                elif nums[i] < pivot:
+                    # 遇到比基准小的数，丢到右边去
+                    # 注意：交换过来的新 nums[i] 还没被检查过，所以 i 不能加 1
+                    nums[r], nums[i] = nums[i], nums[r]
+                    r -= 1
+                else:
+                    # 相等，留在中间区域，直接跳过
+                    i += 1
+            
+            # 循环结束后，区间被划分为三块：
+            # [left, l-1] 严格大于 pivot
+            # [l, r] 完全等于 pivot
+            # [r+1, right] 严格小于 pivot
+            
+            # 3. 判断目标下标落在哪一块
+            if l <= target_index <= r:
+                return pivot # 命中大量重复元素区间，瞬间结束，完美解决全 1 数组超时！
+            elif target_index < l:
+                return quick_select(left, l - 1)
+            else:
+                return quick_select(r + 1, right)
+                
+        return quick_select(0, len(nums) - 1)`,
+        
+        ts: `// TypeScript 随机快速选择 (三路划分防超时版)
+function findKthLargest(nums: number[], k: number): number {
+    const targetIndex = k - 1;
+
+    const quickSelect = (left: number, right: number): number => {
+        if (left === right) return nums[left];
+
+        // 1. 随机选取 Pivot
+        const pivotIdx = Math.floor(Math.random() * (right - left + 1)) + left;
+        const pivot = nums[pivotIdx];
+
+        // 2. 三路划分 (Dutch National Flag)
+        let l = left;    
+        let r = right;   
+        let i = left;    
+
+        while (i <= r) {
+            if (nums[i] > pivot) {
+                // 大于基准，放入左侧区间
+                [nums[l], nums[i]] = [nums[i], nums[l]];
+                l++;
+                i++;
+            } else if (nums[i] < pivot) {
+                // 小于基准，放入右侧区间
+                // i 不自增，因为交换过来的元素依然需要被下一轮循环评估
+                [nums[r], nums[i]] = [nums[i], nums[r]];
+                r--;
+            } else {
+                // 等于基准，扩充中间区间
+                i++;
+            }
+        }
+
+        // 3. 收缩搜索空间
+        if (targetIndex >= l && targetIndex <= r) {
+            // 直接命中等于 pivot 的聚集区，无需继续递归
+            return pivot; 
+        } else if (targetIndex < l) {
+            return quickSelect(left, l - 1);
+        } else {
+            return quickSelect(r + 1, right);
+        }
+    };
+
+    return quickSelect(0, nums.length - 1);
+}`,
+
+        java: `// Java 随机快速选择 (三路划分防超时版)
+class Solution {
+    Random rand = new Random();
+
+    public int findKthLargest(int[] nums, int k) {
+        return quickSelect(nums, 0, nums.length - 1, k - 1);
+    }
+
+    private int quickSelect(int[] nums, int left, int right, int target) {
+        if (left == right) return nums[left];
+
+        // 1. 随机获取基准值
+        int pivot = nums[left + rand.nextInt(right - left + 1)];
+
+        // 2. 荷兰国旗三路划分
+        int l = left;
+        int r = right;
+        int i = left;
+
+        while (i <= r) {
+            if (nums[i] > pivot) {
+                swap(nums, l++, i++);
+            } else if (nums[i] < pivot) {
+                swap(nums, i, r--); // 换过来的元素尚未检查，i 保持原地不动
+            } else {
+                i++;
+            }
+        }
+
+        // 3. 判断区间并剪枝
+        if (target >= l && target <= r) {
+            return pivot;
+        } else if (target < l) {
+            return quickSelect(nums, left, l - 1, target);
+        } else {
+            return quickSelect(nums, r + 1, right, target);
+        }
+    }
+
+    private void swap(int[] nums, int a, int b) {
+        int temp = nums[a];
+        nums[a] = nums[b];
+        nums[b] = temp;
+    }
+}`,
+
+        cpp: `// C++ 随机快速选择 (三路划分防超时版)
+class Solution {
+public:
+    int findKthLargest(vector<int>& nums, int k) {
+        // C++ 初始化随机数种子
+        srand(time(nullptr)); 
+        return quickSelect(nums, 0, nums.size() - 1, k - 1);
+    }
+
+private:
+    int quickSelect(vector<int>& nums, int left, int right, int targetIndex) {
+        if (left == right) return nums[left];
+
+        // 1. 选取随机基准值
+        int pivotIdx = left + rand() % (right - left + 1);
+        int pivot = nums[pivotIdx];
+
+        // 2. 三向切分 (降序逻辑)
+        int l = left;
+        int r = right;
+        int i = left;
+        
+        while (i <= r) {
+            if (nums[i] > pivot) {
+                swap(nums[l++], nums[i++]);
+            } else if (nums[i] < pivot) {
+                swap(nums[r--], nums[i]); // i 不自增
+            } else {
+                i++;
+            }
+        }
+
+        // 3. 区间命中判断
+        if (targetIndex >= l && targetIndex <= r) {
+            return pivot; 
+        } else if (targetIndex < l) {
+            return quickSelect(nums, left, l - 1, targetIndex);
+        } else {
+            return quickSelect(nums, r + 1, right, targetIndex);
+        }
+    }
+};`,
+
+        c: `// C 语言 随机快速选择 (三路划分防超时版)
+void swap(int* a, int* b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+int quickSelect(int* nums, int left, int right, int targetIndex) {
+    if (left == right) return nums[left];
+
+    // 1. 随机化挑选基准
+    int pivotIdx = left + rand() % (right - left + 1);
+    int pivot = nums[pivotIdx];
+
+    // 2. 维持三个指针，完成 O(N) 级别的一次遍历划分
+    int l = left;
+    int r = right;
+    int i = left;
+    
+    while (i <= r) {
+        if (nums[i] > pivot) {
+            swap(&nums[l], &nums[i]);
+            l++;
+            i++;
+        } else if (nums[i] < pivot) {
+            swap(&nums[r], &nums[i]);
+            r--; // 再次确认交换回来的元素
+        } else {
+            i++;
+        }
+    }
+
+    // 3. 递归收缩搜索空间
+    if (targetIndex >= l && targetIndex <= r) {
+        return pivot;
+    } else if (targetIndex < l) {
+        return quickSelect(nums, left, l - 1, targetIndex);
+    } else {
+        return quickSelect(nums, r + 1, right, targetIndex);
+    }
+}
+
+int findKthLargest(int* nums, int numsSize, int k) {
+    srand((unsigned)time(NULL));
+    return quickSelect(nums, 0, numsSize - 1, k - 1);
+}`
       };
 
-      let params = { speed: 1.0 };
-      let isDone = false, isPaused = false, p5Timer = 0;
-      let currentLang = "python";
+      // ==========================================================
+      // STATE VARIABLES
+      // ==========================================================
+      const LANG_VARS = {
+          python: { i: 'i', j: 'j', pivot: 'pivot' },
+          ts:     { i: 'i', j: 'j', pivot: 'pivot' },
+          java:   { i: 'i', j: 'j', pivot: 'pivot' },
+          cpp:    { i: 'i', j: 'j', pivot: 'pivot' },
+          c:      { i: 'i', j: 'j', pivot: 'pivot' },
+      };
+      let currentLang = 'python';
 
-      let NUMS = [3, 2, 1, 5, 6, 4];
-      let K = 2;
+      let params = { seed: 2026, speed: 1.0, n: 10, k: 3 };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // Algorithm State
+      let arr = []; // Array of { val, id, logicalIdx, x, targetX, state }
+      let nodeMap = {}; // id -> Node object reference
+      let L = 0;
+      let R = 0;
+      let targetIndex = 0;
       
-      let state = null;
-      let gen = null;
+      let state_i = 0;
+      let state_j = 0;
+      let pivotFinalIdx = 0;
+      
+      // mode = 'INIT', 'PICK_PIVOT', 'SCAN', 'SWAP_J', 'SWAP_PIVOT', 'CHECK', 'DONE'
+      let mode = 'INIT';
+
+      // UI visual positions
+      let ptrI_x = 0;
+      let ptrJ_x = 0;
+
+      // ==========================================================
+      // P5.js LOGIC
+      // ==========================================================
 
       function setup() {
         let container = document.getElementById("canvas-container");
-        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 300);
         canvas.parent("canvas-container");
-        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        window.addEventListener("resize", () => {
+          if (container.offsetWidth > 0 && container.offsetHeight > 0) {
+            resizeCanvas(container.offsetWidth, container.offsetHeight);
+          }
+        });
+        
         switchLang("python");
         initializeSystem();
       }
 
-      function* heapGen() {
-          let heap = [];
-          
-          yield { phase: "START", heap: [...heap], i: -1, msg: `目标：使用大小为 ${K} 的小顶堆，找出第 ${K} 大元素。` };
-          
-          for (let i = 0; i < NUMS.length; i++) {
-              let val = NUMS[i];
-              yield { phase: "READ", i, val, heap: [...heap], msg: `读取数字 <b>${val}</b>，准备入堆` };
-              
-              // PUSH
-              heap.push(val);
-              yield { phase: "PUSH", i, val, heap: [...heap], highlightIdx: heap.length - 1, msg: `将其添加到堆的末尾（树的最后一片叶子）` };
-              
-              // BUBBLE UP (Swap Up)
-              let curr = heap.length - 1;
-              while (curr > 0) {
-                  let parent = Math.floor((curr - 1) / 2);
-                  yield { phase: "COMPARE_UP", i, heap: [...heap], curr, parent, msg: `向上调整：比较节点 <b>${heap[curr]}</b> 和它的父节点 <b>${heap[parent]}</b>` };
-                  
-                  if (heap[curr] < heap[parent]) {
-                      let temp = heap[curr];
-                      heap[curr] = heap[parent];
-                      heap[parent] = temp;
-                      yield { phase: "SWAP_UP", i, heap: [...heap], curr: parent, prev: curr, msg: `因为 ${heap[parent]} < ${heap[curr]}（子比父小），执行<b>交换 (Swap Up)</b>，维护小顶堆性质！` };
-                      curr = parent;
-                  } else {
-                      yield { phase: "NO_SWAP_UP", i, heap: [...heap], curr, parent, msg: `子节点不小于父节点，向上调整完毕。` };
-                      break;
-                  }
-              }
-              
-              // CHECK K SIZE
-              if (heap.length > K) {
-                  yield { phase: "OVERFLOW", i, heap: [...heap], msg: `堆的容量 (${heap.length}) 超过了限制 K=${K}！需要把最小的数字（堆顶）请出去。` };
-                  
-                  let minVal = heap[0];
-                  let lastVal = heap.pop();
-                  
-                  if (heap.length > 0) {
-                      heap[0] = lastVal;
-                      yield { phase: "REPLACE_ROOT", i, heap: [...heap], minVal, msg: `弹出堆顶 <b>${minVal}</b>，将堆尾元素 <b>${lastVal}</b> 移到堆顶。` };
-                      
-                      // BUBBLE DOWN (Swap Down)
-                      let curr = 0;
-                      while (true) {
-                          let left = 2 * curr + 1;
-                          let right = 2 * curr + 2;
-                          let smallest = curr;
-                          
-                          if (left < heap.length) {
-                              yield { phase: "COMPARE_DOWN", i, heap: [...heap], curr, target: left, msg: `向下调整：比较当前节点 <b>${heap[curr]}</b> 和左孩子 <b>${heap[left]}</b>` };
-                              if (heap[left] < heap[smallest]) smallest = left;
-                          }
-                          if (right < heap.length) {
-                              yield { phase: "COMPARE_DOWN", i, heap: [...heap], curr: smallest, target: right, msg: `向下调整：比较当前最小节点 <b>${heap[smallest]}</b> 和右孩子 <b>${heap[right]}</b>` };
-                              if (heap[right] < heap[smallest]) smallest = right;
-                          }
-                          
-                          if (smallest !== curr) {
-                              let temp = heap[curr];
-                              heap[curr] = heap[smallest];
-                              heap[smallest] = temp;
-                              yield { phase: "SWAP_DOWN", i, heap: [...heap], curr: smallest, prev: curr, msg: `将父节点与较小的孩子 <b>${heap[smallest]}</b> <b>交换 (Swap Down)</b>！` };
-                              curr = smallest;
-                          } else {
-                              yield { phase: "NO_SWAP_DOWN", i, heap: [...heap], curr, msg: `父节点已经比所有孩子都小，向下调整完毕。` };
-                              break;
-                          }
-                      }
-                  } else {
-                      yield { phase: "POP_ONLY", i, heap: [...heap], msg: `堆弹空了。` };
-                  }
-              }
-          }
-          
-          yield { phase: "DONE", heap: [...heap], result: heap[0], i: NUMS.length, msg: `遍历结束！留在堆顶的 <b>${heap[0]}</b> 就是排名第 ${K} 的最大元素！` };
-      }
-
       function initializeSystem() {
+        // Enforce constraint: K cannot exceed N
+        let maxK = parseInt(document.getElementById("n").value);
+        let kInput = document.getElementById("k");
+        kInput.max = maxK;
+        if (parseInt(kInput.value) > maxK) kInput.value = maxK;
+        params.k = parseInt(kInput.value);
+        
+        document.getElementById("k-value").textContent = params.k;
+        document.getElementById("target-display").textContent = `目标：下标 ${params.k - 1} (第 ${params.k} 大)`;
+
+        randomSeed(params.seed);
+
+        // Generate Random Array (1 to 99)
+        arr = [];
+        nodeMap = {};
+        for (let idx = 0; idx < params.n; idx++) {
+          let v = Math.floor(random(10, 99));
+          let id = "node_" + idx;
+          let obj = { val: v, id: id, state: 'NORMAL' }; // state: NORMAL, SEARCH, PIVOT, DONE
+          arr.push(obj);
+          
+          nodeMap[id] = {
+              val: v,
+              id: id,
+              x: 0,
+              targetX: 0
+          };
+        }
+
+        L = 0;
+        R = arr.length - 1;
+        targetIndex = params.k - 1;
+        mode = 'NEW_PARTITION';
+
         isDone = false;
         isPaused = false;
         p5Timer = 0;
-        state = null;
 
-        gen = heapGen();
-        state = gen.next().value;
+        // Initialize positions instantly
+        updateLayout(true); 
+        ptrI_x = getBoxX(L);
+        ptrJ_x = getBoxX(L);
 
         let btn = document.getElementById("pause-btn");
-        if (btn) { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        updateDataUI();
         document.getElementById("log-container").innerHTML = "";
-        
-        let headerEl = document.getElementById("phase-header");
-        if (headerEl) headerEl.innerHTML = `▶ 阶段：扫描数组，维护容量为 ${K} 的小顶堆`;
-        logMsg(`✅ 载入数组: [${NUMS.join(", ")}], 目标: 第 ${K} 大元素`, true);
+        logMsg(`✅ 数组初始化完成。寻找第 <b>${params.k}</b> 大元素，等同于降序排序后寻找下标 <b>${targetIndex}</b>。`, true);
       }
 
-      function setPreset(arr, k) {
-          NUMS = arr;
-          K = k;
-          initializeSystem();
+      function getBoxX(logicalIdx) {
+          const boxW = 40;
+          const gap = 10;
+          const totalW = arr.length * boxW + (arr.length - 1) * gap;
+          const startX = (width - totalW) / 2;
+          return startX + logicalIdx * (boxW + gap);
       }
 
-      function drawVisuals() {
-          let s = state;
-          if (!s) return;
-          
-          let w = width;
-          let h = height;
-          
-          // --- 1. Draw Array ---
-          let arrayY = 80;
-          let boxW = 40;
-          let spacing = 50;
-          let startX = w/2 - (NUMS.length * spacing) / 2 + boxW/2;
-          
-          fill(150); noStroke(); textAlign(LEFT, BOTTOM); textSize(14); textStyle(BOLD);
-          text("输入数组 (扫描进度)", startX - boxW/2, arrayY - 20);
-          textStyle(NORMAL);
-          
-          for (let k = 0; k < NUMS.length; k++) {
-              let bx = startX + k * spacing;
-              let isCurrent = (k === s.i);
-              let isProcessed = (k < s.i);
-              
-              if (isCurrent) { fill(254, 215, 170); stroke(234, 88, 12); strokeWeight(2); }
-              else if (isProcessed) { fill(245); stroke(220); strokeWeight(1); }
-              else { fill(255); stroke(200); strokeWeight(1); }
-              
-              rect(bx - boxW/2, arrayY, boxW, boxW, 6);
-              
-              fill(isProcessed && !isCurrent ? 150 : 50); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
-              text(NUMS[k], bx, arrayY + boxW/2);
-              textStyle(NORMAL);
-              
-              if (isCurrent && s.phase !== "DONE") {
-                  fill(249, 115, 22);
-                  triangle(bx - 6, arrayY - 12, bx + 6, arrayY - 12, bx, arrayY - 4);
-              }
-          }
-          
-          // --- 2. Draw Min-Heap Tree ---
-          let treeYBase = 220;
-          fill(150); noStroke(); textAlign(CENTER, BOTTOM); textSize(14); textStyle(BOLD);
-          text(`小顶堆 (Min-Heap, 最大容量 K=${K})`, w/2, treeYBase - 30);
-          textStyle(NORMAL);
-          
-          drawHeapTree(s.heap, w/2, treeYBase, s);
-          
-          // --- 3. Draw Done Result ---
-          if (s.phase === "DONE") {
-              let resY = treeYBase + 220;
-              fill(220, 252, 231); stroke(34, 197, 94); strokeWeight(2);
-              rect(w/2 - 120, resY, 240, 50, 8);
-              fill(21, 128, 61); noStroke(); textAlign(CENTER, CENTER); textSize(18); textStyle(BOLD);
-              text(`答案: ${s.result}`, w/2, resY + 25);
-              textStyle(NORMAL);
-          }
-      }
-      
-      function drawHeapTree(heap, startX, startY, s) {
-          if (!heap || heap.length === 0) return;
-          
-          let pos = [];
-          let levelHeight = 65;
-          let nodeRadius = 22; // 44 diameter
-          
-          // Calculate positions
-          for (let i = 0; i < heap.length; i++) {
-              let level = Math.floor(Math.log2(i + 1));
-              let levelNodes = Math.pow(2, level);
-              let indexInLevel = i - (levelNodes - 1);
-              
-              // We space them so they look like a proper binary tree.
-              // Top root is at startX.
-              // Level 1 spreads left and right by 100.
-              // Level 2 spreads by 50.
-              let spread = 120 / Math.max(1, level); // simple heuristic
-              let xOffset = 0;
-              if (levelNodes > 1) {
-                  let totalWidth = spread * (levelNodes - 1);
-                  xOffset = -totalWidth/2 + indexInLevel * spread;
-              }
-              
-              let x = startX + xOffset;
-              let y = startY + level * levelHeight;
-              pos.push({x, y});
-          }
-          
-          // Draw Edges
-          for (let i = 1; i < heap.length; i++) {
-              let parent = Math.floor((i - 1) / 2);
-              
-              let isComparingUp = (s.phase === "COMPARE_UP" && i === s.curr && parent === s.parent);
-              let isSwappingUp = (s.phase === "SWAP_UP" && i === s.prev && parent === s.curr);
-              let isComparingDown = (s.phase === "COMPARE_DOWN" && i === s.target && parent === s.curr);
-              let isSwappingDown = (s.phase === "SWAP_DOWN" && i === s.curr && parent === s.prev);
-              
-              if (isComparingUp || isComparingDown) {
-                  stroke(249, 115, 22); strokeWeight(4);
-              } else if (isSwappingUp || isSwappingDown) {
-                  stroke(34, 197, 94); strokeWeight(4);
-              } else {
-                  stroke(200); strokeWeight(2);
-              }
-              
-              line(pos[parent].x, pos[parent].y, pos[i].x, pos[i].y);
-          }
-          
-          // Draw Nodes
-          for (let i = 0; i < heap.length; i++) {
-              let isHighlight = false;
-              let isWarning = false;
-              
-              if (s.phase === "PUSH" && i === s.highlightIdx) isHighlight = true;
-              if (s.phase === "REPLACE_ROOT" && i === 0) isHighlight = true;
-              if ((s.phase === "COMPARE_UP" || s.phase === "SWAP_UP") && (i === s.curr || i === s.parent || i === s.prev)) isHighlight = true;
-              if ((s.phase === "COMPARE_DOWN" || s.phase === "SWAP_DOWN") && (i === s.curr || i === s.target || i === s.prev)) isHighlight = true;
-              
-              if (s.phase === "OVERFLOW" && i === 0) isWarning = true; // highlight root before popping
-              
-              if (isWarning) {
-                  fill(254, 202, 202); stroke(239, 68, 68);
-              } else if (isHighlight) {
-                  fill(254, 240, 138); stroke(202, 138, 4);
-              } else if (s.phase === "DONE" && i === 0) {
-                  fill(220, 252, 231); stroke(34, 197, 94);
-              } else {
-                  fill(255); stroke(150);
-              }
-              
-              strokeWeight(2);
-              ellipse(pos[i].x, pos[i].y, nodeRadius * 2, nodeRadius * 2);
-              
-              fill(50); noStroke(); textAlign(CENTER, CENTER); textSize(16); textStyle(BOLD);
-              text(heap[i], pos[i].x, pos[i].y);
-              textStyle(NORMAL);
-              
-              // Small index label
-              fill(150); textSize(10);
-              text(i, pos[i].x + nodeRadius + 10, pos[i].y + nodeRadius);
+      function updateLayout(instant = false) {
+          for (let idx = 0; idx < arr.length; idx++) {
+              let n = nodeMap[arr[idx].id];
+              n.targetX = getBoxX(idx);
+              if (instant) n.x = n.targetX;
           }
       }
 
       function draw() {
         background(255);
-        if (state) drawVisuals();
 
+        // Calculate layout continuously for smooth resizing/lerping
+        updateLayout();
+
+        // Execution Clock
         if (!isDone && !isPaused) {
-          p5Timer += 0.015 * params.speed;
-          // Dynamically adjust wait time based on phase to make it look nicer
-          let waitLimit = 1.0;
-          if (state && (state.phase === "READ" || state.phase === "NO_SWAP_UP" || state.phase === "NO_SWAP_DOWN")) waitLimit = 0.6;
-          
-          if (p5Timer > waitLimit) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
             p5Timer = 0;
             performStep();
           }
         }
+
+        // --- Render Background Search Zone ---
+        if (!isDone && L <= R) {
+            const yCenter = height / 2;
+            const boxW = 40;
+            let xLeft = getBoxX(L) - 5;
+            let xRight = getBoxX(R) + boxW + 5;
+            fill(240, 245, 250);
+            noStroke();
+            rect(xLeft, yCenter - 30, xRight - xLeft, 60, 8);
+            
+            fill(150, 180, 210);
+            textSize(10);
+            textAlign(CENTER, TOP);
+            text("当前搜索区间 [L, R]", (xLeft + xRight)/2, yCenter - 45);
+        }
+
+        // --- Render Nodes ---
+        const yCenter = height / 2;
+        for (let idx = 0; idx < arr.length; idx++) {
+            let data = arr[idx];
+            let n = nodeMap[data.id];
+            
+            // Lerp position
+            n.x = lerp(n.x, n.targetX, 0.2 * params.speed);
+            
+            // Style based on state
+            let boxCol = color(255);
+            let strokeCol = color(200);
+            let textCol = color(50);
+            let thick = 1;
+
+            if (idx === targetIndex) {
+                // Target index visual indicator base
+                strokeCol = color('#6a9bcc'); // anthropic-blue
+                thick = 2;
+            }
+
+            if (data.state === 'PIVOT') {
+                boxCol = color(217, 119, 87); // orange
+                strokeCol = color(200, 100, 50);
+                textCol = color(255);
+            } else if (data.state === 'DONE') {
+                boxCol = color(120, 140, 93); // green
+                strokeCol = color(100, 120, 70);
+                textCol = color(255);
+            } else if (data.state === 'REJECTED') {
+                boxCol = color(245);
+                strokeCol = color(230);
+                textCol = color(200);
+            } else if (idx >= L && idx <= R) {
+                boxCol = color(255);
+                strokeCol = color(150);
+            } else {
+                boxCol = color(250);
+                strokeCol = color(220);
+                textCol = color(180);
+            }
+
+            fill(boxCol);
+            stroke(strokeCol);
+            strokeWeight(thick);
+            rect(n.x, yCenter - 20, 40, 40, 6);
+
+            noStroke();
+            fill(textCol);
+            textSize(16);
+            textAlign(CENTER, CENTER);
+            text(data.val, n.x + 20, yCenter);
+
+            // Index labels below
+            fill(idx === targetIndex ? '#6a9bcc' : 180);
+            textSize(10);
+            text("[" + idx + "]", n.x + 20, yCenter + 35);
+        }
+
+        // Render target marker
+        let targetX = getBoxX(targetIndex);
+        fill('#6a9bcc');
+        noStroke();
+        textSize(12);
+        textAlign(CENTER, BOTTOM);
+        text("★ 目标位", targetX + 20, yCenter - 30);
+
+        // --- Render Pointers ---
+        if (!isDone && (mode === 'SCAN' || mode === 'SWAP_J' || mode === 'SWAP_PIVOT')) {
+            const vName = LANG_VARS[currentLang];
+            
+            // Pointer i (Bottom)
+            let iTargetX = getBoxX(state_i) + 20;
+            ptrI_x = lerp(ptrI_x, iTargetX, 0.2 * params.speed);
+            
+            fill(217, 119, 87);
+            triangle(ptrI_x, yCenter + 55, ptrI_x - 6, yCenter + 65, ptrI_x + 6, yCenter + 65);
+            text(vName.i, ptrI_x, yCenter + 75);
+
+            // Pointer j (Top)
+            if (mode === 'SCAN' || mode === 'SWAP_J') {
+                let jTargetX = getBoxX(state_j) + 20;
+                ptrJ_x = lerp(ptrJ_x, jTargetX, 0.2 * params.speed);
+                
+                fill('#6a9bcc');
+                triangle(ptrJ_x, yCenter - 55, ptrJ_x - 6, yCenter - 65, ptrJ_x + 6, yCenter - 65);
+                text(vName.j, ptrJ_x, yCenter - 75);
+            }
+        }
       }
 
       function performStep() {
-        let nxt = gen.next();
-        if (nxt.done) {
-            if (!isDone) isDone = true;
-            return;
-        }
+        if (isDone) return;
 
-        state = nxt.value;
-        let s = state;
-        
-        let headerEl = document.getElementById("phase-header");
+        switch(mode) {
+            case 'NEW_PARTITION':
+                if (L > R) {
+                    isDone = true; return; // Safety
+                }
+                if (L === R) {
+                    arr[L].state = 'DONE';
+                    logMsg(`✅ 区间收缩为单一元素 [${L}]，找到目标第 ${params.k} 大元素 <b>${arr[L].val}</b>！`, true);
+                    isDone = true;
+                    updateDataUI();
+                    return;
+                }
+                
+                // Reset states for active zone
+                for (let idx = L; idx <= R; idx++) arr[idx].state = 'NORMAL';
+                
+                logMsg(`📍 开启新一轮划分：搜索区间 [${L}, ${R}]`);
+                mode = 'PICK_PIVOT';
+                break;
 
-        if (s.phase === "START") {
-            logMsg(s.msg, false);
-        } else if (s.phase === "READ") {
-            logMsg(`\n-- 第 ${s.i + 1} 步 --\n👀 ${s.msg}`, false);
-        } else if (s.phase === "PUSH") {
-            logMsg(`📥 ${s.msg}`, false);
-        } else if (s.phase === "COMPARE_UP" || s.phase === "COMPARE_DOWN") {
-            logMsg(`🤔 ${s.msg}`, false);
-        } else if (s.phase === "SWAP_UP" || s.phase === "SWAP_DOWN") {
-            logMsg(`🔄 ${s.msg}`, true);
-        } else if (s.phase === "NO_SWAP_UP" || s.phase === "NO_SWAP_DOWN") {
-            logMsg(`✅ ${s.msg}`, false);
-        } else if (s.phase === "OVERFLOW") {
-            logMsg(`⚠️ ${s.msg}`, true);
-        } else if (s.phase === "REPLACE_ROOT") {
-            logMsg(`🗑️ ${s.msg}`, false);
-        } else if (s.phase === "DONE") {
-            logMsg(`\n🎉 ${s.msg}`, true);
-            if (headerEl) headerEl.innerHTML = "🏁 遍历完成";
+            case 'PICK_PIVOT':
+                let pivotLogicalIdx = Math.floor(random(L, R + 1));
+                logMsg(`🎲 随机选取基准值(Pivot): 索引[${pivotLogicalIdx}] = <b>${arr[pivotLogicalIdx].val}</b>`);
+                
+                // Swap pivot to right end visually and logically
+                let temp = arr[pivotLogicalIdx];
+                arr[pivotLogicalIdx] = arr[R];
+                arr[R] = temp;
+                
+                arr[R].state = 'PIVOT'; // Mark the new right end
+                
+                state_i = L;
+                state_j = L;
+                ptrI_x = getBoxX(state_i) + 20; // Snap to start
+                ptrJ_x = getBoxX(state_j) + 20;
+                
+                mode = 'SCAN';
+                updateDataUI();
+                break;
+
+            case 'SCAN':
+                if (state_j >= R) {
+                    logMsg(`指针 j 扫描结束，准备将基准值归位。`);
+                    mode = 'SWAP_PIVOT';
+                    break;
+                }
+
+                let jVal = arr[state_j].val;
+                let pivotVal = arr[R].val;
+
+                if (jVal >= pivotVal) {
+                    logMsg(`🔍 发现 <b>${jVal}</b> >= 基准 <b>${pivotVal}</b>，准备交换至左侧指针 i 处。`);
+                    mode = 'SWAP_J';
+                } else {
+                    logMsg(`🔍 ${jVal} &lt; 基准 ${pivotVal}，跳过，j 继续右移。`);
+                    state_j++;
+                }
+                break;
+
+            case 'SWAP_J':
+                if (state_i !== state_j) {
+                    let tmp = arr[state_i];
+                    arr[state_i] = arr[state_j];
+                    arr[state_j] = tmp;
+                }
+                state_i++;
+                state_j++;
+                mode = 'SCAN';
+                updateDataUI();
+                break;
+
+            case 'SWAP_PIVOT':
+                // Swap arr[i] with arr[R] (Pivot)
+                logMsg(`🔄 交换 i[${state_i}] 和 R[${R}]，基准值 <b>${arr[R].val}</b> 正式归位！`);
+                let pTmp = arr[state_i];
+                arr[state_i] = arr[R];
+                arr[R] = pTmp;
+                
+                pivotFinalIdx = state_i;
+                arr[pivotFinalIdx].state = 'PIVOT'; // It moved
+                arr[R].state = 'NORMAL'; // Was pivot, now normal
+
+                mode = 'CHECK_RESULT';
+                updateDataUI();
+                break;
+
+            case 'CHECK_RESULT':
+                let finalVal = arr[pivotFinalIdx].val;
+                if (pivotFinalIdx === targetIndex) {
+                    arr[pivotFinalIdx].state = 'DONE';
+                    logMsg(`🎉 完美命中！基准值恰好落在了目标下标 <b>${targetIndex}</b> 上。答案是：<b>${finalVal}</b>`, true);
+                    
+                    // Mark others as rejected for visual clarity
+                    for (let x = 0; x < arr.length; x++) {
+                        if (x !== targetIndex) arr[x].state = 'REJECTED';
+                    }
+                    isDone = true;
+                } else if (pivotFinalIdx > targetIndex) {
+                    logMsg(`📉 基准值在下标 ${pivotFinalIdx}，目标在左侧 [${targetIndex}]，抛弃右侧区间。`, false);
+                    // Reject right half
+                    for (let x = pivotFinalIdx; x <= R; x++) arr[x].state = 'REJECTED';
+                    R = pivotFinalIdx - 1;
+                    mode = 'NEW_PARTITION';
+                } else {
+                    logMsg(`📈 基准值在下标 ${pivotFinalIdx}，目标在右侧 [${targetIndex}]，抛弃左侧区间。`, false);
+                    // Reject left half
+                    for (let x = L; x <= pivotFinalIdx; x++) arr[x].state = 'REJECTED';
+                    L = pivotFinalIdx + 1;
+                    mode = 'NEW_PARTITION';
+                }
+                updateDataUI();
+                break;
         }
       }
 
-      function logMsg(msg, highlight = false) {
+      function updateDataUI() {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        arr.forEach((item, idx) => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          if (idx === targetIndex) node.classList.add('active');
+          if (item.state === 'REJECTED') node.style.opacity = "0.3";
+          node.innerText = item.val;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, isSuccess = false) {
         let container = document.getElementById("log-container");
         if (!container) return;
         let item = document.createElement("div");
-        item.className = "log-item" + (highlight ? " highlight" : "");
-        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-        item.innerHTML = `<div class="time">${time}</div><div style="font-family:'JetBrains Mono',monospace">${msg}</div>`;
+        item.className = "log-item" + (isSuccess ? " success" : "");
+        if (msg.includes('⚠️')) item.className = "log-item highlight";
+        let time = new Date().toLocaleTimeString("zh-CN", {
+          hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
         container.appendChild(item);
         container.scrollTop = container.scrollHeight;
       }
 
       function switchLang(lang) {
         currentLang = lang;
-        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
         const tabs = document.querySelectorAll(".tab");
         const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
         tabs[langMap[lang]].classList.add("active");
 
         const codeEl = document.getElementById("code-viewer");
-        const hljsMap = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
+        const hljsMap = {
+          python: "language-python", ts: "language-typescript",
+          java: "language-java", cpp: "language-cpp", c: "language-c",
+        };
         codeEl.className = "hljs " + hljsMap[lang];
         codeEl.textContent = SNIPPETS[lang];
-
         codeEl.removeAttribute("data-highlighted");
         if (window.hljs) hljs.highlightElement(codeEl);
       }
@@ -532,15 +886,39 @@
       function updateParam(id, val) {
         if (id in params) params[id] = parseFloat(val);
         let display = document.getElementById(id + "-value");
-        if (display) display.textContent = val;
+        if (display) {
+            display.textContent = id === 'speed' ? val + 'x' : val;
+        }
+        if (id !== 'speed') initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 2026;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
       }
 
       function togglePause() {
         isPaused = !isPaused;
         let btn = document.getElementById("pause-btn");
         if (!btn) return;
-        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--anthropic-green)"; }
-        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--anthropic-dark)"; }
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        randomSeed(params.seed);
+        initializeSystem();
       }
     </script>
   </body>
