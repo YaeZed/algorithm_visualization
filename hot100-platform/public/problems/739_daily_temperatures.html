@@ -193,11 +193,145 @@
 
     <script>
       const SNIPPETS = {
-        python: `# Python\nclass Solution:\n    def dailyTemperatures(self, temperatures: List[int]) -> List[int]:\n        n = len(temperatures)\n        ans = [0] * n\n        stack = []  # 单调栈，专门用来存下标\n        \n        for i in range(n):\n            t = temperatures[i]\n            # 当栈不为空，且当前温度大于栈顶温度时，说明栈顶元素找到了下一个更高的温度\n            while stack and t > temperatures[stack[-1]]:\n                prev_index = stack.pop()\n                # 计算等待的天数\n                ans[prev_index] = i - prev_index\n            \n            # 当前温度的下标入栈，等待未来比它高的温度来拯救它\n            stack.append(i)\n            \n        return ans`,
-        ts: `// TypeScript\nfunction dailyTemperatures(temperatures: number[]): number[] {\n    const n = temperatures.length;\n    const ans = new Array(n).fill(0);\n    const stack: number[] = []; // 单调递减栈（存下标）\n\n    for (let i = 0; i < n; i++) {\n        const t = temperatures[i];\n        // 如果当前温度打破了单调递减（比栈顶当天的温度高）\n        while (stack.length > 0 && t > temperatures[stack[stack.length - 1]]) {\n            const prevIndex = stack.pop()!;\n            ans[prevIndex] = i - prevIndex; // 答案就是下标差，即等待的天数\n        }\n        // 当前天数入栈\n        stack.push(i);\n    }\n\n    return ans;\n}`,
-        java: `// Java\nclass Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] ans = new int[n];\n        Deque<Integer> stack = new ArrayDeque<>();\n        \n        for (int i = 0; i < n; i++) {\n            int t = temperatures[i];\n            while (!stack.isEmpty() && t > temperatures[stack.peek()]) {\n                int prevIndex = stack.pop();\n                ans[prevIndex] = i - prevIndex;\n            }\n            stack.push(i);\n        }\n        return ans;\n    }\n}`,
-        cpp: `// C++\nclass Solution {\npublic:\n    vector<int> dailyTemperatures(vector<int>& temperatures) {\n        int n = temperatures.size();\n        vector<int> ans(n, 0);\n        stack<int> st;\n        \n        for (int i = 0; i < n; ++i) {\n            int t = temperatures[i];\n            while (!st.empty() && t > temperatures[st.top()]) {\n                int prevIndex = st.top();\n                st.pop();\n                ans[prevIndex] = i - prevIndex;\n            }\n            st.push(i);\n        }\n        \n        return ans;\n    }\n};`,
-        c: `// C\nint* dailyTemperatures(int* temperatures, int temperaturesSize, int* returnSize) {\n    int* ans = (int*)malloc(sizeof(int) * temperaturesSize);\n    memset(ans, 0, sizeof(int) * temperaturesSize);\n    *returnSize = temperaturesSize;\n    \n    int* stack = (int*)malloc(sizeof(int) * temperaturesSize);\n    int top = -1;\n    \n    for (int i = 0; i < temperaturesSize; i++) {\n        int t = temperatures[i];\n        while (top >= 0 && t > temperatures[stack[top]]) {\n            int prevIndex = stack[top--];\n            ans[prevIndex] = i - prevIndex;\n        }\n        stack[++top] = i;\n    }\n    \n    free(stack);\n    return ans;\n}`
+        python: `# Python
+class Solution:
+    def dailyTemperatures(self, temperatures: List[int]) -> List[int]:
+        n = len(temperatures)
+        # 初始化结果数组，默认值为 0。如果某些天找不到更高的温度，其结果保持为 0
+        ans = [0] * n
+        # 单调递减栈：只存储温度的【下标】（索引），因为计算结果需要的是下标差值
+        stack = [] 
+        
+        for i in range(n):
+            t = temperatures[i]
+            # 当栈不为空，且当前遍历到的温度 t 大于栈顶下标对应的历史温度时
+            # 说明当前天 i 就是栈顶那一天之后的“首个升温日”
+            while stack and t > temperatures[stack[-1]]:
+                # 弹出栈顶的历史天数下标
+                prev_index = stack.pop()
+                # 计算天数差，并直接存入结果数组对应的位置
+                ans[prev_index] = i - prev_index
+            
+            # 当前温度处理完毕后，将其下标压入栈中，维持栈的单调递减性质
+            # 等待未来遍历到更高的温度来将其弹出
+            stack.append(i)
+            
+        return ans`,
+
+        ts: `// TypeScript
+function dailyTemperatures(temperatures: number[]): number[] {
+    const n = temperatures.length;
+    // 提前分配好固定长度的数组并填充 0，优化性能
+    const ans = new Array(n).fill(0);
+    // 单调栈，显式声明存储 number 类型的下标
+    const stack: number[] = []; 
+
+    for (let i = 0; i < n; i++) {
+        const t = temperatures[i];
+        
+        // 核心出栈逻辑：持续检查当前温度是否打破了栈内原有的递减状态
+        while (stack.length > 0 && t > temperatures[stack[stack.length - 1]]) {
+            // 使用非空断言 !，因为 while 条件已经保证了 stack.length > 0
+            const prevIndex = stack.pop()!;
+            // 记录已找到更高温度的天数的等待时长
+            ans[prevIndex] = i - prevIndex; 
+        }
+        
+        // 无论刚才是否发生了出栈，当前天的下标最终都需要入栈
+        stack.push(i);
+    }
+
+    return ans;
+}`,
+
+        java: `// Java
+class Solution {
+    public int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        // Java 中基本数据类型数组默认初始化为 0，无需手动 fill
+        int[] ans = new int[n];
+        // 推荐使用 Deque (双端队列的实现 ArrayDeque) 作为栈，比传统的 Stack 类更高效
+        Deque<Integer> stack = new ArrayDeque<>();
+        
+        for (int i = 0; i < n; i++) {
+            int t = temperatures[i];
+            
+            // peek() 仅查看栈顶元素但不移除，用于条件判断
+            while (!stack.isEmpty() && t > temperatures[stack.peek()]) {
+                // 条件满足，pop() 真正移除并获取栈顶元素
+                int prevIndex = stack.pop();
+                // 计算当前下标 i 与历史下标 prevIndex 的距离
+                ans[prevIndex] = i - prevIndex;
+            }
+            // 当前天数下标入栈
+            stack.push(i);
+        }
+        return ans;
+    }
+}`,
+
+        cpp: `// C++
+class Solution {
+public:
+    vector<int> dailyTemperatures(vector<int>& temperatures) {
+        int n = temperatures.size();
+        // 初始化大小为 n，默认值为 0 的 vector
+        vector<int> ans(n, 0);
+        // 标准库提供的栈适配器，存储 int 类型的下标
+        stack<int> st;
+        
+        for (int i = 0; i < n; ++i) {
+            int t = temperatures[i];
+            
+            // st.top() 获取栈顶元素的值
+            while (!st.empty() && t > temperatures[st.top()]) {
+                int prevIndex = st.top();
+                // C++ 的 st.pop() 没有返回值，所以需要先 top() 取出再 pop() 弹出
+                st.pop();
+                // 写入等待天数
+                ans[prevIndex] = i - prevIndex;
+            }
+            
+            st.push(i);
+        }
+        
+        return ans;
+    }
+};`,
+
+        c: `// C
+int* dailyTemperatures(int* temperatures, int temperaturesSize, int* returnSize) {
+    // 动态分配结果数组的内存空间
+    int* ans = (int*)malloc(sizeof(int) * temperaturesSize);
+    // 将分配的内存块全部初始化为 0
+    memset(ans, 0, sizeof(int) * temperaturesSize);
+    // 必须设置返回数组的长度，这是 C 语言 LeetCode 接口的要求
+    *returnSize = temperaturesSize;
+    
+    // C 语言没有标准库栈，使用动态数组手动模拟栈的操作
+    int* stack = (int*)malloc(sizeof(int) * temperaturesSize);
+    // top 为栈顶指针，-1 表示栈为空
+    int top = -1;
+    
+    for (int i = 0; i < temperaturesSize; i++) {
+        int t = temperatures[i];
+        
+        // top >= 0 等同于 !stack.isEmpty()
+        // stack[top] 获取当前栈顶存储的下标
+        while (top >= 0 && t > temperatures[stack[top]]) {
+            // 取出栈顶元素，并将栈顶指针向下移动一位 (相当于 pop)
+            int prevIndex = stack[top--];
+            ans[prevIndex] = i - prevIndex;
+        }
+        
+        // 栈顶指针先向上移动一位，然后将当前下标写入该位置 (相当于 push)
+        stack[++top] = i;
+    }
+    
+    // 防止内存泄漏，释放模拟栈所占用的内存
+    free(stack);
+    return ans;
+}`
       };
 
       let params = { speed: 1.0 };
