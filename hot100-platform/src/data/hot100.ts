@@ -127,6 +127,7 @@ export const HOT100: Problem[] = [
   { id: 155, slug: '155_min_stack', title: '最小栈', titleEn: 'Min Stack', category: '栈', difficulty: 'Medium', tags: ['栈', '设计'], hasVisualization: true },
   { id: 394, slug: '394_decode_string', title: '字符串解码', titleEn: 'Decode String', category: '栈', difficulty: 'Medium', tags: ['栈', '字符串', '递归'], hasVisualization: true },
   { id: 739, slug: '739_daily_temperatures', title: '每日温度', titleEn: 'Daily Temperatures', category: '栈', difficulty: 'Medium', tags: ['栈', '数组', '单调栈'], hasVisualization: true },
+  { id: 84, slug: '84_largest_rectangle_in_histogram', title: '柱状图中最大的矩形', titleEn: 'Largest Rectangle in Histogram', category: '栈', difficulty: 'Hard', tags: ['栈', '数组', '单调栈'], hasVisualization: true },
   { id: 496, slug: '496_next_greater_element', title: '下一个更大元素 I', titleEn: 'Next Greater Element I', category: '栈', difficulty: 'Easy', tags: ['栈', '单调栈', '哈希表'], hasVisualization: true },
 
   // ── 堆 ──────────────────────────────────────────────────────

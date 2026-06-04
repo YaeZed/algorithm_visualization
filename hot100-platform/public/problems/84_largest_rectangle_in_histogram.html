@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>柱状图中最大的矩形 - 算法全流程可视化</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <style>
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
+      .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar { width: 280px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow-y: auto; border: 1px solid var(--anthropic-light-gray); }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
+      .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
+      .slider-container { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange); border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button { background: var(--anthropic-orange); color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500; }
+      .button:hover { background: #c86641; }
+      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+
+      /* Middle - Canvas */
+      .canvas-area { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; display: flex; justify-content: space-between; align-items: center;}
+      .stats-badge { background: #fff3ee; color: var(--anthropic-orange); padding: 4px 10px; border-radius: 20px; font-weight: 600; font-family: "JetBrains Mono", monospace; font-size: 12px; border: 1px solid #f0c8b0; }
+      #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
+      .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+
+      /* Code Box (VS Code Dark+ Style) */
+      .code-box { flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
+      .box-title { font-size: 12px; font-weight: 600; color: #555; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d; transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif; }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides for precise Dark+ accuracy */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box { flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
+      .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+      .data-node { padding: 2px 6px; background: var(--anthropic-blue); color: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: bold; }
+      .data-node.dummy { background: #999; }
+
+      /* Auto-scrolling Log */
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item.success { border-left-color: var(--anthropic-green); background: #f5f9f2; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h1>LeetCode 84</h1>
+        <div class="subtitle">
+          柱状图中最大的矩形 (单调栈最优解)
+        </div>
+
+        <div class="control-section">
+          <h3>场景配置</h3>
+          <input
+            type="number"
+            id="seed-input"
+            class="seed-input"
+            value="12345"
+            onchange="updateSeed()"
+          />
+          <button class="button" onclick="randomSeedAndUpdate()">
+            生成新随机直方图
+          </button>
+        </div>
+
+        <div class="control-section">
+          <h3>动画控制</h3>
+          <div class="control-group">
+            <label>运行速度</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="speed"
+                min="0.1"
+                max="2.5"
+                step="0.1"
+                value="1.0"
+                oninput="updateParam('speed', this.value)"
+              />
+              <span class="value-display" id="speed-value">1.0x</span>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label>柱子数量 (N)</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="n"
+                min="5"
+                max="25"
+                step="1"
+                value="10"
+                oninput="updateParam('n', this.value)"
+              />
+              <span class="value-display" id="n-value">10</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button
+            id="pause-btn"
+            class="button"
+            style="background: var(--anthropic-dark)"
+            onclick="togglePause()"
+          >
+            ⏸ 暂停
+          </button>
+          <button
+            class="button"
+            style="background: var(--anthropic-blue)"
+            onclick="resetAnimation()"
+          >
+            🔄 重新运行
+          </button>
+        </div>
+
+        <div class="memo-card">
+          <h3>算法速记</h3>
+          <div class="memo-badges">
+            <span class="memo-badge time">⏱ 时间 O(N)</span>
+            <span class="memo-badge space">□ 空间 O(N)</span>
+          </div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心思想：利用<b>单调递增栈</b>寻找每一根柱子的左右第一个比它矮的柱子。</div>
+            <div class="memo-tip g">🔍 哨兵技巧：在数组前后各加一个高度为0的“假柱子”。前加0保证栈永远不空，后加0保证遍历结束时栈内所有元素都能被迫弹出结算。</div>
+            <div class="memo-tip w">⚠️ 宽度的计算：当栈顶元素出栈结算时，它的右边界是当前索引 <code>i</code>，左边界是弹栈后的新栈顶，宽度 <code>w = i - 栈顶 - 1</code>。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div class="canvas-header">
+          <span>单调栈扫描与面积计算可视化</span>
+          <span class="stats-badge" id="max-area-display">MAX AREA: 0</span>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="code-box">
+          <div class="box-header dark">
+            <div class="box-title dark">哨兵节点法 (最优 O(N) 解)</div>
+            <div id="lang-tabs" class="tabs dark">
+              <div class="tab" onclick="switchLang('python')">Python</div>
+              <div class="tab" onclick="switchLang('ts')">TS</div>
+              <div class="tab" onclick="switchLang('java')">Java</div>
+              <div class="tab" onclick="switchLang('cpp')">C++</div>
+              <div class="tab" onclick="switchLang('c')">C</div>
+            </div>
+          </div>
+          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+        </div>
+
+        <div class="logic-box">
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
+          <div class="data-viz">
+            <div class="data-title">单调递增栈 (存储索引, 保证高度递增)</div>
+            <div id="data-nodes" class="data-array">
+              </div>
+          </div>
+          <div id="log-container" class="log-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================
+      // REPLACE_CODE_SNIPPETS
+      // ==========================================================
+      const SNIPPETS = {
+        python: `# Python 哨兵技巧 + 单调栈
+class Solution:
+    def largestRectangleArea(self, heights: List[int]) -> int:
+        # 首尾分别添加高度为0的哨兵节点
+        # 左哨兵：保证栈底永远有一个参考元素，无需判断栈空
+        # 右哨兵：保证所有原本在栈里的元素最后都会被弹出来结算
+        heights = [0] + heights + [0]
+        
+        # 栈内存储的是柱子的【索引】，要求对应的柱子高度单调递增
+        stack = []
+        max_area = 0
+        
+        for i, h in enumerate(heights):
+            # 当遇到比栈顶柱子更矮的柱子时，说明栈顶柱子找到了它的【右边界】
+            while stack and heights[stack[-1]] > h:
+                # 弹出栈顶元素作为当前要计算的矩阵的【高度】
+                mid = stack.pop()
+                
+                # 弹栈后的新栈顶，就是刚刚弹出元素的【左边界】
+                # （因为它在单调栈里排在 mid 下面，一定比 mid 矮）
+                left = stack[-1]
+                right = i
+                
+                # 宽度 = 右边界 - 左边界 - 1
+                w = right - left - 1
+                
+                # 更新最大面积
+                max_area = max(max_area, w * heights[mid])
+                
+            # 当前柱子高度 >= 栈顶高度，不破坏单调递增，安全入栈
+            stack.append(i)
+            
+        return max_area`,
+        ts: `// TypeScript 哨兵技巧 + 单调栈
+function largestRectangleArea(heights: number[]): number {
+    // 构造新数组：在首尾加入哨兵节点 0
+    // 首 0 避免了栈为空的边界判断，尾 0 强制清空剩余栈内元素
+    const h = [0, ...heights, 0];
+    
+    // 栈内存放索引
+    const stack: number[] = [];
+    let maxArea = 0;
+    
+    for (let i = 0; i < h.length; i++) {
+        // 若当前柱子低于栈顶柱子，说明栈顶柱子不能再向右扩展了
+        // 开始触发结算逻辑，打破了单调递增性
+        while (stack.length > 0 && h[i] < h[stack[stack.length - 1]]) {
+            // 被结算的柱子索引（高度以此为准）
+            const mid = stack.pop()!;
+            
+            // 此时的栈顶是左侧第一个比它矮的柱子
+            const left = stack[stack.length - 1];
+            // 当前索引 i 也就是右侧第一个比它矮的柱子
+            const right = i;
+            
+            // 计算宽度
+            const w = right - left - 1;
+            
+            // 更新当前最大矩形面积
+            maxArea = Math.max(maxArea, w * h[mid]);
+        }
+        // 当前柱子大于等于栈顶，维持单调递增，压入索引
+        stack.push(i);
+    }
+    
+    return maxArea;
+}`,
+        java: `// Java 哨兵技巧 + 单调栈
+class Solution {
+    public int largestRectangleArea(int[] heights) {
+        // 创建一个长度 +2 的新数组装载哨兵
+        int[] h = new int[heights.length + 2];
+        System.arraycopy(heights, 0, h, 1, heights.length);
+        // h[0] 和 h[h.length - 1] 默认是 0
+        
+        int maxArea = 0;
+        // 推荐使用 Deque 实现栈
+        Deque<Integer> stack = new ArrayDeque<>();
+        
+        for (int i = 0; i < h.length; i++) {
+            // 当前高度严格小于栈顶高度时，可以确定栈顶元素的左右边界
+            while (!stack.isEmpty() && h[i] < h[stack.peek()]) {
+                // 弹出栈顶索引作为高
+                int mid = stack.pop();
+                
+                // 左边界就是新栈顶，右边界就是当前破坏单调性的索引 i
+                int left = stack.peek();
+                int right = i;
+                
+                // 计算当前结算柱子所能扩展的最大面积
+                int w = right - left - 1;
+                maxArea = Math.max(maxArea, w * h[mid]);
+            }
+            // 压入当前索引，维持单调递增
+            stack.push(i);
+        }
+        
+        return maxArea;
+    }
+}`,
+        cpp: `// C++ 哨兵技巧 + 单调栈
+class Solution {
+public:
+    int largestRectangleArea(vector<int>& heights) {
+        // 扩展原数组，前后补 0 形成哨兵
+        // 这样可以避免在 while 循环中频繁判断 !stack.empty() 的越界情况
+        vector<int> h(heights.size() + 2, 0);
+        for(int i = 0; i < heights.size(); ++i){
+            h[i+1] = heights[i];
+        }
+        
+        stack<int> st;
+        int maxArea = 0;
+        
+        for (int i = 0; i < h.size(); ++i) {
+            // 只要遇到比栈顶小的元素，就开始弹栈结算
+            while (!st.empty() && h[i] < h[st.top()]) {
+                int mid = st.top();
+                st.pop();
+                
+                // st.top() 必定存在，因为有开头的 0 哨兵托底
+                int left = st.top();
+                int right = i;
+                
+                int w = right - left - 1;
+                maxArea = max(maxArea, w * h[mid]);
+            }
+            st.push(i);
+        }
+        return maxArea;
+    }
+};`,
+        c: `// C 语言 哨兵技巧 + 单调栈
+int largestRectangleArea(int* heights, int heightsSize) {
+    // 构建哨兵数组
+    int newSize = heightsSize + 2;
+    int* h = (int*)malloc(newSize * sizeof(int));
+    h[0] = 0;
+    for (int i = 0; i < heightsSize; i++) {
+        h[i + 1] = heights[i];
+    }
+    h[newSize - 1] = 0;
+    
+    // C 语言手动模拟栈
+    int* stack = (int*)malloc(newSize * sizeof(int));
+    int top = -1; // 栈顶指针
+    
+    int maxArea = 0;
+    
+    for (int i = 0; i < newSize; i++) {
+        // 维护单调递增栈
+        while (top >= 0 && h[i] < h[stack[top]]) {
+            int mid = stack[top--]; // pop
+            
+            int left = stack[top];  // peek after pop
+            int right = i;
+            
+            int w = right - left - 1;
+            int area = w * h[mid];
+            if (area > maxArea) {
+                maxArea = area;
+            }
+        }
+        // push
+        stack[++top] = i;
+    }
+    
+    free(h);
+    free(stack);
+    return maxArea;
+}`
+      };
+
+      // ==========================================================
+      // STATE VARIABLES
+      // ==========================================================
+      let params = {
+        seed: 12345,
+        speed: 1.0,
+        n: 10,
+      };
+
+      let isDone = false;
+      let isPaused = false;
+      let p5Timer = 0;
+
+      // Algorithm Logic State
+      let arr = [];       // internal array with sentinels
+      let stack = [];     // indices
+      let maxArea = 0;
+      let currI = 0;
+      
+      // Animation State
+      // mode: 'SCAN' -> looking at arr[i]
+      // mode: 'CALC' -> popping and showing calculation
+      let mode = 'SCAN';
+      let calcState = null; // holds { mid, left, right, h, w, area }
+
+      // UI Smoothing
+      let pointerX = 0;
+
+      // ==========================================================
+      // P5.js LOGIC
+      // ==========================================================
+
+      function setup() {
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(
+          container.offsetWidth || 500,
+          container.offsetHeight || 400
+        );
+        canvas.parent("canvas-container");
+        window.addEventListener("resize", () => {
+          if (container.offsetWidth > 0 && container.offsetHeight > 0) {
+            resizeCanvas(container.offsetWidth, container.offsetHeight);
+          }
+        });
+        
+        switchLang("python");
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+
+        // Generate base heights (1 to 20 for visual variance)
+        let baseHeights = [];
+        for (let i = 0; i < params.n; i++) {
+          baseHeights.push(Math.floor(random(2, 20)));
+        }
+        
+        // Add Sentinels (0 at both ends)
+        arr = [0].concat(baseHeights).concat([0]);
+        
+        stack = [];
+        maxArea = 0;
+        currI = 0;
+        mode = 'SCAN';
+        calcState = null;
+        pointerX = 0;
+
+        isDone = false;
+        isPaused = false;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+        
+        document.getElementById('max-area-display').textContent = `MAX AREA: 0`;
+
+        updateDataUI(stack, arr);
+        document.getElementById("log-container").innerHTML = "";
+        logMsg("✅ 演示环境就绪，构造哨兵数组: [0, ...heights, 0]", true);
+      }
+
+      function draw() {
+        background(255);
+        drawHistogram();
+
+        if (!isDone && !isPaused) {
+          p5Timer += 0.015 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
+          }
+        }
+      }
+
+      function drawHistogram() {
+        const paddingLeft = 30;
+        const paddingRight = 30;
+        const paddingBottom = 60;
+        const paddingTop = 40;
+        
+        const usableWidth = width - paddingLeft - paddingRight;
+        const usableHeight = height - paddingBottom - paddingTop;
+        
+        const barWidth = usableWidth / arr.length;
+        const maxH = Math.max(...arr, 20); // Scale reference
+        
+        // Target x position for the pointer
+        let targetX = paddingLeft + currI * barWidth + barWidth / 2;
+        if (currI >= arr.length) targetX = width;
+        pointerX = lerp(pointerX, targetX, 0.15 * params.speed);
+
+        // Draw Bars
+        for (let j = 0; j < arr.length; j++) {
+            let hVal = arr[j];
+            let x = paddingLeft + j * barWidth;
+            let barH = map(hVal, 0, maxH, 0, usableHeight);
+            let y = height - paddingBottom - barH;
+            
+            // Default styling
+            fill(230);
+            stroke(200);
+            strokeWeight(1);
+            
+            // Styling based on state
+            let isDummy = (j === 0 || j === arr.length - 1);
+            
+            if (isDummy) {
+                fill(250, 230, 230);
+                stroke(220, 150, 150);
+                drawingContext.setLineDash([4, 4]); // Dashed line for dummy
+                // Draw a small block to represent dummy 0 height visually
+                rect(x + 2, height - paddingBottom - 10, barWidth - 4, 10, 4);
+                drawingContext.setLineDash([]);
+                
+                fill(150, 50, 50);
+                noStroke();
+                textSize(10);
+                textAlign(CENTER);
+                text("哨兵\n(0)", x + barWidth/2, height - paddingBottom + 15);
+                continue; // Skip normal drawing
+            }
+
+            // Normal Bar Rendering
+            if (stack.includes(j)) {
+                fill(173, 216, 230); // Light blue for elements in stack
+                stroke(100, 150, 200);
+            }
+            
+            if (mode === 'CALC' && calcState) {
+                if (j === calcState.mid) {
+                    fill(255, 180, 120); // Orange for currently calculating
+                    stroke(220, 120, 50);
+                }
+            }
+
+            rect(x + 2, y, barWidth - 4, barH, 4, 4, 0, 0);
+            
+            // Value text
+            fill(100);
+            noStroke();
+            textSize(12);
+            textAlign(CENTER, BOTTOM);
+            text(hVal, x + barWidth/2, y - 5);
+            
+            // Index text
+            fill(180);
+            textSize(10);
+            textAlign(CENTER, TOP);
+            text(j, x + barWidth/2, height - paddingBottom + 5);
+        }
+
+        // Draw calculation overlay rectangle
+        if (mode === 'CALC' && calcState) {
+            let leftBound = paddingLeft + calcState.left * barWidth;
+            // The rectangle actually starts after the left bound
+            let startX = leftBound + barWidth;
+            let calcBarW = (calcState.right - calcState.left - 1) * barWidth;
+            let calcBarH = map(calcState.h, 0, maxH, 0, usableHeight);
+            let y = height - paddingBottom - calcBarH;
+            
+            fill(217, 119, 87, 80); // Translucent anthropic orange
+            stroke(217, 119, 87, 200);
+            strokeWeight(3);
+            rect(startX, y, calcBarW, calcBarH, 2);
+            strokeWeight(1);
+            
+            // Annotation
+            fill(217, 119, 87);
+            noStroke();
+            textSize(14);
+            textAlign(CENTER, BOTTOM);
+            text(`Area: ${calcState.h} × ${calcState.w} = ${calcState.area}`, startX + calcBarW/2, y - 8);
+        }
+
+        // Pointer 'i'
+        if (!isDone) {
+        fill(217, 119, 87);
+        noStroke();
+        
+        // 设置指针顶点 Y 坐标（位于索引文字下方）
+        let tipY = height - paddingBottom + 20;
+        
+        // 画一个朝上的三角形: triangle(x1, y1, x2, y2, x3, y3)
+        // 顶点在上方，两个底角在下方
+        triangle(pointerX, tipY, pointerX - 6, tipY + 10, pointerX + 6, tipY + 10);
+        
+        // 将文字画在三角形底部的正下方
+        textSize(12);
+        textAlign(CENTER, TOP);
+        text("指针 i", pointerX, tipY + 12);
+        }
+      }
+
+      function performStep() {
+        if (currI >= arr.length) {
+            if (!isDone) {
+                isDone = true;
+                logMsg(`🏁 遍历完成！全局最大面积为 <b>${maxArea}</b>`, true);
+                document.getElementById('max-area-display').style.background = '#eef3ff';
+                document.getElementById('max-area-display').style.color = 'var(--anthropic-blue)';
+            }
+            return;
+        }
+
+        if (mode === 'SCAN') {
+            let topIdx = stack[stack.length - 1];
+            let topH = stack.length > 0 ? arr[topIdx] : -1;
+            let currH = arr[currI];
+
+            if (stack.length === 0 || currH >= topH) {
+                // Monotonic property holds, push to stack
+                stack.push(currI);
+                
+                let desc = currH === 0 && currI === 0 ? "压入左哨兵节点" : 
+                           currH === 0 && currI === arr.length - 1 ? "遇到右哨兵，准备清算剩余所有柱子" :
+                           `高度 ${currH} >= 栈顶高度 ${topH}，符合单调递增`;
+                           
+                logMsg(`👉 <b>[下标 ${currI}]</b> ${desc}，压入栈中`, false);
+                updateDataUI(stack, arr);
+                currI++;
+            } else {
+                // Break monotonic property, need to calculate
+                mode = 'CALC';
+                logMsg(`⚠️ <b>[下标 ${currI}]</b> 高度 ${currH} &lt; 栈顶高度 ${topH}，打破单调性，触发出栈结算！`, true);
+            }
+        } 
+        else if (mode === 'CALC') {
+            let mid = stack.pop();
+            let left = stack[stack.length - 1]; // Guaranteed to exist because of left sentinel
+            let right = currI;
+            
+            let w = right - left - 1;
+            let h = arr[mid];
+            let area = w * h;
+            
+            calcState = { mid, left, right, w, h, area };
+            
+            if (area > maxArea) {
+                maxArea = area;
+                logMsg(`🌟 计算以高度 <b>${h}</b> 扩展的矩形：宽(i-${left}-1)=${w}。面积 = <b>${area}</b> (🔥 刷新最大值)`);
+                document.getElementById('max-area-display').textContent = `MAX AREA: ${maxArea}`;
+            } else {
+                logMsg(`结算以高度 <b>${h}</b> 扩展的矩形：宽=${w}。面积 = ${area} (未超越)`);
+            }
+            updateDataUI(stack, arr);
+            
+            // In the next frame, we need to check if the new top of stack is STILL strictly > currH
+            // But we do that by just evaluating the SCAN logic on the same currI.
+            let nextTopIdx = stack[stack.length - 1];
+            if (stack.length > 0 && arr[currI] < arr[nextTopIdx]) {
+                // Stay in CALC mode for next tick
+            } else {
+                // Return to scan mode (the inner while loop finished, ready to push currI)
+                mode = 'SCAN';
+                calcState = null;
+            }
+        }
+      }
+
+      function updateDataUI(stackArr, heightArr) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        stackArr.forEach((idx) => {
+          let node = document.createElement("div");
+          node.className = "data-node";
+          if (heightArr[idx] === 0) node.classList.add('dummy');
+          // Display [index] : height
+          node.innerHTML = `<span style="opacity:0.6">[${idx}]</span>&nbsp;h:${heightArr[idx]}`;
+          container.appendChild(node);
+        });
+      }
+
+      function logMsg(msg, isSuccess = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (isSuccess ? " success" : "");
+        if (msg.includes('⚠️')) item.className = "log-item highlight";
+        let time = new Date().toLocaleTimeString("zh-CN", {
+          hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function switchLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
+        const codeEl = document.getElementById("code-viewer");
+        const hljsMap = {
+          python: "language-python", ts: "language-typescript",
+          java: "language-java", cpp: "language-cpp", c: "language-c",
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
+        codeEl.textContent = SNIPPETS[lang];
+        codeEl.removeAttribute("data-highlighted");
+        if (window.hljs) hljs.highlightElement(codeEl);
+      }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) {
+            display.textContent = id === 'speed' ? val + 'x' : val;
+        }
+        if (id === 'n') initializeSystem();
+      }
+
+      function updateSeed() {
+        params.seed = parseInt(document.getElementById("seed-input").value) || 12345;
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = floor(random(1, 99999));
+        document.getElementById("seed-input").value = params.seed;
+        initializeSystem();
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+      }
+
+      function resetAnimation() {
+        // Keeps same seed, just replays
+        randomSeed(params.seed);
+        initializeSystem();
+      }
+    </script>
+  </body>
+</html>
