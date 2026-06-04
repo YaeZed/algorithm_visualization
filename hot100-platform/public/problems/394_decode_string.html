@@ -192,12 +192,165 @@
 
     <script>
       const SNIPPETS = {
-        python: `# Python\nclass Solution:\n    def decodeString(self, s: str) -> str:\n        stack = []\n        curr_str = ""\n        curr_num = 0\n        \n        for c in s:\n            if c.isdigit():\n                # 处理多位数\n                curr_num = curr_num * 10 + int(c)\n            elif c == '[':\n                # 遇到左括号，把当前积攒的上下文 (curr_str, curr_num) 压栈\n                # 然后重置它们，去解析括号里的新上下文\n                stack.append((curr_str, curr_num))\n                curr_str = ""\n                curr_num = 0\n            elif c == ']':\n                # 遇到右括号，弹出上一层的上下文\n                prev_str, num = stack.pop()\n                # 将当前的子串放大 num 倍，然后拼接到上一层的 prev_str 后面\n                curr_str = prev_str + curr_str * num\n            else:\n                # 遇到字母，直接拼接到当前子串\n                curr_str += c\n                \n        return curr_str`,
-        ts: `// TypeScript\nfunction decodeString(s: string): string {\n    let stack: [string, number][] = [];\n    let currStr = "";\n    let currNum = 0;\n\n    for (let i = 0; i < s.length; i++) {\n        let c = s[i];\n        if (c >= '0' && c <= '9') {\n            currNum = currNum * 10 + parseInt(c);\n        } else if (c === '[') {\n            // 保存上下文\n            stack.push([currStr, currNum]);\n            currStr = "";\n            currNum = 0;\n        } else if (c === ']') {\n            // 还原并拼接\n            let [prevStr, num] = stack.pop()!;\n            currStr = prevStr + currStr.repeat(num);\n        } else {\n            currStr += c;\n        }\n    }\n\n    return currStr;\n}`,
-        java: `// Java\nclass Solution {\n    public String decodeString(String s) {\n        Deque<String> strStack = new LinkedList<>();\n        Deque<Integer> numStack = new LinkedList<>();\n        StringBuilder currStr = new StringBuilder();\n        int currNum = 0;\n        \n        for (char c : s.toCharArray()) {\n            if (Character.isDigit(c)) {\n                currNum = currNum * 10 + (c - '0');\n            } else if (c == '[') {\n                strStack.push(currStr.toString());\n                numStack.push(currNum);\n                currStr = new StringBuilder();\n                currNum = 0;\n            } else if (c == ']') {\n                StringBuilder prevStr = new StringBuilder(strStack.pop());\n                int num = numStack.pop();\n                for (int i = 0; i < num; i++) {\n                    prevStr.append(currStr);\n                }\n                currStr = prevStr;\n            } else {\n                currStr.append(c);\n            }\n        }\n        \n        return currStr.toString();\n    }\n}`,
-        cpp: `// C++\nclass Solution {\npublic:\n    string decodeString(string s) {\n        stack<pair<string, int>> st;\n        string curr_str = "";\n        int curr_num = 0;\n        \n        for (char c : s) {\n            if (isdigit(c)) {\n                curr_num = curr_num * 10 + (c - '0');\n            } else if (c == '[') {\n                st.push({curr_str, curr_num});\n                curr_str = "";\n                curr_num = 0;\n            } else if (c == ']') {\n                auto [prev_str, num] = st.top();\n                st.pop();\n                string temp = prev_str;\n                for (int i = 0; i < num; i++) {\n                    temp += curr_str;\n                }\n                curr_str = temp;\n            } else {\n                curr_str += c;\n            }\n        }\n        return curr_str;\n    }\n};`,
-        c: `// C (略复杂，核心思想相同)\n// C 语言处理字符串扩容和栈操作较为繁琐，通常也是双栈法`
-      };
+        python: `# Python
+class Solution:
+    def decodeString(self, s: str) -> str:
+        # 栈：用于保存进入深层括号前的【外部字符串上下文】和【内部重复倍数】
+        stack = []
+        # curr_str: 当前括号层级正在构建的字符串
+        curr_str = ""
+        # curr_num: 当前正在解析的数字（处理连续多位数字）
+        curr_num = 0
+        
+        for c in s:
+            if c.isdigit():
+                # 处理多位数，例如遇到 "100"，会依次计算 1 -> 10 -> 100
+                curr_num = curr_num * 10 + int(c)
+            elif c == '[':
+                # 遇到左括号：必须保存当前层级的状态，准备进入更深一层
+                # 把当前积攒的上下文 (curr_str, curr_num) 作为一个元组压栈
+                stack.append((curr_str, curr_num))
+                # 重置状态，开始纯净地解析当前括号里的新上下文
+                curr_str = ""
+                curr_num = 0
+            elif c == ']':
+                # 遇到右括号：当前层级的 curr_str 已经收集完毕，需要和外层拼接
+                # 弹出上一层保存的上下文
+                prev_str, num = stack.pop()
+                # 将当前的子串放大 num 倍，然后拼接到上一层的 prev_str 后面
+                # 拼接后的结果成为新的 curr_str，继续参与后续的外层循环
+                curr_str = prev_str + curr_str * num
+            else:
+                # 遇到普通字母，直接拼接到当前层级的子串末尾
+                curr_str += c
+                
+        return curr_str`,
+
+        ts: `// TypeScript
+function decodeString(s: string): string {
+    // 采用元组类型明确界定栈的数据结构：[外层累积的字符串, 将应用于内层的重复倍数]
+    let stack: [string, number][] = [];
+    let currStr = "";
+    let currNum = 0;
+
+    for (let i = 0; i < s.length; i++) {
+        let c = s[i];
+        
+        if (c >= '0' && c <= '9') {
+            // 利用隐式类型转换机制，或者 parseInt 累加多位数字
+            currNum = currNum * 10 + parseInt(c);
+        } else if (c === '[') {
+            // 状态封存：进入新括号前，将当前层级的进度推入栈中保存
+            stack.push([currStr, currNum]);
+            // 清空当前进度，为新一层括号内的字符串收集做准备
+            currStr = "";
+            currNum = 0;
+        } else if (c === ']') {
+            // 状态还原：遇到闭合括号，说明最内层的 currStr 构建完成
+            // 使用非空断言 '!' 排除 undefined 的类型推导，解构出外层状态
+            let [prevStr, num] = stack.pop()!;
+            // 核心拼接逻辑：外层前缀 + 当前字符串的 num 次重复
+            currStr = prevStr + currStr.repeat(num);
+        } else {
+            // 扫描到英文字母，持续构建当前层级的字符串
+            currStr += c;
+        }
+    }
+
+    return currStr;
+}`,
+
+        java: `// Java
+class Solution {
+    public String decodeString(String s) {
+        // Java 中推荐使用 Deque 作为栈的实现，分别维护字符串栈和数字栈
+        Deque<String> strStack = new LinkedList<>();
+        Deque<Integer> numStack = new LinkedList<>();
+        // StringBuilder 相比直接拼接 String 能大幅降低内存重分配的开销
+        StringBuilder currStr = new StringBuilder();
+        int currNum = 0;
+        
+        for (char c : s.toCharArray()) {
+            if (Character.isDigit(c)) {
+                // 字符转数字：利用 ASCII 码偏移量 (c - '0')
+                currNum = currNum * 10 + (c - '0');
+            } else if (c == '[') {
+                // 压栈保存当前状态
+                strStack.push(currStr.toString());
+                numStack.push(currNum);
+                // 重新实例化 StringBuilder 清空当前层级字符串
+                currStr = new StringBuilder();
+                currNum = 0;
+            } else if (c == ']') {
+                // 弹出上一层的字符串上下文，并以此作为基底
+                StringBuilder prevStr = new StringBuilder(strStack.pop());
+                int num = numStack.pop();
+                // 执行重复追加逻辑
+                for (int i = 0; i < num; i++) {
+                    prevStr.append(currStr);
+                }
+                // 更新当前操作指针，指回拼接好的完整长字符串
+                currStr = prevStr;
+            } else {
+                // 普通字符追加
+                currStr.append(c);
+            }
+        }
+        
+        return currStr.toString();
+    }
+}`,
+
+        cpp: `// C++
+class Solution {
+public:
+    string decodeString(string s) {
+        // 使用 std::pair 将前置字符串和倍数绑定，维持状态的高度一致性
+        stack<pair<string, int>> st;
+        string curr_str = "";
+        int curr_num = 0;
+        
+        for (char c : s) {
+            if (isdigit(c)) {
+                // 处理多位整数
+                curr_num = curr_num * 10 + (c - '0');
+            } else if (c == '[') {
+                // 将当前作用域的字符串和即将生效的倍数打包压栈
+                st.push({curr_str, curr_num});
+                // 重置当前作用域变量
+                curr_str = "";
+                curr_num = 0;
+            } else if (c == ']') {
+                // 利用 C++17 引入的结构化绑定 (Structured Binding) 优雅地提取栈顶元素
+                auto [prev_str, num] = st.top();
+                st.pop();
+                
+                // 准备进行字符串拼接
+                string temp = prev_str;
+                for (int i = 0; i < num; i++) {
+                    temp += curr_str;
+                }
+                // 完成当前层级的解码，将结果赋值回 curr_str 以供后续使用
+                curr_str = temp;
+            } else {
+                curr_str += c;
+            }
+        }
+        return curr_str;
+    }
+};`,
+
+        c: `// C (语言特性说明)
+/*
+ * C 语言处理此题的核心难点在于：缺乏内置的动态数组和栈结构。
+ * 1. 内存管理繁琐：无法像高级语言那样使用 '+' 或 repeat() 拼接字符串，
+ * 必须手动调用 malloc/calloc 分配内存，并且要在循环中频繁使用 realloc 动态扩容。
+ * 2. 数据结构需手写：需要自定义一个结构体（Struct）数组来模拟栈，
+ * 或者分别维护一个 int 数组（存倍数）和一个 char* 数组（存指针）作为双栈。
+ * 3. 边界极难控制：需要时刻计算当前字符串的 strlen，并在末尾手动追加 '\\0'。
+ * 因此，核心状态机思想（进栈保存，出栈拼接）虽然完全一致，但代码量通常是其他语言的 3 倍以上。
+ */`
+};
 
       let params = { speed: 1.0 };
       let isDone = false, isPaused = false, p5Timer = 0;
