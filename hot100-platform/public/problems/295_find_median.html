@@ -182,12 +182,142 @@
 
     <script>
       const SNIPPETS = {
-        python: `# Python\nimport heapq\n\nclass MedianFinder:\n    def __init__(self):\n        # max_heap 存较小的一半，Python 里用负数模拟大顶堆\n        self.max_heap = []\n        # min_heap 存较大的一半\n        self.min_heap = []\n\n    def addNum(self, num: int) -> None:\n        # 1. 无论如何，先丢进 max_heap\n        heapq.heappush(self.max_heap, -num)\n        \n        # 2. max_heap 会把里面最大的弹出来，丢给 min_heap\n        heapq.heappush(self.min_heap, -heapq.heappop(self.max_heap))\n        \n        # 3. 维护平衡：保证 len(max_heap) >= len(min_heap)\n        if len(self.min_heap) > len(self.max_heap):\n            heapq.heappush(self.max_heap, -heapq.heappop(self.min_heap))\n\n    def findMedian(self) -> float:\n        if len(self.max_heap) > len(self.min_heap):\n            return -self.max_heap[0]\n        return (-self.max_heap[0] + self.min_heap[0]) / 2.0`,
-        ts: `// TypeScript\nclass MedianFinder {\n    // 使用第三方库或手写 PriorityQueue\n    private maxHeap: MaxPriorityQueue;\n    private minHeap: MinPriorityQueue;\n\n    constructor() {\n        this.maxHeap = new MaxPriorityQueue();\n        this.minHeap = new MinPriorityQueue();\n    }\n\n    addNum(num: number): void {\n        this.maxHeap.enqueue(num);\n        this.minHeap.enqueue(this.maxHeap.dequeue().element);\n        \n        if (this.minHeap.size() > this.maxHeap.size()) {\n            this.maxHeap.enqueue(this.minHeap.dequeue().element);\n        }\n    }\n\n    findMedian(): number {\n        if (this.maxHeap.size() > this.minHeap.size()) {\n            return this.maxHeap.front().element;\n        }\n        return (this.maxHeap.front().element + this.minHeap.front().element) / 2.0;\n    }\n}`,
-        java: `// Java\nclass MedianFinder {\n    private PriorityQueue<Integer> maxHeap;\n    private PriorityQueue<Integer> minHeap;\n\n    public MedianFinder() {\n        maxHeap = new PriorityQueue<>((a, b) -> b - a);\n        minHeap = new PriorityQueue<>();\n    }\n    \n    public void addNum(int num) {\n        maxHeap.add(num);\n        minHeap.add(maxHeap.poll());\n        \n        if (minHeap.size() > maxHeap.size()) {\n            maxHeap.add(minHeap.poll());\n        }\n    }\n    \n    public double findMedian() {\n        if (maxHeap.size() > minHeap.size()) {\n            return maxHeap.peek();\n        }\n        return (maxHeap.peek() + minHeap.peek()) / 2.0;\n    }\n}`,
-        cpp: `// C++\nclass MedianFinder {\n    priority_queue<int> maxHeap;\n    priority_queue<int, vector<int>, greater<int>> minHeap;\npublic:\n    MedianFinder() {}\n    \n    void addNum(int num) {\n        maxHeap.push(num);\n        minHeap.push(maxHeap.top());\n        maxHeap.pop();\n        \n        if (minHeap.size() > maxHeap.size()) {\n            maxHeap.push(minHeap.top());\n            minHeap.pop();\n        }\n    }\n    \n    double findMedian() {\n        if (maxHeap.size() > minHeap.size()) {\n            return maxHeap.top();\n        }\n        return (maxHeap.top() + minHeap.top()) / 2.0;\n    }\n};`,
-        c: `// C\n// C 语言需要手写两个 Heap 结构及调整函数。原理完全一致。`
-      };
+    python: `# Python
+import heapq
+
+class MedianFinder:
+    def __init__(self):
+        # max_heap 存储数据流中较小的一半。Python 原生只有小顶堆，所以存入负数来模拟大顶堆
+        self.max_heap = []
+        # min_heap 存储数据流中较大的一半（标准小顶堆）
+        self.min_heap = []
+
+    def addNum(self, num: int) -> None:
+        # 1. 无论如何，新来的数字先丢进大顶堆（存入负数模拟）
+        heapq.heappush(self.max_heap, -num)
+        
+        # 2. 将大顶堆中最大的元素弹出，丢给小顶堆
+        # 这一步过滤能保证：小顶堆里的所有数字，都绝对大于大顶堆里的所有数字
+        heapq.heappush(self.min_heap, -heapq.heappop(self.max_heap))
+        
+        # 3. 维护数量平衡：我们约定 max_heap 的元素个数要么和 min_heap 相等，要么多 1 个
+        if len(self.min_heap) > len(self.max_heap):
+            # 如果小顶堆数量反超了，就把小顶堆最小的元素还给大顶堆
+            heapq.heappush(self.max_heap, -heapq.heappop(self.min_heap))
+
+    def findMedian(self) -> float:
+        # 如果总数是奇数，因为 max_heap 容纳了多出来的那 1 个，所以它的堆顶就是中位数
+        if len(self.max_heap) > len(self.min_heap):
+            return -self.max_heap[0]
+        # 如果总数是偶数，中位数就是两边堆顶的平均值
+        return (-self.max_heap[0] + self.min_heap[0]) / 2.0`,
+
+    ts: `// TypeScript
+class MedianFinder {
+    // maxHeap 存储数据流中较小的一半（大顶堆）
+    private maxHeap: MaxPriorityQueue<number>;
+    // minHeap 存储数据流中较大的一半（小顶堆）
+    private minHeap: MinPriorityQueue<number>;
+
+    constructor() {
+        this.maxHeap = new MaxPriorityQueue<number>();
+        this.minHeap = new MinPriorityQueue<number>();
+    }
+
+    addNum(num: number): void {
+        // 1. 新数字先放入大顶堆
+        this.maxHeap.enqueue(num);
+        
+        // 2. 弹出大顶堆的最大值放入小顶堆
+        // 确保 minHeap 中的所有元素始终大于或等于 maxHeap 中的元素
+        this.minHeap.enqueue(this.maxHeap.dequeue());
+        
+        // 3. 维护两边平衡：约定 maxHeap 的大小可以比 minHeap 多 1，但不能少
+        if (this.minHeap.size() > this.maxHeap.size()) {
+            this.maxHeap.enqueue(this.minHeap.dequeue());
+        }
+    }
+
+    findMedian(): number {
+        // 元素总数为奇数时，中位数即为 maxHeap 的堆顶
+        if (this.maxHeap.size() > this.minHeap.size()) {
+            return this.maxHeap.front();
+        }
+        // 元素总数为偶数时，中位数是两个堆顶的平均值
+        return (this.maxHeap.front() + this.minHeap.front()) / 2.0;
+    }
+}`,
+
+    java: `// Java
+class MedianFinder {
+    // maxHeap 存储较小的一半，使用 Lambda 表达式翻转默认比较规则，变为大顶堆
+    private PriorityQueue<Integer> maxHeap;
+    // minHeap 存储较大的一半，Java 默认就是小顶堆
+    private PriorityQueue<Integer> minHeap;
+
+    public MedianFinder() {
+        maxHeap = new PriorityQueue<>((a, b) -> b - a);
+        minHeap = new PriorityQueue<>();
+    }
+    
+    public void addNum(int num) {
+        // 1. 先加入大顶堆
+        maxHeap.add(num);
+        // 2. 将大顶堆的最大值过滤到小顶堆，确保两堆之间的大小关系严格划分
+        minHeap.add(maxHeap.poll());
+        
+        // 3. 维护容量平衡，保证大顶堆的数量 >= 小顶堆的数量
+        if (minHeap.size() > maxHeap.size()) {
+            maxHeap.add(minHeap.poll());
+        }
+    }
+    
+    public double findMedian() {
+        // 奇数情况：大顶堆多存了一个，直接返回大顶堆的堆顶
+        if (maxHeap.size() > minHeap.size()) {
+            return maxHeap.peek();
+        }
+        // 偶数情况：两边各取堆顶，求平均值
+        return (maxHeap.peek() + minHeap.peek()) / 2.0;
+    }
+}`,
+
+    cpp: `// C++
+class MedianFinder {
+    // maxHeap 存储较小的一半。C++ 的 priority_queue 默认就是大顶堆
+    priority_queue<int> maxHeap; 
+    // minHeap 存储较大的一半。需要手动指定底层容器和比较器(greater)来实现小顶堆
+    priority_queue<int, vector<int>, greater<int>> minHeap; 
+public:
+    MedianFinder() {}
+    
+    void addNum(int num) {
+        // 1. 入大顶堆
+        maxHeap.push(num);
+        
+        // 2. 倒腾一下：把大顶堆的最大元素塞给小顶堆
+        minHeap.push(maxHeap.top());
+        maxHeap.pop();
+        
+        // 3. 平衡数量：强制要求 maxHeap 数量 >= minHeap
+        if (minHeap.size() > maxHeap.size()) {
+            maxHeap.push(minHeap.top());
+            minHeap.pop();
+        }
+    }
+    
+    double findMedian() {
+        // 奇数个元素，直接返回 maxHeap 的最大值
+        if (maxHeap.size() > minHeap.size()) {
+            return maxHeap.top();
+        }
+        // 偶数个元素，两堆顶相加除以 2.0 获取浮点数平均值
+        return (maxHeap.top() + minHeap.top()) / 2.0;
+    }
+};`,
+
+    c: `// C\n// C 语言原生无优先队列，需要手动使用数组构建并实现向上/向下调整(bubbleUp/sinkDown)函数。\n// 核心逻辑同样是维护一个大顶堆和一个小顶堆，并在 addNum 时互相倒腾元素以保证数量平衡。`
+};
 
       class MinHeap {
           constructor() { this.heap = []; }
