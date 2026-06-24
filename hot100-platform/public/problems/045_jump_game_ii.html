@@ -183,12 +183,121 @@
 
     <script>
       const SNIPPETS = {
-        python: `# Python\nclass Solution:\n    def jump(self, nums: List[int]) -> int:\n        max_reach = 0   # 潜能：记录能到达的最远位置\n        end = 0         # 边界：当前这步最远能到达的位置\n        steps = 0       # 步数：记录跳跃次数\n        \n        # 注意：不要遍历最后一个元素\n        # 因为我们在遇到 end 时才算作一次跳跃\n        # 如果我们走到最后一步刚好是 end，会多算一次！\n        for i in range(len(nums) - 1):\n            # 边走边更新潜能\n            max_reach = max(max_reach, i + nums[i])\n            \n            # 一旦走到当前跳跃的边界\n            if i == end:\n                # 不得不跳了\n                steps += 1\n                # 更新边界为我们探索到的最远潜能\n                end = max_reach\n                \n        return steps`,
-        ts: `// TypeScript\nfunction jump(nums: number[]): number {\n    let maxReach = 0; // 潜能：记录能到达的最远位置\n    let end = 0;      // 边界：当前这步最远能到达的位置\n    let steps = 0;    // 步数：记录跳跃次数\n    \n    // 遍历到倒数第二个元素\n    for (let i = 0; i < nums.length - 1; i++) {\n        maxReach = Math.max(maxReach, i + nums[i]);\n        \n        // 一旦走到当前跳跃的边界\n        if (i === end) {\n            steps++;          // 不得不跳了\n            end = maxReach;   // 更新边界为探索到的最远潜能\n        }\n    }\n    \n    return steps;\n}`,
-        java: `// Java\nclass Solution {\n    public int jump(int[] nums) {\n        int maxReach = 0; // 潜能\n        int end = 0;      // 边界\n        int steps = 0;    // 步数\n        \n        for (int i = 0; i < nums.length - 1; i++) {\n            maxReach = Math.max(maxReach, i + nums[i]);\n            \n            if (i == end) {\n                steps++;\n                end = maxReach;\n            }\n        }\n        \n        return steps;\n    }\n}`,
-        cpp: `// C++\nclass Solution {\npublic:\n    int jump(vector<int>& nums) {\n        int maxReach = 0; // 潜能\n        int end = 0;      // 边界\n        int steps = 0;    // 步数\n        \n        for (int i = 0; i < nums.size() - 1; ++i) {\n            maxReach = max(maxReach, i + nums[i]);\n            \n            if (i == end) {\n                steps++;\n                end = maxReach;\n            }\n        }\n        \n        return steps;\n    }\n};`,
-        c: `// C\nint jump(int* nums, int numsSize) {\n    int maxReach = 0; // 潜能\n    int end = 0;      // 边界\n    int steps = 0;    // 步数\n    \n    for (int i = 0; i < numsSize - 1; i++) {\n        if (i + nums[i] > maxReach) {\n            maxReach = i + nums[i];\n        }\n        \n        if (i == end) {\n            steps++;\n            end = maxReach;\n        }\n    }\n    \n    return steps;\n}`
-      };
+    python: `# Python
+class Solution:
+    def jump(self, nums: List[int]) -> int:
+        max_reach = 0   # 潜能：记录能到达的最远位置
+        end = 0         # 边界：当前这步最远能到达的位置
+        steps = 0       # 步数：记录跳跃次数
+        
+        # 注意：不要遍历最后一个元素
+        # 因为我们在遇到 end 时才算作一次跳跃
+        # 如果我们走到最后一步刚好是 end，会多算一次！
+        for i in range(len(nums) - 1):
+            # 边走边更新潜能
+            max_reach = max(max_reach, i + nums[i])
+            
+            # 一旦走到当前跳跃的边界
+            if i == end:
+                # 不得不跳了
+                steps += 1
+                # 更新边界为我们探索到的最远潜能
+                end = max_reach
+                
+        return steps`,
+
+    ts: `// TypeScript
+function jump(nums: number[]): number {
+    let maxReach = 0; // 潜能：记录能到达的最远位置
+    let end = 0;      // 边界：当前这步最远能到达的位置
+    let steps = 0;    // 步数：记录跳跃次数
+    
+    // 遍历到倒数第二个元素
+    for (let i = 0; i < nums.length - 1; i++) {
+        maxReach = Math.max(maxReach, i + nums[i]);
+        
+        // 一旦走到当前跳跃的边界
+        if (i === end) {
+            steps++;          // 不得不跳了
+            end = maxReach;   // 更新边界为探索到的最远潜能
+        }
+    }
+    
+    return steps;
+}`,
+
+    java: `// Java
+class Solution {
+    public int jump(int[] nums) {
+        int maxReach = 0; // 潜能：记录在当前跳跃范围内，能探索到的最远位置
+        int end = 0;      // 边界：当前这一次跳跃最远能到达的位置
+        int steps = 0;    // 步数：记录总跳跃次数
+        
+        // 注意：只需遍历到倒数第二个元素
+        // 因为到达最后一个元素时不需要再跳跃，若走到最后一个元素刚好等于 end，会导致多算一次步数
+        for (int i = 0; i < nums.length - 1; i++) {
+            // 边走边更新能到达的最远潜能
+            maxReach = Math.max(maxReach, i + nums[i]);
+            
+            // 一旦走到当前跳跃的边界
+            if (i == end) {
+                steps++;        // 不得不进行一次跳跃
+                end = maxReach; // 将边界更新为当前探索到的最远潜能
+            }
+        }
+        
+        return steps;
+    }
+}`,
+
+    cpp: `// C++
+class Solution {
+public:
+    int jump(vector<int>& nums) {
+        int maxReach = 0; // 潜能：记录在当前跳跃范围内，能探索到的最远位置
+        int end = 0;      // 边界：当前这一次跳跃最远能到达的位置
+        int steps = 0;    // 步数：记录总跳跃次数
+        
+        // 注意：只需遍历到倒数第二个元素
+        // 防止刚好走到最后一个元素且触发 i == end 时，步数被错误地多加一次
+        for (int i = 0; i < nums.size() - 1; ++i) {
+            // 边走边更新能到达的最远潜能
+            maxReach = max(maxReach, i + nums[i]);
+            
+            // 一旦走到当前跳跃的边界
+            if (i == end) {
+                steps++;        // 必须进行下一次跳跃
+                end = maxReach; // 更新下一次跳跃的边界
+            }
+        }
+        
+        return steps;
+    }
+};`,
+
+    c: `// C
+int jump(int* nums, int numsSize) {
+    int maxReach = 0; // 潜能：记录在当前跳跃范围内，能探索到的最远位置
+    int end = 0;      // 边界：当前这一次跳跃最远能到达的位置
+    int steps = 0;    // 步数：记录总跳跃次数
+    
+    // 注意：只需遍历到倒数第二个元素
+    for (int i = 0; i < numsSize - 1; i++) {
+        // 边走边更新能到达的最远潜能
+        if (i + nums[i] > maxReach) {
+            maxReach = i + nums[i];
+        }
+        
+        // 一旦走到当前跳跃的边界
+        if (i == end) {
+            steps++;        // 必须跳跃
+            end = maxReach; // 更新边界
+        }
+    }
+    
+    return steps;
+}`
+};
 
       let params = { speed: 1.0 };
       let isDone = false, isPaused = false, p5Timer = 0;
