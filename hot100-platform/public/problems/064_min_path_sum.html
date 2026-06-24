@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>最小路径和 - LeetCode 64</title>
+    <title>动态规划：最小路径和 (LeetCode 64)</title>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,156 +12,216 @@
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
     <style>
       :root {
-        --dark: #141413;
-        --line: #e8e6dc;
-        --mid: #b0aea5;
-        --orange: #d97757;
-        --blue: #6a9bcc;
-        --green: #788c5d;
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
       }
+
+      /* Foundation */
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--dark); overflow: hidden; }
+      body { font-family: "Poppins", "PingFang SC", sans-serif; background: #fdfcf9; color: var(--anthropic-dark); overflow: hidden; }
       .container { display: flex; height: 100vh; padding: 15px; gap: 15px; }
-      .sidebar { width: 280px; flex-shrink: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; overflow-y: auto; }
-      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; color: var(--orange); margin-bottom: 4px; }
-      .subtitle { font-size: 11px; color: var(--mid); margin-bottom: 20px; }
-      .control-section { margin-bottom: 18px; }
-      .control-section h3 { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--orange); border-radius: 2px; }
-      .control-group { margin-bottom: 10px; }
+
+      /* Left Sidebar - Controls */
+      .sidebar {
+        width: 280px; flex-shrink: 0; background: white; padding: 20px;
+        border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto; border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 { font-family: "Lora", serif; font-size: 18px; margin-bottom: 4px; color: var(--anthropic-orange); }
+      .subtitle { color: var(--anthropic-mid-gray); font-size: 11px; margin-bottom: 20px; }
+      .control-section { margin-bottom: 20px; }
+      .control-section h3 { font-size: 14px; margin-bottom: 10px; color: var(--anthropic-dark); display: flex; align-items: center; gap: 6px; }
+      .control-section h3::before { content: ""; width: 4px; height: 14px; background: var(--anthropic-orange); border-radius: 2px; }
+      .control-group { margin-bottom: 12px; }
       .control-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #666; }
       .slider-container { display: flex; align-items: center; gap: 10px; }
-      input[type="range"] { flex: 1; height: 4px; background: var(--line); border-radius: 2px; appearance: none; }
-      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--orange); border-radius: 50%; border: 2px solid #fff; }
-      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 24px; text-align: right; }
-      .seed-input { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
-      .button { width: 100%; border: none; background: var(--orange); color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 500; cursor: pointer; }
-      .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-      .preset { border: 1px solid var(--line); border-radius: 6px; padding: 7px 6px; background: #fff; font-family: "JetBrains Mono", monospace; font-size: 11px; cursor: pointer; text-align: center; }
-      .canvas-area { flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--line); font-size: 13px; color: #888; display: flex; justify-content: space-between; }
+      input[type="range"] { flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; appearance: none; outline: none; }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 14px; height: 14px; background: var(--anthropic-orange);
+        border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 25px; text-align: right; }
+      .button {
+        background: var(--anthropic-orange); color: white; border: none; padding: 10px;
+        border-radius: 6px; width: 100%; cursor: pointer; font-size: 13px; transition: 0.2s; font-weight: 500;
+      }
+      .button:hover { background: #c86641; }
+      .seed-input {
+        width: 100%; padding: 8px; border: 1px solid var(--anthropic-light-gray);
+        border-radius: 6px; margin-bottom: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px;
+      }
+
+      /* Middle - Canvas */
+      .canvas-area {
+        flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray); position: relative; overflow: hidden; display: flex; flex-direction: column;
+      }
+      .canvas-header { padding: 10px 20px; border-bottom: 1px solid var(--anthropic-light-gray); font-size: 13px; font-weight: 500; color: #888; }
       #canvas-container { flex: 1; width: 100%; height: 100%; }
+
+      /* Right Panel - Logic & Code */
       .right-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
-      .code-box { flex: 1.08; background: #1e1e1e; border: 1px solid #333; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0; display: flex; justify-content: space-between; align-items: center; }
-      .box-title.dark { color: #ccc; font-size: 12px; font-weight: 600; padding-bottom: 10px; }
-      .tabs.dark { display: flex; gap: 1px; align-items: flex-end; }
-      .tabs.dark .tab { padding: 8px 16px; background: #2d2d2d; color: #888; border-radius: 6px 6px 0 0; font-size: 11px; cursor: pointer; }
-      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
-      .code-content { flex: 1; margin: 0; overflow: auto; }
-      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 14px; line-height: 1.55; color: #d4d4d4; padding: 15px; }
-      .logic-box { flex: .92; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-      .box-header { padding: 8px 15px; border-bottom: 1px solid #eee; }
+
+      /* Code Box */
+      .code-box {
+        flex: 1.1; background: #1e1e1e; border-radius: 12px; border: 1px solid #333;
+        display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .box-header { padding: 8px 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+      .box-header.dark { background: #282828; border-bottom: 1px solid #1e1e1e; padding: 10px 15px 0 15px; }
       .box-title { font-size: 12px; font-weight: 600; color: #555; }
-      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; }
-      .data-title { font-size: 11px; font-weight: 600; color: var(--orange); margin-bottom: 6px; text-transform: uppercase; }
+      .box-title.dark { color: #ccc; padding-bottom: 10px; }
+      .tabs { display: flex; gap: 4px; }
+      .tabs.dark { gap: 1px; align-items: flex-end; }
+      .tabs.dark .tab {
+        padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; background: #2d2d2d;
+        transition: 0.2s; color: #888; font-weight: 500; font-size: 11px; font-family: "Poppins", sans-serif;
+      }
+      .tabs.dark .tab:hover { background: #3c3c3c; color: #ddd; }
+      .tabs.dark .tab.active { background: #1e1e1e; color: #4ec9b0; border-top: 2px solid #007acc; }
+
+      .code-content { flex: 1; margin: 0; padding: 0; overflow: auto; background: #1e1e1e; border-radius: 0 0 12px 12px; }
+      #code-viewer { font-family: Consolas, "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.6; display: block; padding: 15px; background: transparent; color: #d4d4d4; }
+
+      /* Highlight.js CSS Overrides */
+      .hljs { background: transparent !important; padding: 0 !important; color: #d4d4d4 !important; }
+      .hljs-keyword, .hljs-literal, .hljs-selector-tag { color: #569cd6 !important; }
+      .hljs-type, .hljs-title.class_, .hljs-class .hljs-title, .hljs-built_in { color: #4ec9b0 !important; }
+      .hljs-variable, .hljs-variable.language_, .hljs-property, .hljs-attr, .hljs-params { color: #9cdcfe !important; }
+      .hljs-number { color: #b5cea8 !important; }
+      .hljs-punctuation, .hljs-operator { color: #d4d4d4 !important; }
+      .hljs-string, .hljs-char { color: #ce9178 !important; }
+      .hljs-comment { color: #6a9955 !important; }
+      .hljs-title.function_, .hljs-function .hljs-title, .hljs-title.function_.invoke__ { color: #dcdcaa !important; }
+
+      /* Logic Log Box */
+      .logic-box {
+        flex: 0.9; background: white; border-radius: 12px; border: 1px solid var(--anthropic-light-gray);
+        display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+
+      .data-viz { padding: 12px; background: #fffcf9; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+      .data-title { font-size: 11px; font-weight: 600; color: var(--anthropic-orange); text-transform: uppercase; letter-spacing: 0.5px; }
       .data-array { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
       .data-node {
-        min-width: 42px;
-        height: 26px;
-        padding: 0 8px;
-        background: var(--orange);
-        color: #fff;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 11px;
-        font-weight: 700;
+        min-width: 22px; padding: 0 5px; height: 22px; background: var(--anthropic-orange); color: white;
+        border-radius: 4px; display: flex; align-items: center; justify-content: center;
+        font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: bold;
       }
-      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; }
-      .log-item { padding: 6px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; color: #444; line-height: 1.4; }
-      .log-item.highlight { border-left-color: var(--orange); background: #fff9f5; font-weight: 500; }
-      .log-item.success { border-left-color: var(--green); background: #f6fbef; }
-      .log-item .log-time { font-size: 9px; color: #aaa; margin-bottom: 2px; }
-      .memo-card { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
-      .memo-card h3 { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
-      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
-      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600; }
-      .memo-time { background: #fff3ee; color: var(--orange); border: 1px solid #f0c8b0; }
-      .memo-space { background: #eef3ff; color: var(--blue); border: 1px solid #b8d0f0; }
-      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--orange); border-radius: 0 5px 5px 0; margin-bottom: 6px; }
-      .memo-tip.g { border-left-color: var(--green); }
-      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
+
+      /* Auto-scrolling Log */
+      .log-area { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; background: #fff; }
+      .log-item { padding: 5px 10px; border-radius: 4px; background: #fcfcfc; border-left: 2px solid #ddd; border-bottom: 1px solid #f5f5f5; line-height: 1.4; color: #444; }
+      .log-item.highlight { border-left-color: var(--anthropic-orange); background: #fff9f5; font-weight: 500; }
+      .log-item .time { font-size: 9px; color: #bbb; margin-bottom: 2px; }
+
       ::-webkit-scrollbar { width: 6px; }
       ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 3px; }
+
+      /* Memo Card */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="sidebar">
         <h1>最小路径和</h1>
-        <div class="subtitle">LeetCode 64 · 网格最短代价 DP</div>
+        <div class="subtitle">原地修改 DP 最优解 (LeetCode 64)</div>
+
         <div class="control-section">
-          <h3>随机种子</h3>
-          <input type="number" id="seed-input" class="seed-input" value="64001" onchange="updateSeed()" />
-          <button class="button" onclick="randomSeedAndUpdate()">随机选择网格</button>
+          <h3>场景配置</h3>
+          <input type="number" id="seed-input" class="seed-input" value="8848" onchange="updateSeed()" />
+          <button class="button" onclick="randomSeedAndUpdate()">生成新随机网格</button>
         </div>
+
         <div class="control-section">
-          <h3>参数控制</h3>
+          <h3>动画控制</h3>
           <div class="control-group">
-            <label>动画速度</label>
+            <label>运行速度</label>
             <div class="slider-container">
               <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
               <span class="value-display" id="speed-value">1.0</span>
             </div>
           </div>
+          
           <div class="control-group">
-            <label>行数 m</label>
+            <label>行数 (m)</label>
             <div class="slider-container">
-              <input type="range" id="m" min="2" max="7" step="1" value="4" oninput="updateParam('m', this.value)" />
-              <span class="value-display" id="m-value">4</span>
+              <input type="range" id="m" min="3" max="8" step="1" value="5" oninput="updateParam('m', this.value)" />
+              <span class="value-display" id="m-value">5</span>
             </div>
           </div>
           <div class="control-group">
-            <label>列数 n</label>
+            <label>列数 (n)</label>
             <div class="slider-container">
-              <input type="range" id="n" min="2" max="7" step="1" value="5" oninput="updateParam('n', this.value)" />
-              <span class="value-display" id="n-value">5</span>
-            </div>
-          </div>
-          <div class="control-group">
-            <label>预设样例</label>
-            <div class="preset-grid">
-              <button class="preset" onclick="setPreset('1,3,1;1,5,1;4,2,1')">3x3</button>
-              <button class="preset" onclick="setPreset('1,2,3;4,5,6')">2x3</button>
-              <button class="preset" onclick="setPreset('5,1,2;1,9,1;1,1,1')">拐弯最优</button>
-              <button class="preset" onclick="setPreset('1,9,9,9;1,1,1,9;9,9,1,1')">路径绕行</button>
+              <input type="range" id="n" min="3" max="8" step="1" value="6" oninput="updateParam('n', this.value)" />
+              <span class="value-display" id="n-value">6</span>
             </div>
           </div>
         </div>
-        <div class="control-section" style="display:flex; gap:10px">
-          <button id="pause-btn" class="button" style="background:var(--dark)" onclick="togglePause()">⏸ 暂停</button>
-          <button class="button" style="background:var(--blue)" onclick="resetAnimation()">🔄 重新运行</button>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button id="pause-btn" class="button" style="background: var(--anthropic-dark)" onclick="togglePause()">⏸ 暂停</button>
+          <button class="button" style="background: var(--anthropic-blue)" onclick="resetAnimation()">🔄 重新运行</button>
         </div>
+
         <div class="memo-card">
-          <h3>算法备忘</h3>
+          <h3>算法速记</h3>
           <div class="memo-badges">
-            <span class="memo-badge memo-time">时间 O(m*n)</span>
-            <span class="memo-badge memo-space">空间 O(m*n)</span>
+            <span class="memo-badge time">⏱ O(m × n)</span>
+            <span class="memo-badge space">□ O(1) 原地修改</span>
           </div>
-          <div class="memo-tip">dp[i][j] 表示从起点走到 (i,j) 的最小路径和。</div>
-          <div class="memo-tip g">边界单元只能来自一个方向：上方或左方。</div>
-          <div class="memo-tip w">普通单元转移：grid[i][j] + min(上方, 左方)。</div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 核心机制：到达 (i, j) 的最小路径和等于其上方和左方相邻点的最小路径和，加上当前格子的权重。</div>
+            <div class="memo-tip">💡 状态转移方程：dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])。</div>
+            <div class="memo-tip g">🔍 延伸洞察：由于每个格子的原始值只会被使用一次，我们可以直接将计算结果覆写到原数组 grid 中，从而将空间复杂度优化至 O(1)。</div>
+            <div class="memo-tip w">⚠️ 常见误区：第一行和第一列的格子必须单独初始化，因为它们没有两个方向的前驱节点，只能进行单向累加。</div>
+          </div>
         </div>
       </div>
+
       <div class="canvas-area">
-        <div class="canvas-header"><span>最小路径和 DP 填表可视化</span><span id="result-label">运行中</span></div>
+        <div class="canvas-header">算法执行动画展示区 - 状态转移与回溯</div>
         <div id="canvas-container"></div>
       </div>
+
       <div class="right-panel">
         <div class="code-box">
           <div class="box-header dark">
-            <div class="box-title dark">最优解代码</div>
+            <div class="box-title dark">核心解法 (原地修改最优代码)</div>
             <div id="lang-tabs" class="tabs dark">
               <div class="tab" onclick="switchLang('python')">Python</div>
               <div class="tab" onclick="switchLang('ts')">TS</div>
@@ -171,444 +232,525 @@
           </div>
           <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
         </div>
+
         <div class="logic-box">
-          <div class="box-header"><div class="box-title">执行日志</div></div>
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
+          </div>
           <div class="data-viz">
-            <div class="data-title">当前参数</div>
+            <div class="data-title">当前计算的行数据状态</div>
             <div id="data-nodes" class="data-array"></div>
           </div>
           <div id="log-container" class="log-area"></div>
         </div>
       </div>
     </div>
+
     <script>
       const SNIPPETS = {
-        python: `# Python
+        python: `# Python 最优解：原地修改 (O(1) 空间)
 def minPathSum(grid: list[list[int]]) -> int:
     m, n = len(grid), len(grid[0])
-    # dp[i][j]：到达 (i,j) 的最小路径和
-    dp = [[0] * n for _ in range(m)]
+    
+    # 步骤 1：处理第一行，只能从左侧节点转移过来
+    for j in range(1, n):
+        grid[0][j] += grid[0][j-1]
+        
+    # 步骤 2：处理第一列，只能从上方节点转移过来
+    for i in range(1, m):
+        grid[i][0] += grid[i-1][0]
+        
+    # 步骤 3：处理内部节点，从上方和左侧选择较小的值进行累加
+    for i in range(1, m):
+        for j in range(1, n):
+            # 状态转移：当前权重 + min(上方最小路径和, 左侧最小路径和)
+            grid[i][j] += min(grid[i-1][j], grid[i][j-1])
+            
+    # 返回右下角的累加结果
+    return grid[m-1][n-1]`,
 
-    for i in range(m):
-        for j in range(n):
-            if i == 0 and j == 0:
-                dp[i][j] = grid[i][j]
-            elif i == 0:
-                # 第一行只能从左边来
-                dp[i][j] = dp[i][j - 1] + grid[i][j]
-            elif j == 0:
-                # 第一列只能从上边来
-                dp[i][j] = dp[i - 1][j] + grid[i][j]
-            else:
-                # 普通格子取上/左较小值
-                dp[i][j] = min(dp[i - 1][j], dp[i][j - 1]) + grid[i][j]
-    return dp[m - 1][n - 1]`,
-        ts: `// TypeScript
+        ts: `// TypeScript 最优解：原地修改 (O(1) 空间)
 function minPathSum(grid: number[][]): number {
-  const m = grid.length;
-  const n = grid[0].length;
-  // dp[i][j]：走到 (i,j) 的最小路径和
-  const dp = Array.from({ length: m }, () => new Array(n).fill(0));
-
-  for (let i = 0; i < m; i++) {
-    for (let j = 0; j < n; j++) {
-      if (i === 0 && j === 0) dp[i][j] = grid[i][j];
-      else if (i === 0) dp[i][j] = dp[i][j - 1] + grid[i][j];
-      else if (j === 0) dp[i][j] = dp[i - 1][j] + grid[i][j];
-      else {
-        // 普通格子：上方和左方取较小值
-        dp[i][j] = Math.min(dp[i - 1][j], dp[i][j - 1]) + grid[i][j];
-      }
+    const m = grid.length;
+    const n = grid[0].length;
+    
+    // 初始化第一行：只能不断向右走，累加路径权重
+    for (let j = 1; j < n; j++) {
+        grid[0][j] += grid[0][j - 1];
     }
-  }
-  return dp[m - 1][n - 1];
-}`,
-        java: `// Java
-class Solution {
-  public int minPathSum(int[][] grid) {
-    int m = grid.length, n = grid[0].length;
-    // dp[i][j]：到达该格子的最小代价
-    int[][] dp = new int[m][n];
-
-    for (int i = 0; i < m; i++) {
-      for (int j = 0; j < n; j++) {
-        if (i == 0 && j == 0) dp[i][j] = grid[i][j];
-        else if (i == 0) dp[i][j] = dp[i][j - 1] + grid[i][j];
-        else if (j == 0) dp[i][j] = dp[i - 1][j] + grid[i][j];
-        else {
-          // 从上或左转移，取更小路径
-          dp[i][j] = Math.min(dp[i - 1][j], dp[i][j - 1]) + grid[i][j];
+    
+    // 初始化第一列：只能不断向下走，累加路径权重
+    for (let i = 1; i < m; i++) {
+        grid[i][0] += grid[i - 1][0];
+    }
+    
+    // 遍历内部节点计算最优子结构
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            // 取上方和左侧路径和的较小者，加上自身的权重
+            grid[i][j] += Math.min(grid[i - 1][j], grid[i][j - 1]);
         }
-      }
     }
-    return dp[m - 1][n - 1];
-  }
+    
+    // 返回网格末尾的最优解
+    return grid[m - 1][n - 1];
 }`,
-        cpp: `// C++
+
+        java: `// Java 最优解：原地修改 (O(1) 空间)
+class Solution {
+    public int minPathSum(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        
+        // 累加第一行的数据（边界条件）
+        for (int j = 1; j < n; j++) {
+            grid[0][j] += grid[0][j - 1];
+        }
+        
+        // 累加第一列的数据（边界条件）
+        for (int i = 1; i < m; i++) {
+            grid[i][0] += grid[i - 1][0];
+        }
+        
+        // 双重循环处理网格内部的核心节点
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                // 原地修改：更新为到当前格子的最小路径和
+                grid[i][j] += Math.min(grid[i - 1][j], grid[i][j - 1]);
+            }
+        }
+        
+        // 返回右下角的最终结果
+        return grid[m - 1][n - 1];
+    }
+}`,
+
+        cpp: `// C++ 最优解：原地修改 (O(1) 空间)
+#include <vector>
+#include <algorithm>
+using namespace std;
+
 class Solution {
 public:
-  int minPathSum(vector<vector<int>>& grid) {
-    int m = (int)grid.size(), n = (int)grid[0].size();
-    // dp[i][j]：从起点到 (i,j) 的最小路径和
-    vector<vector<int>> dp(m, vector<int>(n, 0));
-
-    for (int i = 0; i < m; i++) {
-      for (int j = 0; j < n; j++) {
-        if (i == 0 && j == 0) dp[i][j] = grid[i][j];
-        else if (i == 0) dp[i][j] = dp[i][j - 1] + grid[i][j];
-        else if (j == 0) dp[i][j] = dp[i - 1][j] + grid[i][j];
-        else {
-          // 取上方和左方较小的代价
-          dp[i][j] = min(dp[i - 1][j], dp[i][j - 1]) + grid[i][j];
+    int minPathSum(vector<vector<int>>& grid) {
+        int m = grid.size();
+        int n = grid[0].size();
+        
+        // 初始化顶部边界（累加左侧路径）
+        for (int j = 1; j < n; ++j) {
+            grid[0][j] += grid[0][j - 1];
         }
-      }
+        
+        // 初始化左侧边界（累加上方路径）
+        for (int i = 1; i < m; ++i) {
+            grid[i][0] += grid[i - 1][0];
+        }
+        
+        // 遍历所有中间节点
+        for (int i = 1; i < m; ++i) {
+            for (int j = 1; j < n; ++j) {
+                // 选择从上方下来或从左侧过来的最小代价
+                grid[i][j] += min(grid[i - 1][j], grid[i][j - 1]);
+            }
+        }
+        
+        return grid[m - 1][n - 1];
     }
-    return dp[m - 1][n - 1];
-  }
 };`,
-        c: `// C
+
+        c: `// C 最优解：原地修改 (O(1) 空间)
 int minPathSum(int** grid, int gridSize, int* gridColSize) {
-  int m = gridSize, n = gridColSize[0];
-  // dp[i][j]：到该点的最小路径和
-  int** dp = (int**)malloc(sizeof(int*) * m);
-  for (int i = 0; i < m; i++) dp[i] = (int*)calloc(n, sizeof(int));
-
-  for (int i = 0; i < m; i++) {
-    for (int j = 0; j < n; j++) {
-      if (i == 0 && j == 0) dp[i][j] = grid[i][j];
-      else if (i == 0) dp[i][j] = dp[i][j - 1] + grid[i][j];
-      else if (j == 0) dp[i][j] = dp[i - 1][j] + grid[i][j];
-      else {
-        // 普通格子：从上/左最优值转移
-        int best = dp[i - 1][j] < dp[i][j - 1] ? dp[i - 1][j] : dp[i][j - 1];
-        dp[i][j] = best + grid[i][j];
-      }
+    int m = gridSize;
+    int n = gridColSize[0];
+    
+    // 初始化首行
+    for (int j = 1; j < n; j++) {
+        grid[0][j] += grid[0][j - 1];
     }
-  }
-
-  int ans = dp[m - 1][n - 1];
-  for (int i = 0; i < m; i++) free(dp[i]);
-  free(dp);
-  return ans;
+    
+    // 初始化首列
+    for (int i = 1; i < m; i++) {
+        grid[i][0] += grid[i - 1][0];
+    }
+    
+    // 动态规划填表
+    for (int i = 1; i < m; i++) {
+        for (int j = 1; j < n; j++) {
+            // C 语言需要手动通过三元运算符获取最小值
+            int top = grid[i - 1][j];
+            int left = grid[i][j - 1];
+            grid[i][j] += (top < left) ? top : left;
+        }
+    }
+    
+    return grid[m - 1][n - 1];
 }`
       };
 
-      let params = { seed: 64001, speed: 1.0, m: 4, n: 5 };
-      let currentLang = "python";
-      let grid = [];
-      let dp = [];
-      let m = 4;
-      let n = 5;
-      let presetRaw = "";
+      let params = {
+        seed: 8848,
+        speed: 1.0,
+        m: 5,
+        n: 6
+      };
+
       let isDone = false;
       let isPaused = false;
-      let timer = 0;
-      let i = 0;
-      let j = 0;
-      let stepInfo = null;
+      let p5Timer = 0;
 
-      function makeRng(seed) {
-        let x = (seed >>> 0) || 1;
-        return () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296);
-      }
+      // Variables for DP logic
+      let origGrid = []; // Stores the original weights
+      let dpGrid = [];   // Stores the running sums
+      let dirMatrix = []; // Stores the choice: 0=none, 1=left, 2=top
+      let algoState = 'INIT';
+      let stepI = 0;
+      let stepJ = 0;
+      
+      // Traceback animation
+      let currTraceI = 0;
+      let currTraceJ = 0;
+      let pathSet = new Set(); // Stores 'i,j' strings of optimal path
 
-      function parsePreset(raw) {
-        try {
-          const rows = raw.split(";").map((row) => row.split(",").map((x) => parseInt(x.trim(), 10)));
-          if (!rows.length || !rows[0].length) return null;
-          const cols = rows[0].length;
-          for (const row of rows) {
-            if (row.length !== cols || row.some((x) => Number.isNaN(x) || x <= 0)) return null;
-          }
-          return rows;
-        } catch {
-          return null;
-        }
-      }
-
-      function generateGrid(mm, nn, seed) {
-        const rnd = makeRng(seed);
-        return Array.from({ length: mm }, () => Array.from({ length: nn }, () => 1 + Math.floor(rnd() * 9)));
-      }
+      // UI variables
+      let cursorX = 0, cursorY = 0;
+      let targetX = 0, targetY = 0;
+      let cellSize = 0;
 
       function setup() {
-        const container = document.getElementById("canvas-container");
-        const canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
         canvas.parent("canvas-container");
-        window.addEventListener("resize", () => {
-          resizeCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
-        });
+        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth, container.offsetHeight));
+        
         switchLang("python");
+        initializeSystem();
       }
 
       function initializeSystem() {
-        let presetGrid = null;
-        if (presetRaw) presetGrid = parsePreset(presetRaw);
-        if (presetGrid) {
-          grid = presetGrid;
-          m = grid.length;
-          n = grid[0].length;
-        } else {
-          m = Math.max(2, Math.min(7, params.m | 0));
-          n = Math.max(2, Math.min(7, params.n | 0));
-          grid = generateGrid(m, n, params.seed);
-        }
-
-        params.m = m;
-        params.n = n;
-        document.getElementById("m").value = String(m);
-        document.getElementById("n").value = String(n);
-        document.getElementById("m-value").textContent = String(m);
-        document.getElementById("n-value").textContent = String(n);
-
-        dp = Array.from({ length: m }, () => Array(n).fill(0));
         isDone = false;
         isPaused = false;
-        timer = 0;
-        i = 0;
-        j = 0;
-        stepInfo = null;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        randomSeed(params.seed);
+        origGrid = [];
+        dpGrid = [];
+        dirMatrix = [];
+        pathSet.clear();
+
+        for (let i = 0; i < params.m; i++) {
+            origGrid[i] = [];
+            dpGrid[i] = [];
+            dirMatrix[i] = [];
+            for (let j = 0; j < params.n; j++) {
+                // Generate grid with random weights 1-9
+                let val = floor(random(1, 10));
+                origGrid[i][j] = val;
+                dpGrid[i][j] = -1; // -1 means unprocessed
+                dirMatrix[i][j] = 0;
+            }
+        }
+
+        algoState = 'FILL_0_0';
+        stepI = 0; 
+        stepJ = 0;
+        targetX = 0;
+        targetY = 0;
 
         document.getElementById("log-container").innerHTML = "";
-        updateDataNodes();
-        updateResult("运行中", "#888");
-        const btn = document.getElementById("pause-btn");
-        btn.innerHTML = "⏸ 暂停";
-        btn.style.background = "var(--dark)";
-        logMsg(`初始化 ${m}x${n} 网格，开始填 dp。`, true);
+        logMsg(`✅ 系统重置：生成 ${params.m}×${params.n} 随机网格数据。`, true);
+        updateDataUI(origGrid[0]);
       }
 
       function draw() {
         background(255);
-        drawGrid();
-        drawStatus();
-        if (isPaused || isDone) return;
 
-        timer += (deltaTime / 1000) * params.speed;
-        if (timer >= 0.85) {
-          performStep();
-          timer = 0;
-        }
-      }
-
-      function drawGrid() {
-        const maxW = width - 80;
-        const maxH = height - 220;
-        const cell = Math.floor(Math.min(maxW / n, maxH / m));
-        const gridW = cell * n;
-        const gridH = cell * m;
-        const sx = (width - gridW) / 2;
-        const sy = 90;
-
-        fill(90);
-        noStroke();
-        textSize(13);
-        textAlign(LEFT, CENTER);
-        text("单元显示：左上=grid 值，中央=dp 值", 24, 58);
-
-        for (let r = 0; r < m; r++) {
-          for (let c = 0; c < n; c++) {
-            const x = sx + c * cell;
-            const y = sy + r * cell;
-            const isCur = !isDone && r === i && c === j;
-            const isFromTop = stepInfo && stepInfo.fromTop && stepInfo.fromTop.r === r && stepInfo.fromTop.c === c;
-            const isFromLeft = stepInfo && stepInfo.fromLeft && stepInfo.fromLeft.r === r && stepInfo.fromLeft.c === c;
-
-            let fillColor = "#fff";
-            let strokeColor = "#ddd";
-            if (dp[r][c] > 0) {
-              fillColor = "#eef3ff";
-              strokeColor = "#6a9bcc";
-            }
-            if (isFromTop || isFromLeft) {
-              fillColor = "#f6fbef";
-              strokeColor = "#788c5d";
-            }
-            if (isCur) {
-              fillColor = "#fff3ee";
-              strokeColor = "#d97757";
-            }
-
-            stroke(strokeColor);
-            strokeWeight(isCur || isFromTop || isFromLeft ? 2.1 : 1.1);
-            fill(fillColor);
-            rect(x, y, cell, cell, 6);
-
-            noStroke();
-            fill("#999");
-            textAlign(LEFT, TOP);
-            textSize(Math.max(9, Math.min(12, cell * 0.2)));
-            text(grid[r][c], x + 6, y + 4);
-
-            fill("#222");
-            textAlign(CENTER, CENTER);
-            textSize(Math.max(10, Math.min(14, cell * 0.24)));
-            text(dp[r][c], x + cell / 2, y + cell / 2 + 4);
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
           }
         }
-      }
 
-      function drawStatus() {
-        const bw = Math.min(540, width - 48);
-        const bh = 162;
-        const bx = (width - bw) / 2;
-        const by = height - bh - 16;
+        let padX = 40;
+        let padY = 60;
+        cellSize = min((width - padX * 2) / params.n, (height - padY * 2) / params.m);
+        let startX = (width - cellSize * params.n) / 2;
+        let startY = (height - cellSize * params.m) / 2;
 
-        fill("#fffcf9");
-        stroke("#e8e6dc");
-        strokeWeight(1.4);
-        rect(bx, by, bw, bh, 10);
-        noStroke();
+        let actualTargetX = startX + targetX * cellSize;
+        let actualTargetY = startY + targetY * cellSize;
 
-        fill("#666");
-        textAlign(CENTER, CENTER);
-        textSize(12);
-        text(`i=${Math.min(i, m - 1)}  j=${Math.min(j, n - 1)}  当前答案=${dp[m - 1][n - 1]}`, bx + bw / 2, by + 22);
-
-        textAlign(LEFT, CENTER);
-        textSize(14);
-        if (stepInfo) {
-          fill("#6a9bcc");
-          text(`处理 (${stepInfo.i}, ${stepInfo.j})，grid=${stepInfo.g}`, bx + 20, by + 56);
-          fill("#d97757");
-          text(stepInfo.detail1, bx + 20, by + 88);
-          fill("#788c5d");
-          text(stepInfo.detail2, bx + 20, by + 120);
+        if (algoState === 'INIT') {
+            cursorX = actualTargetX;
+            cursorY = actualTargetY;
         } else {
-          fill("#777");
-          text("等待首个状态更新...", bx + 20, by + 88);
+            cursorX = lerp(cursorX, actualTargetX, 0.15 * params.speed);
+            cursorY = lerp(cursorY, actualTargetY, 0.15 * params.speed);
         }
+
+        // Draw Cells
+        for (let r = 0; r < params.m; r++) {
+            for (let c = 0; c < params.n; c++) {
+                let x = startX + c * cellSize;
+                let y = startY + r * cellSize;
+                
+                // Set fill color based on state
+                let isProcessed = dpGrid[r][c] !== -1;
+                let inPath = pathSet.has(`${r},${c}`);
+                
+                fill(250); // Unprocessed
+                stroke(220);
+                
+                if (inPath) {
+                    fill(200, 235, 210); // Green for traceback path
+                    stroke("#788c5d");   // Using valid Hex instead of var(--anthropic-green)
+                } else if (isProcessed) {
+                    fill(235, 245, 255); // Blueish for processed DP
+                }
+                
+                if (algoState !== 'TRACEBACK' && algoState !== 'DONE' && r === stepI && c === stepJ) {
+                    fill(255, 250, 210); // Yellow for active compute
+                }
+
+                rect(x, y, cellSize, cellSize, 6);
+                
+                // Draw Original Weight (Top Left corner)
+                fill(150);
+                noStroke();
+                textAlign(LEFT, TOP);
+                textSize(cellSize * 0.2);
+                text(`W:${origGrid[r][c]}`, x + 4, y + 4);
+                
+                // Draw Calculated DP sum
+                if (isProcessed) {
+                    fill(60);
+                    if (inPath) fill(20, 100, 40); // Dark green text for path
+                    textAlign(CENTER, CENTER);
+                    textSize(cellSize * 0.35);
+                    text(dpGrid[r][c], x + cellSize / 2, y + cellSize / 2 + 5);
+                }
+            }
+        }
+
+        // Draw Arrows for DP choices
+        for (let r = 0; r < params.m; r++) {
+            for (let c = 0; c < params.n; c++) {
+                if (dirMatrix[r][c] > 0) {
+                    let cx = startX + c * cellSize + cellSize / 2;
+                    let cy = startY + r * cellSize + cellSize / 2;
+                    let offset = cellSize * 0.35;
+                    
+                    stroke(180);
+                    strokeWeight(2);
+                    fill(180);
+                    
+                    if (algoState === 'COMPUTE' && r === stepI && c === stepJ) {
+                        stroke("#d97757"); // Valid Hex for orange
+                        fill("#d97757");   // Valid Hex for orange
+                    } else if (pathSet.has(`${r},${c}`)) {
+                        stroke("#788c5d"); // Valid Hex for green
+                        fill("#788c5d");   // Valid Hex for green
+                    }
+
+                    if (dirMatrix[r][c] === 1) {
+                        // Arrow from left
+                        line(cx - offset, cy, cx - 15, cy);
+                        triangle(cx - 15, cy - 3, cx - 15, cy + 3, cx - 10, cy);
+                    } else if (dirMatrix[r][c] === 2) {
+                        // Arrow from top
+                        line(cx, cy - offset, cx, cy - 15);
+                        triangle(cx - 3, cy - 15, cx + 3, cy - 15, cx, cy - 10);
+                    }
+                    strokeWeight(1);
+                }
+            }
+        }
+
+        // Animated target cursor (only before traceback)
+        if (algoState !== 'INIT' && algoState !== 'TRACEBACK' && algoState !== 'DONE') {
+            noFill();
+            strokeWeight(3);
+            stroke("#d97757"); // Valid Hex for orange
+            rect(cursorX, cursorY, cellSize, cellSize, 6);
+            strokeWeight(1);
+        }
+
+        // Labels
+        fill(100);
+        noStroke();
+        textSize(12);
+        textAlign(CENTER, BOTTOM);
+        text("📍 起点", startX + cellSize / 2, startY - 10);
+        textAlign(CENTER, TOP);
+        text("🏁 终点", startX + params.n * cellSize - cellSize / 2, startY + params.m * cellSize + 10);
       }
 
       function performStep() {
-        if (i >= m) {
-          isDone = true;
-          updateResult(`最终结果：${dp[m - 1][n - 1]}`, "var(--green)");
-          logMsg(`填表完成，最小路径和 = ${dp[m - 1][n - 1]}。`, true, "success");
-          return;
-        }
-
-        const g = grid[i][j];
-        let fromTop = null;
-        let fromLeft = null;
-        let detail1 = "";
-        let detail2 = "";
-
-        if (i === 0 && j === 0) {
-          dp[i][j] = g;
-          detail1 = "起点直接取自身权重。";
-          detail2 = `dp[0][0] = ${g}`;
-        } else if (i === 0) {
-          fromLeft = { r: i, c: j - 1 };
-          dp[i][j] = dp[i][j - 1] + g;
-          detail1 = `第一行只能从左来：dp[${i}][${j - 1}] + ${g}`;
-          detail2 = `dp[${i}][${j}] = ${dp[i][j]}`;
-        } else if (j === 0) {
-          fromTop = { r: i - 1, c: j };
-          dp[i][j] = dp[i - 1][j] + g;
-          detail1 = `第一列只能从上来：dp[${i - 1}][${j}] + ${g}`;
-          detail2 = `dp[${i}][${j}] = ${dp[i][j]}`;
-        } else {
-          fromTop = { r: i - 1, c: j };
-          fromLeft = { r: i, c: j - 1 };
-          const up = dp[i - 1][j];
-          const left = dp[i][j - 1];
-          const best = up < left ? up : left;
-          dp[i][j] = best + g;
-          detail1 = `min(上=${up}, 左=${left}) + ${g}`;
-          detail2 = `dp[${i}][${j}] = ${dp[i][j]}`;
-        }
-
-        stepInfo = { i, j, g, fromTop, fromLeft, detail1, detail2 };
-        logMsg(`(${i},${j}) -> dp=${dp[i][j]}`, true);
-
-        j++;
-        if (j >= n) {
-          j = 0;
-          i++;
-        }
-
-        if (i >= m) {
-          isDone = true;
-          updateResult(`最终结果：${dp[m - 1][n - 1]}`, "var(--green)");
-          logMsg(`状态计算完成，答案为 ${dp[m - 1][n - 1]}。`, true, "success");
+        if (algoState === 'FILL_0_0') {
+            dpGrid[0][0] = origGrid[0][0];
+            targetX = 1; targetY = 0;
+            logMsg(`📍 初始化起点：位置 (0,0) 的最小路径和为其本身权重 ${origGrid[0][0]}`);
+            updateDataUI(dpGrid[0]);
+            algoState = 'FILL_ROW_0';
+            stepJ = 1;
+        } else if (algoState === 'FILL_ROW_0') {
+            dpGrid[0][stepJ] = dpGrid[0][stepJ - 1] + origGrid[0][stepJ];
+            dirMatrix[0][stepJ] = 1; // From Left
+            targetX = stepJ; targetY = 0;
+            
+            logMsg(`➡️ 边界初始化 (行)：dp[0][${stepJ}] = 左侧(${dpGrid[0][stepJ-1]}) + 权重(${origGrid[0][stepJ]}) = ${dpGrid[0][stepJ]}`);
+            updateDataUI(dpGrid[0]);
+            
+            stepJ++;
+            if (stepJ >= params.n) {
+                algoState = 'FILL_COL_0';
+                stepI = 1;
+                stepJ = 0;
+            }
+        } else if (algoState === 'FILL_COL_0') {
+            dpGrid[stepI][0] = dpGrid[stepI - 1][0] + origGrid[stepI][0];
+            dirMatrix[stepI][0] = 2; // From Top
+            targetX = 0; targetY = stepI;
+            
+            logMsg(`⬇️ 边界初始化 (列)：dp[${stepI}][0] = 上方(${dpGrid[stepI-1][0]}) + 权重(${origGrid[stepI][0]}) = ${dpGrid[stepI][0]}`);
+            updateDataUI(dpGrid[stepI]);
+            
+            stepI++;
+            if (stepI >= params.m) {
+                algoState = 'COMPUTE';
+                stepI = 1;
+                stepJ = 1;
+            }
+        } else if (algoState === 'COMPUTE') {
+            let topVal = dpGrid[stepI - 1][stepJ];
+            let leftVal = dpGrid[stepI][stepJ - 1];
+            let currentWeight = origGrid[stepI][stepJ];
+            
+            if (topVal < leftVal) {
+                dpGrid[stepI][stepJ] = topVal + currentWeight;
+                dirMatrix[stepI][stepJ] = 2; // Selected Top
+            } else {
+                dpGrid[stepI][stepJ] = leftVal + currentWeight;
+                dirMatrix[stepI][stepJ] = 1; // Selected Left
+            }
+            
+            targetX = stepJ; targetY = stepI;
+            
+            logMsg(`⚙️ 状态转移：dp[${stepI}][${stepJ}] = 权重(${currentWeight}) + min(上方 ${topVal}, 左侧 ${leftVal}) = ${dpGrid[stepI][stepJ]}`, stepI === params.m - 1 && stepJ === params.n - 1);
+            updateDataUI(dpGrid[stepI]);
+            
+            stepJ++;
+            if (stepJ >= params.n) {
+                stepJ = 1;
+                stepI++;
+                if (stepI >= params.m) {
+                    algoState = 'TRACEBACK';
+                    currTraceI = params.m - 1;
+                    currTraceJ = params.n - 1;
+                    pathSet.add(`${currTraceI},${currTraceJ}`);
+                    logMsg(`🔄 动态规划完成，开始回溯提取最优路径...`, true);
+                }
+            }
+        } else if (algoState === 'TRACEBACK') {
+            if (currTraceI === 0 && currTraceJ === 0) {
+                algoState = 'DONE';
+                isDone = true;
+                logMsg(`🎉 回溯结束！到达网格右下角的最小路径和为：${dpGrid[params.m - 1][params.n - 1]}`, true);
+            } else {
+                let d = dirMatrix[currTraceI][currTraceJ];
+                if (d === 1) currTraceJ--; // Moved from left
+                else if (d === 2) currTraceI--; // Moved from top
+                
+                pathSet.add(`${currTraceI},${currTraceJ}`);
+                logMsg(`📍 提取路径节点: (${currTraceI}, ${currTraceJ})`);
+            }
         }
       }
 
-      function updateDataNodes() {
-        const c = document.getElementById("data-nodes");
-        c.innerHTML = "";
-        [`m=${m}`, `n=${n}`, `终点=(${m - 1},${n - 1})`].forEach((v) => {
-          const node = document.createElement("div");
+      function updateDataUI(arr) {
+        let container = document.getElementById("data-nodes");
+        if (!container) return;
+        container.innerHTML = "";
+        arr.forEach((v, idx) => {
+          let node = document.createElement("div");
           node.className = "data-node";
-          node.textContent = v;
-          c.appendChild(node);
+          node.innerText = v === -1 ? "?" : v;
+          if (algoState === 'COMPUTE' && idx === stepJ - 1) {
+              node.style.background = "#c86641"; 
+          }
+          container.appendChild(node);
         });
       }
 
-      function updateResult(text, color) {
-        const el = document.getElementById("result-label");
-        el.textContent = text;
-        el.style.color = color;
-      }
-
-      function logMsg(msg, highlight = false, extraClass = "") {
-        const c = document.getElementById("log-container");
-        const item = document.createElement("div");
-        item.className = "log-item" + (highlight ? " highlight" : "") + (extraClass ? ` ${extraClass}` : "");
-        const t = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-        item.innerHTML = `<div class="log-time">${t}</div>${msg}`;
-        c.appendChild(item);
-        c.scrollTop = c.scrollHeight;
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
       }
 
       function switchLang(lang) {
-        currentLang = lang;
         document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-        const map = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
-        document.querySelectorAll(".tab")[map[lang]].classList.add("active");
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
 
         const codeEl = document.getElementById("code-viewer");
-        const hl = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
-        codeEl.className = "hljs " + hl[lang];
+        const hljsMap = {
+          python: "language-python",
+          ts: "language-typescript",
+          java: "language-java",
+          cpp: "language-cpp",
+          c: "language-c",
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
         codeEl.textContent = SNIPPETS[lang];
         codeEl.removeAttribute("data-highlighted");
         if (window.hljs) hljs.highlightElement(codeEl);
+        
         initializeSystem();
       }
 
       function updateParam(id, val) {
-        if (id in params) params[id] = parseFloat(val);
-        document.getElementById(id + "-value").textContent = val;
+        params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        if (id !== "speed") initializeSystem();
       }
 
       function updateSeed() {
-        params.seed = parseInt(document.getElementById("seed-input").value, 10) || 64001;
-        presetRaw = "";
+        params.seed = parseInt(document.getElementById("seed-input").value) || 8848;
         initializeSystem();
       }
 
       function randomSeedAndUpdate() {
         params.seed = floor(random(1, 99999));
         document.getElementById("seed-input").value = params.seed;
-        presetRaw = "";
         initializeSystem();
-      }
-
-      function setPreset(raw) {
-        presetRaw = raw;
-        initializeSystem();
+        logMsg("🔄 随机化生成新网格配置。", true);
       }
 
       function togglePause() {
         isPaused = !isPaused;
-        const btn = document.getElementById("pause-btn");
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
         if (isPaused) {
           btn.innerHTML = "▶ 继续";
-          btn.style.background = "var(--green)";
+          btn.style.background = "var(--anthropic-green)";
         } else {
           btn.innerHTML = "⏸ 暂停";
-          btn.style.background = "var(--dark)";
+          btn.style.background = "var(--anthropic-dark)";
         }
       }
 
