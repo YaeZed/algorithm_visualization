@@ -3,134 +3,516 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>编辑距离 - LeetCode 72</title>
+    <title>编辑距离 (Edit Distance) - 算法全流程可视化</title>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/arduino-light.min.css"
+      id="hljs-theme"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
     <style>
-      :root { --dark:#141413; --line:#e8e6dc; --mid:#b0aea5; --orange:#d97757; --blue:#6a9bcc; --green:#788c5d; }
-      * { margin:0; padding:0; box-sizing:border-box; }
-      body { font-family:"Poppins","PingFang SC",sans-serif; background:#fdfcf9; color:var(--dark); overflow:hidden; }
-      .container { display:flex; height:100vh; padding:15px; gap:15px; }
-      .sidebar { width:280px; flex-shrink:0; background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; overflow-y:auto; }
-      .sidebar h1 { font-family:"Lora",serif; font-size:18px; color:var(--orange); margin-bottom:4px; }
-      .subtitle { font-size:11px; color:var(--mid); margin-bottom:20px; }
-      .control-section { margin-bottom:18px; }
-      .control-section h3 { font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
-      .control-section h3::before { content:""; width:4px; height:14px; background:var(--orange); border-radius:2px; }
-      .control-group { margin-bottom:10px; }
-      .control-group label { display:block; font-size:12px; margin-bottom:4px; color:#666; }
-      .slider-container { display:flex; align-items:center; gap:10px; }
-      input[type="range"] { flex:1; height:4px; background:var(--line); border-radius:2px; appearance:none; }
-      input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; background:var(--orange); border-radius:50%; border:2px solid #fff; }
-      .value-display { font-family:"JetBrains Mono",monospace; font-size:11px; min-width:24px; text-align:right; }
-      .seed-input { width:100%; padding:8px; border:1px solid var(--line); border-radius:6px; margin-bottom:8px; font-family:"JetBrains Mono",monospace; font-size:12px; }
-      .button { width:100%; border:none; background:var(--orange); color:#fff; border-radius:6px; padding:10px; font-size:13px; font-weight:500; cursor:pointer; }
-      .preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-      .preset { border:1px solid var(--line); border-radius:6px; padding:7px 6px; background:#fff; font-family:"JetBrains Mono",monospace; font-size:11px; cursor:pointer; text-align:center; }
-      .canvas-area { flex:1; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
-      .canvas-header { padding:10px 20px; border-bottom:1px solid var(--line); font-size:13px; color:#888; display:flex; justify-content:space-between; }
-      #canvas-container { flex:1; width:100%; height:100%; }
-      .right-panel { flex:1; min-width:0; display:flex; flex-direction:column; gap:15px; }
-      .code-box { flex:1.08; background:#1e1e1e; border:1px solid #333; border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
-      .box-header.dark { background:#282828; border-bottom:1px solid #1e1e1e; padding:10px 15px 0; display:flex; justify-content:space-between; align-items:center; }
-      .box-title.dark { color:#ccc; font-size:12px; font-weight:600; padding-bottom:10px; }
-      .tabs.dark { display:flex; gap:1px; align-items:flex-end; }
-      .tabs.dark .tab { padding:8px 16px; background:#2d2d2d; color:#888; border-radius:6px 6px 0 0; font-size:11px; cursor:pointer; }
-      .tabs.dark .tab.active { background:#1e1e1e; color:#4ec9b0; border-top:2px solid #007acc; }
-      .code-content { flex:1; margin:0; overflow:auto; }
-      #code-viewer { font-family:Consolas,"JetBrains Mono",monospace; font-size:14px; line-height:1.55; color:#d4d4d4; padding:15px; }
-      .logic-box { flex:.92; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
-      .box-header { padding:8px 15px; border-bottom:1px solid #eee; }
-      .box-title { font-size:12px; font-weight:600; color:#555; }
-      .data-viz { padding:12px; background:#fffcf9; border-bottom:1px solid #eee; }
-      .data-title { font-size:11px; font-weight:600; color:var(--orange); margin-bottom:6px; text-transform:uppercase; }
-      .data-array { display:flex; flex-wrap:wrap; gap:5px; min-height:30px; }
-      .data-node { min-width:26px; height:26px; padding:0 8px; background:var(--orange); color:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700; }
-      .log-area { flex:1; padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; font-size:11.5px; }
-      .log-item { padding:6px 10px; border-radius:4px; background:#fcfcfc; border-left:2px solid #ddd; color:#444; line-height:1.4; }
-      .log-item.highlight { border-left-color:var(--orange); background:#fff9f5; font-weight:500; }
-      .log-item.success { border-left-color:var(--green); background:#f6fbef; }
-      .log-item .log-time { font-size:9px; color:#aaa; margin-bottom:2px; }
-      .memo-card { margin-top:18px; border-top:1px solid var(--line); padding-top:14px; }
-      .memo-card h3 { font-size:12px; font-weight:600; margin-bottom:10px; }
-      .memo-badges { display:flex; gap:6px; margin-bottom:10px; }
-      .memo-badge { padding:2px 8px; border-radius:4px; font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:600; }
-      .memo-time { background:#fff3ee; color:var(--orange); border:1px solid #f0c8b0; }
-      .memo-space { background:#eef3ff; color:var(--blue); border:1px solid #b8d0f0; }
-      .memo-tip { padding:6px 9px; font-size:11px; line-height:1.5; color:#555; background:#fffcf9; border-left:3px solid var(--orange); border-radius:0 5px 5px 0; margin-bottom:6px; }
-      .memo-tip.g { border-left-color:var(--green); }
-      .memo-tip.w { border-left-color:#e8a838; background:#fffdf2; }
-      ::-webkit-scrollbar { width:6px; }
-      ::-webkit-scrollbar-thumb { background:#e0e0e0; border-radius:3px; }
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
+
+      /* Foundation */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", "PingFang SC", sans-serif;
+        background: #fdfcf9;
+        color: var(--anthropic-dark);
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        height: 100vh;
+        padding: 15px;
+        gap: 15px;
+      }
+
+      /* Left Sidebar - Controls */
+      .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        overflow-y: auto;
+        border: 1px solid var(--anthropic-light-gray);
+      }
+      .sidebar h1 {
+        font-family: "Lora", serif;
+        font-size: 18px;
+        margin-bottom: 4px;
+        color: var(--anthropic-orange);
+      }
+      .subtitle {
+        color: var(--anthropic-mid-gray);
+        font-size: 11px;
+        margin-bottom: 20px;
+      }
+      .control-section {
+        margin-bottom: 20px;
+      }
+      .control-section h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: var(--anthropic-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .control-section h3::before {
+        content: "";
+        width: 4px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 2px;
+      }
+      .control-group {
+        margin-bottom: 12px;
+      }
+      .control-group label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 4px;
+        color: #666;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      input[type="range"] {
+        flex: 1;
+        height: 4px;
+        background: var(--anthropic-light-gray);
+        border-radius: 2px;
+        appearance: none;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--anthropic-orange);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+      .value-display {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        min-width: 25px;
+        text-align: right;
+      }
+      .button {
+        background: var(--anthropic-orange);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        width: 100%;
+        cursor: pointer;
+        font-size: 13px;
+        transition: 0.2s;
+        font-weight: 500;
+      }
+      .button:hover {
+        background: #c86641;
+      }
+      .seed-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--anthropic-light-gray);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+
+      /* Middle - Canvas */
+      .canvas-area {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--anthropic-light-gray);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .canvas-header {
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--anthropic-light-gray);
+        font-size: 13px;
+        font-weight: 500;
+        color: #888;
+      }
+      #canvas-container {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Right Panel - Logic & Code */
+      .right-panel {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      /* Code Box (VS Code Dark+ Style) */
+      .code-box {
+        flex: 1.1;
+        background: #1e1e1e;
+        border-radius: 12px;
+        border: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .box-header {
+        padding: 8px 15px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .box-header.dark {
+        background: #282828;
+        border-bottom: 1px solid #1e1e1e;
+        padding: 10px 15px 0 15px;
+      }
+      .box-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+      }
+      .box-title.dark {
+        color: #ccc;
+        padding-bottom: 10px;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+      }
+      .tabs.dark {
+        gap: 1px;
+        align-items: flex-end;
+      }
+      .tabs.dark .tab {
+        padding: 8px 16px;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        background: #2d2d2d;
+        transition: 0.2s;
+        color: #888;
+        font-weight: 500;
+        font-size: 11px;
+        font-family: "Poppins", sans-serif;
+      }
+      .tabs.dark .tab:hover {
+        background: #3c3c3c;
+        color: #ddd;
+      }
+      .tabs.dark .tab.active {
+        background: #1e1e1e;
+        color: #4ec9b0;
+        border-top: 2px solid #007acc;
+      }
+
+      .code-content {
+        flex: 1;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        background: #1e1e1e;
+        border-radius: 0 0 12px 12px;
+      }
+      #code-viewer {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        display: block;
+        padding: 15px;
+        background: transparent;
+        color: #d4d4d4;
+      }
+
+      /* Highlight.js CSS Overrides for precise Dark+ accuracy */
+      .hljs {
+        background: transparent !important;
+        padding: 0 !important;
+        color: #d4d4d4 !important;
+      }
+      .hljs-keyword,
+      .hljs-literal,
+      .hljs-selector-tag {
+        color: #569cd6 !important;
+      }
+      .hljs-type,
+      .hljs-title.class_,
+      .hljs-class .hljs-title,
+      .hljs-built_in {
+        color: #4ec9b0 !important;
+      }
+      .hljs-variable,
+      .hljs-variable.language_,
+      .hljs-property,
+      .hljs-attr,
+      .hljs-params {
+        color: #9cdcfe !important;
+      }
+      .hljs-number {
+        color: #b5cea8 !important;
+      }
+      .hljs-punctuation,
+      .hljs-operator {
+        color: #d4d4d4 !important;
+      }
+      .hljs-string,
+      .hljs-char {
+        color: #ce9178 !important;
+      }
+      .hljs-comment {
+        color: #6a9955 !important;
+      }
+      .hljs-title.function_,
+      .hljs-function .hljs-title,
+      .hljs-title.function_.invoke__ {
+        color: #dcdcaa !important;
+      }
+
+      /* Logic Log Box */
+      .logic-box {
+        flex: 0.9;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--anthropic-light-gray);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+
+      /* Optional Visual Data Structure Area (e.g. Heap Array / Pointers) */
+      .data-viz {
+        padding: 12px;
+        background: #fffcf9;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .data-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--anthropic-orange);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .data-array {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-height: 30px;
+      }
+      .data-node {
+        width: 22px;
+        height: 22px;
+        background: var(--anthropic-orange);
+        color: white;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: bold;
+      }
+
+      /* Auto-scrolling Log */
+      .log-area {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 11.5px;
+        background: #fff;
+      }
+      .log-item {
+        padding: 5px 10px;
+        border-radius: 4px;
+        background: #fcfcfc;
+        border-left: 2px solid #ddd;
+        border-bottom: 1px solid #f5f5f5;
+        line-height: 1.4;
+        color: #444;
+      }
+      .log-item.highlight {
+        border-left-color: var(--anthropic-orange);
+        background: #fff9f5;
+        font-weight: 500;
+      }
+      .log-item .time {
+        font-size: 9px;
+        color: #bbb;
+        margin-bottom: 2px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #e0e0e0;
+        border-radius: 3px;
+      }
+
+      /* ── 算法速记 ────────────────────────── */
+      .memo-card { margin-top: 18px; border-top: 1px solid var(--anthropic-light-gray); padding-top: 14px; }
+      .memo-card h3 { font-size: 12px; font-weight: 600; color: var(--anthropic-dark); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+      .memo-card h3::before { content: ''; width: 3px; height: 12px; background: var(--anthropic-green); border-radius: 2px; }
+      .memo-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+      .memo-badge { padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+      .memo-badge.time { background: #fff3ee; color: var(--anthropic-orange); border: 1px solid #f0c8b0; }
+      .memo-badge.space { background: #eef3ff; color: var(--anthropic-blue); border: 1px solid #b8d0f0; }
+      .memo-tips { display: flex; flex-direction: column; gap: 6px; }
+      .memo-tip { padding: 6px 9px; font-size: 11px; line-height: 1.5; color: #555; background: #fffcf9; border-left: 3px solid var(--anthropic-orange); border-radius: 0 5px 5px 0; }
+      .memo-tip.g { border-left-color: var(--anthropic-green); }
+      .memo-tip.w { border-left-color: #e8a838; background: #fffdf2; }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="sidebar">
-        <h1>编辑距离</h1>
-        <div class="subtitle">LeetCode 72 · 二维 DP</div>
+        <h1>编辑距离 (Edit Distance)</h1>
+        <div class="subtitle">动态规划经典二维表格状态转移</div>
+
         <div class="control-section">
-          <h3>随机种子</h3>
-          <input type="number" id="seed-input" class="seed-input" value="72001" onchange="updateSeed()" />
-          <button class="button" onclick="randomSeedAndUpdate()">随机生成字符串对</button>
-        </div>
-        <div class="control-section">
-          <h3>参数控制</h3>
+          <h3>动画控制</h3>
           <div class="control-group">
-            <label>动画速度</label>
+            <label>运行速度</label>
             <div class="slider-container">
-              <input type="range" id="speed" min="0.1" max="2.5" step="0.1" value="1.0" oninput="updateParam('speed', this.value)" />
+              <input
+                type="range"
+                id="speed"
+                min="0.1"
+                max="2.5"
+                step="0.1"
+                value="1.0"
+                oninput="updateParam('speed', this.value)"
+              />
               <span class="value-display" id="speed-value">1.0</span>
             </div>
           </div>
+          
           <div class="control-group">
-            <label>长度（随机）</label>
-            <div class="slider-container">
-              <input type="range" id="n" min="4" max="9" step="1" value="6" oninput="updateParam('n', this.value)" />
-              <span class="value-display" id="n-value">6</span>
-            </div>
+            <label>初始字符串 1 (word1)</label>
+            <input
+              type="text"
+              id="word1-input"
+              class="seed-input"
+              value="horse"
+              maxlength="8"
+              onchange="updateWords()"
+            />
           </div>
           <div class="control-group">
-            <label>预设样例</label>
-            <div class="preset-grid">
-              <button class="preset" onclick="setPreset('horse|ros')">horse/ros</button>
-              <button class="preset" onclick="setPreset('intention|execution')">in/ex</button>
-              <button class="preset" onclick="setPreset('kitten|sitting')">kit/sit</button>
-              <button class="preset" onclick="setPreset('abc|abc')">abc/abc</button>
-            </div>
+            <label>目标字符串 2 (word2)</label>
+            <input
+              type="text"
+              id="word2-input"
+              class="seed-input"
+              value="ros"
+              maxlength="8"
+              onchange="updateWords()"
+            />
           </div>
+          <button class="button" onclick="randomWordsAndUpdate()">
+            随机生成字符串对
+          </button>
         </div>
-        <div class="control-section" style="display:flex; gap:10px">
-          <button id="pause-btn" class="button" style="background:var(--dark)" onclick="togglePause()">⏸ 暂停</button>
-          <button class="button" style="background:var(--blue)" onclick="resetAnimation()">🔄 重新运行</button>
+
+        <div class="control-section" style="display: flex; gap: 10px">
+          <button
+            id="pause-btn"
+            class="button"
+            style="background: var(--anthropic-dark)"
+            onclick="togglePause()"
+          >
+            ⏸ 暂停
+          </button>
+          <button
+            class="button"
+            style="background: var(--anthropic-blue)"
+            onclick="resetAnimation()"
+          >
+            🔄 重新运行
+          </button>
         </div>
+
         <div class="memo-card">
-          <h3>算法备忘</h3>
+          <h3>算法速记</h3>
           <div class="memo-badges">
-            <span class="memo-badge memo-time">时间 O(m*n)</span>
-            <span class="memo-badge memo-space">空间 O(m*n)</span>
+            <span class="memo-badge time">⏱ O(m×n)</span>
+            <span class="memo-badge space">□ O(m×n)</span>
           </div>
-          <div class="memo-tip">dp[i][j] 表示 word1 前 i 个转成 word2 前 j 个的最少操作数。</div>
-          <div class="memo-tip g">若字符相同：dp[i][j]=dp[i-1][j-1]。</div>
-          <div class="memo-tip w">否则：min(替换, 删除, 插入)+1。</div>
+          <div class="memo-tips">
+            <div class="memo-tip">💡 <code>dp[i][j]</code> 表示 <code>word1</code> 的前 i 个字符转换到 <code>word2</code> 的前 j 个字符的最小操作数。</div>
+            <div class="memo-tip">💡 如果字符相同：无需新操作，完全继承左上角 <code>dp[i-1][j-1]</code>。</div>
+            <div class="memo-tip">💡 如果字符不同：取增、删、改三种操作的最小值 + 1，即 <code>1 + min(左, 上, 左上)</code>。</div>
+            <div class="memo-tip g">🔍 空间优化：每次计算只需用到当前行和上一行的数据，可以通过滚动数组将空间优化至 O(n)。</div>
+            <div class="memo-tip w">⚠️ 常见误区：注意 DP 数组比字符串长度多 1，<code>dp[i][j]</code> 对齐的是 <code>word1[i-1]</code> 和 <code>word2[j-1]</code>。</div>
+          </div>
         </div>
       </div>
+
       <div class="canvas-area">
-        <div class="canvas-header"><span>编辑距离 DP 填表</span><span id="result-label">运行中</span></div>
+        <div class="canvas-header">DP 状态表格动画展示区</div>
         <div id="canvas-container"></div>
       </div>
+
       <div class="right-panel">
         <div class="code-box">
           <div class="box-header dark">
-            <div class="box-title dark">最优解代码</div>
+            <div class="box-title dark">核心解法 (最优代码)</div>
             <div id="lang-tabs" class="tabs dark">
               <div class="tab" onclick="switchLang('python')">Python</div>
               <div class="tab" onclick="switchLang('ts')">TS</div>
@@ -139,319 +521,608 @@
               <div class="tab" onclick="switchLang('c')">C</div>
             </div>
           </div>
-          <pre class="code-content"><code id="code-viewer" class="hljs"></code></pre>
+          <pre
+            class="code-content"
+          ><code id="code-viewer" class="hljs"></code></pre>
         </div>
+
         <div class="logic-box">
-          <div class="box-header"><div class="box-title">执行日志</div></div>
-          <div class="data-viz">
-            <div class="data-title">输入字符串</div>
-            <div id="data-nodes" class="data-array"></div>
+          <div class="box-header" style="border-bottom: 1px solid #eee">
+            <div class="box-title">实时执行过程 (Step-by-step Log)</div>
           </div>
           <div id="log-container" class="log-area"></div>
         </div>
       </div>
     </div>
+
     <script>
+      // ==========================================================
+      // ALGORITHM SNIPPETS (5 Languages with Chinese Comments)
+      // ==========================================================
       const SNIPPETS = {
-        python: `# Python
+        python: `# Python 动态规划最优解
 def minDistance(word1: str, word2: str) -> int:
     m, n = len(word1), len(word2)
-    # dp[i][j]：word1[:i] 到 word2[:j] 的最少操作数
+    # 建立 (m+1) x (n+1) 的二维 DP 表，全部初始化为 0
+    # dp[i][j] 表示 word1[0..i-1] 转换成 word2[0..j-1] 的最小编辑距离
     dp = [[0] * (n + 1) for _ in range(m + 1)]
 
+    # 边界状态初始化：
+    # word1 的前 i 个字符转换成空字符串，只能不断删除（共 i 次）
     for i in range(m + 1):
         dp[i][0] = i
+    # 空字符串转换成 word2 的前 j 个字符，只能不断插入（共 j 次）
     for j in range(n + 1):
         dp[0][j] = j
 
+    # 动态规划状态转移
     for i in range(1, m + 1):
         for j in range(1, n + 1):
             if word1[i - 1] == word2[j - 1]:
+                # 如果当前比较的字符相同，不需要增加任何新操作
+                # 最小距离完全继承左上角的值
                 dp[i][j] = dp[i - 1][j - 1]
             else:
-                replace = dp[i - 1][j - 1]
-                delete = dp[i - 1][j]
-                insert = dp[i][j - 1]
-                dp[i][j] = min(replace, delete, insert) + 1
+                # 如果字符不同，我们需要在三种操作中选择步数最少的方案并加 1:
+                # 1. 删除操作对应上方格子 dp[i-1][j]
+                # 2. 插入操作对应左侧格子 dp[i][j-1]
+                # 3. 替换操作对应左上方格子 dp[i-1][j-1]
+                dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+
+    # 表格右下角的值即为全局最小操作步数
     return dp[m][n]`,
-        ts: `// TypeScript
+        ts: `// TypeScript 动态规划最优解
 function minDistance(word1: string, word2: string): number {
-  const m = word1.length, n = word2.length;
-  // dp[i][j]：前缀转换最少操作数
-  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
+    const m = word1.length;
+    const n = word2.length;
+    
+    // 初始化二维数组，dp[i][j] 代表 word1 的前 i 个字符转为 word2 的前 j 个字符所需的最少操作
+    const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
 
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (word1[i - 1] === word2[j - 1]) dp[i][j] = dp[i - 1][j - 1];
-      else {
-        const replace = dp[i - 1][j - 1];
-        const del = dp[i - 1][j];
-        const ins = dp[i][j - 1];
-        dp[i][j] = Math.min(replace, del, ins) + 1;
-      }
-    }
-  }
-  return dp[m][n];
-}`,
-        java: `// Java
-class Solution {
-  public int minDistance(String word1, String word2) {
-    int m = word1.length(), n = word2.length();
-    // dp[i][j]：前缀编辑距离
-    int[][] dp = new int[m + 1][n + 1];
-    for (int i = 0; i <= m; i++) dp[i][0] = i;
-    for (int j = 0; j <= n; j++) dp[0][j] = j;
+    // 处理 base case：第一列（将 word1 转换为空串所需删除次数）
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    
+    // 处理 base case：第一行（将空串转换为 word2 所需插入次数）
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
 
-    for (int i = 1; i <= m; i++) {
-      for (int j = 1; j <= n; j++) {
-        if (word1.charAt(i - 1) == word2.charAt(j - 1)) dp[i][j] = dp[i - 1][j - 1];
-        else {
-          int replace = dp[i - 1][j - 1], del = dp[i - 1][j], ins = dp[i][j - 1];
-          dp[i][j] = Math.min(replace, Math.min(del, ins)) + 1;
+    // 遍历填充 DP 表格
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (word1[i - 1] === word2[j - 1]) {
+                // 字符匹配：不产生新的编辑距离，继承自状态 dp[i-1][j-1]
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                // 字符不匹配：分别模拟删除（上）、插入（左）、替换（左上），取最优解 + 1
+                dp[i][j] = 1 + Math.min(
+                    dp[i - 1][j],    // 删除
+                    dp[i][j - 1],    // 插入
+                    dp[i - 1][j - 1] // 替换
+                );
+            }
         }
-      }
     }
+
+    // 最终返回右下角的值
     return dp[m][n];
-  }
 }`,
-        cpp: `// C++
+        java: `// Java 动态规划最优解
+class Solution {
+    public int minDistance(String word1, String word2) {
+        int m = word1.length();
+        int n = word2.length();
+        
+        // dp 数组：维度加 1 以兼容空串情况
+        int[][] dp = new int[m + 1][n + 1];
+
+        // 初始化边界：第一列（word1 删除成空串）
+        for (int i = 0; i <= m; i++) {
+            dp[i][0] = i;
+        }
+        // 初始化边界：第一行（空串插入成 word2）
+        for (int j = 0; j <= n; j++) {
+            dp[0][j] = j;
+        }
+
+        // 双重循环填表
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                // 注意下标映射：dp[i][j] 对应字符索引是 i-1 和 j-1
+                if (word1.charAt(i - 1) == word2.charAt(j - 1)) {
+                    // 当前位一致，无需编辑操作
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    // 当前位不同，在三种方案中挑取代价最小的：
+                    // dp[i-1][j]   -> 删去 word1[i-1]
+                    // dp[i][j-1]   -> 插入 word2[j-1]
+                    // dp[i-1][j-1] -> 把 word1[i-1] 替换为 word2[j-1]
+                    dp[i][j] = 1 + Math.min(
+                        dp[i - 1][j - 1], 
+                        Math.min(dp[i - 1][j], dp[i][j - 1])
+                    );
+                }
+            }
+        }
+
+        return dp[m][n];
+    }
+}`,
+        cpp: `// C++ 动态规划最优解
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
 class Solution {
 public:
-  int minDistance(string word1, string word2) {
-    int m = (int)word1.size(), n = (int)word2.size();
-    // dp[i][j]：前缀编辑距离
-    vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));
+    int minDistance(string word1, string word2) {
+        int m = word1.size();
+        int n = word2.size();
+        
+        // 创建二维 vector，全初始化为 0
+        vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));
+
+        // 边界初始化
+        for (int i = 0; i <= m; ++i) dp[i][0] = i; // 第一列
+        for (int j = 0; j <= n; ++j) dp[0][j] = j; // 第一行
+
+        // 从上到下，从左到右填表
+        for (int i = 1; i <= m; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (word1[i - 1] == word2[j - 1]) {
+                    // 字符一样，继承操作次数
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    // 字符不一样，尝试三种动作并取局部最优
+                    // min(替换, min(删除, 插入))
+                    dp[i][j] = 1 + min({
+                        dp[i - 1][j - 1], 
+                        dp[i - 1][j], 
+                        dp[i][j - 1]
+                    });
+                }
+            }
+        }
+
+        // 返回表格末尾端点的值
+        return dp[m][n];
+    }
+};`,
+        c: `// C 动态规划最优解
+#include <string.h>
+#include <stdlib.h>
+
+// 辅助函数：求三者最小值
+int min3(int a, int b, int c) {
+    int min = a < b ? a : b;
+    return min < c ? min : c;
+}
+
+int minDistance(char * word1, char * word2) {
+    int m = strlen(word1);
+    int n = strlen(word2);
+    
+    // 动态分配二维数组 (m+1) x (n+1)
+    int **dp = (int **)malloc((m + 1) * sizeof(int *));
+    for (int i = 0; i <= m; i++) {
+        dp[i] = (int *)malloc((n + 1) * sizeof(int));
+    }
+
+    // 初始化第0列和第0行
     for (int i = 0; i <= m; i++) dp[i][0] = i;
     for (int j = 0; j <= n; j++) dp[0][j] = j;
 
+    // 核心状态转移逻辑
     for (int i = 1; i <= m; i++) {
-      for (int j = 1; j <= n; j++) {
-        if (word1[i - 1] == word2[j - 1]) dp[i][j] = dp[i - 1][j - 1];
-        else dp[i][j] = min({dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]}) + 1;
-      }
+        for (int j = 1; j <= n; j++) {
+            if (word1[i - 1] == word2[j - 1]) {
+                // 字符匹配，无额外开销
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                // 不匹配：分别对应 替换，删除，插入 的最少步数加一
+                dp[i][j] = 1 + min3(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
+            }
+        }
     }
-    return dp[m][n];
-  }
-};`,
-        c: `// C
-int minDistance(char* word1, char* word2) {
-  int m = (int)strlen(word1), n = (int)strlen(word2);
-  // dp[i][j]：前缀编辑距离
-  int** dp = (int**)malloc(sizeof(int*) * (m + 1));
-  for (int i = 0; i <= m; i++) dp[i] = (int*)calloc(n + 1, sizeof(int));
-  for (int i = 0; i <= m; i++) dp[i][0] = i;
-  for (int j = 0; j <= n; j++) dp[0][j] = j;
 
-  for (int i = 1; i <= m; i++) {
-    for (int j = 1; j <= n; j++) {
-      if (word1[i - 1] == word2[j - 1]) dp[i][j] = dp[i - 1][j - 1];
-      else {
-        int rep = dp[i - 1][j - 1], del = dp[i - 1][j], ins = dp[i][j - 1];
-        int best = rep < del ? rep : del;
-        if (ins < best) best = ins;
-        dp[i][j] = best + 1;
-      }
-    }
-  }
-  int ans = dp[m][n];
-  for (int i = 0; i <= m; i++) free(dp[i]);
-  free(dp);
-  return ans;
-}`
+    int result = dp[m][n];
+    
+    // 释放内存
+    for (int i = 0; i <= m; i++) free(dp[i]);
+    free(dp);
+
+    return result;
+}`,
       };
 
-      let params = { seed: 72001, speed: 1.0, n: 6 };
-      let currentLang = "python";
-      let a = "";
-      let b = "";
-      let dp = [];
-      let presetRaw = "";
+      // ==========================================================
+      // VARIABLES & STATE
+      // ==========================================================
+      let params = {
+        speed: 1.0,
+        word1: "horse",
+        word2: "ros"
+      };
+
       let isDone = false;
       let isPaused = false;
-      let timer = 0;
-      let i = 0;
-      let j = 0;
-      let stepInfo = null;
+      let p5Timer = 0;
+      let currentLang = "python";
 
-      function makeRng(seed) { let x = (seed >>> 0) || 1; return () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296); }
-      function genStr(n, seed) {
-        const chars = "abcde";
-        const rnd = makeRng(seed);
-        let out = "";
-        for (let k = 0; k < n; k++) out += chars[Math.floor(rnd() * chars.length)];
-        return out;
-      }
+      // DP Algorithm State
+      let dpTable = [];
+      let m = 0, n = 0;
+      let currI = 0, currJ = 0;
+      // phase: 0 = Init col, 1 = Init row, 2 = Calc DP, 3 = Done
+      let phase = 0; 
+      
+      // Animation State
+      let dispCellX = 0, dispCellY = 0;
+
+      // ==========================================================
+      // P5.js LOGIC
+      // ==========================================================
 
       function setup() {
-        const container = document.getElementById("canvas-container");
-        const canvas = createCanvas(container.offsetWidth || 500, container.offsetHeight || 600);
+        let container = document.getElementById("canvas-container");
+        let canvas = createCanvas(
+          container.offsetWidth || 500,
+          container.offsetHeight || 600,
+        );
         canvas.parent("canvas-container");
-        window.addEventListener("resize", () => resizeCanvas(container.offsetWidth || 500, container.offsetHeight || 600));
+        window.addEventListener("resize", () =>
+          resizeCanvas(container.offsetWidth, container.offsetHeight),
+        );
+
         switchLang("python");
+        initializeSystem();
       }
 
       function initializeSystem() {
-        if (presetRaw) {
-          const parts = presetRaw.split("|");
-          a = (parts[0] || "").trim();
-          b = (parts[1] || "").trim();
-        } else {
-          a = genStr(params.n, params.seed);
-          b = genStr(params.n, params.seed + 333);
-        }
-        if (a.length < 1) a = "horse";
-        if (b.length < 1) b = "ros";
-        dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
-        for (let x = 0; x <= a.length; x++) dp[x][0] = x;
-        for (let y = 0; y <= b.length; y++) dp[0][y] = y;
         isDone = false;
         isPaused = false;
-        timer = 0;
-        i = 1;
-        j = 1;
-        stepInfo = null;
+        p5Timer = 0;
+
+        let btn = document.getElementById("pause-btn");
+        if (btn) {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
+
+        m = params.word1.length;
+        n = params.word2.length;
+        
+        // Initialize an empty structure for rendering the DP table
+        dpTable = [];
+        for (let i = 0; i <= m; i++) {
+            let row = [];
+            for (let j = 0; j <= n; j++) {
+                row.push({
+                    val: null,     // Calculated minimum operations
+                    deps: [],      // Array of dependency coordinates [depI, depJ]
+                    isCurrent: false,
+                    isEvaluated: false
+                });
+            }
+            dpTable.push(row);
+        }
+
+        phase = 0;
+        currI = 0;
+        currJ = 0;
+
+        // Reset display pointer to origin
+        dispCellX = -100;
+        dispCellY = -100;
+
         document.getElementById("log-container").innerHTML = "";
-        updateDataNodes();
-        updateResult("运行中", "#888");
-        const btn = document.getElementById("pause-btn");
-        btn.innerHTML = "⏸ 暂停";
-        btn.style.background = "var(--dark)";
-        logMsg(`word1="${a}", word2="${b}"，初始化边界完成。`, true);
+        logMsg(`✅ 开始演示编辑距离算法。word1: "${params.word1}", word2: "${params.word2}"`, true);
+        logMsg(`📏 建立大小为 ${(m+1)} x ${(n+1)} 的二维 DP 表格。`);
       }
 
       function draw() {
-        background(255);
-        drawMatrix();
-        drawStatus();
-        if (isPaused || isDone) return;
-        timer += (deltaTime / 1000) * params.speed;
-        if (timer >= 0.85) {
-          performStep();
-          timer = 0;
-        }
-      }
+        background("#fdfcf9");
 
-      function drawMatrix() {
-        const m = a.length, n = b.length;
-        const rows = m + 1, cols = n + 1;
-        const cell = Math.floor(Math.min((width - 140) / cols, (height - 290) / rows));
-        const sx = (width - cell * cols) / 2;
-        const sy = 95;
-        fill(90); noStroke(); textSize(12); textAlign(LEFT, CENTER);
-        text("dp[i][j]：word1[:i] -> word2[:j] 的最少操作数", 24, 60);
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            const x = sx + c * cell, y = sy + r * cell;
-            let fc = "#fff", sc = "#ddd";
-            if (dp[r][c] > 0) { fc = "#eef3ff"; sc = "#6a9bcc"; }
-            if (!isDone && r === i && c === j) { fc = "#fff3ee"; sc = "#d97757"; }
-            if (stepInfo && stepInfo.src && stepInfo.src.some((p) => p[0] === r && p[1] === c)) { fc = "#f6fbef"; sc = "#788c5d"; }
-            stroke(sc); strokeWeight(1.1); fill(fc); rect(x, y, cell, cell, 4);
-            noStroke(); fill("#222"); textAlign(CENTER, CENTER); textSize(Math.max(9, cell * 0.25));
-            text(dp[r][c], x + cell / 2, y + cell / 2);
+        if (!isDone && !isPaused) {
+          p5Timer += 0.02 * params.speed;
+          if (p5Timer > 1) {
+            p5Timer = 0;
+            performStep();
           }
         }
-        fill("#666"); textAlign(CENTER, CENTER); textSize(Math.max(10, Math.min(12, cell * 0.28)));
-        for (let c = 1; c < cols; c++) text(b[c - 1], sx + c * cell + cell / 2, sy - 14);
-        for (let r = 1; r < rows; r++) text(a[r - 1], sx - 14, sy + r * cell + cell / 2);
+
+        drawGrid();
       }
 
-      function drawStatus() {
-        const bw = Math.min(560, width - 48), bh = 160;
-        const bx = (width - bw) / 2, by = height - bh - 16;
-        fill("#fffcf9"); stroke("#e8e6dc"); strokeWeight(1.4); rect(bx, by, bw, bh, 10); noStroke();
-        fill("#666"); textAlign(CENTER, CENTER); textSize(12);
-        text(`i=${Math.min(i, a.length)}  j=${Math.min(j, b.length)}  当前答案=${dp[a.length][b.length]}`, bx + bw / 2, by + 22);
-        textAlign(LEFT, CENTER); textSize(14);
-        if (stepInfo) {
-          fill("#6a9bcc"); text(stepInfo.d1, bx + 20, by + 56);
-          fill("#d97757"); text(stepInfo.d2, bx + 20, by + 90);
-          fill("#788c5d"); text(stepInfo.d3, bx + 20, by + 124);
-        } else {
-          fill("#777"); text("等待首个状态更新...", bx + 20, by + 90);
+      function drawGrid() {
+        let maxDim = Math.max(m + 2, n + 2);
+        let cellSize = Math.min((width - 40) / (n + 2), (height - 60) / (m + 2), 50);
+        let offsetX = (width - (n + 2) * cellSize) / 2;
+        let offsetY = (height - (m + 2) * cellSize) / 2;
+
+        textAlign(CENTER, CENTER);
+        
+        // 1. Draw Headers (Words)
+        textSize(cellSize * 0.4);
+        textStyle(BOLD);
+        fill(100);
+        // word 2 horizontal
+        text("Ø", offsetX + 1.5 * cellSize, offsetY + 0.5 * cellSize);
+        for(let j = 0; j < n; j++) {
+            text(params.word2[j], offsetX + (j + 2.5) * cellSize, offsetY + 0.5 * cellSize);
+        }
+        // word 1 vertical
+        text("Ø", offsetX + 0.5 * cellSize, offsetY + 1.5 * cellSize);
+        for(let i = 0; i < m; i++) {
+            text(params.word1[i], offsetX + 0.5 * cellSize, offsetY + (i + 2.5) * cellSize);
+        }
+
+        // 2. Draw DP Cells
+        strokeWeight(1.5);
+        for (let i = 0; i <= m; i++) {
+            for (let j = 0; j <= n; j++) {
+                let cx = offsetX + (j + 1) * cellSize;
+                let cy = offsetY + (i + 1) * cellSize;
+                let cellData = dpTable[i][j];
+
+                // Cell background
+                if (i === m && j === n && cellData.isEvaluated) {
+                    fill("#eef3ff"); // Final answer highlight
+                    stroke("var(--anthropic-blue)");
+                } else if (cellData.isEvaluated) {
+                    fill(255);
+                    stroke("#d0ced0");
+                } else {
+                    fill("#f9f9f9");
+                    stroke("#e0e0e0");
+                }
+                rect(cx, cy, cellSize, cellSize, 4);
+
+                // Cell value
+                if (cellData.val !== null) {
+                    noStroke();
+                    if (i === m && j === n) {
+                        fill("var(--anthropic-blue)");
+                        textStyle(BOLD);
+                        textSize(cellSize * 0.5);
+                    } else {
+                        fill(50);
+                        textStyle(NORMAL);
+                        textSize(cellSize * 0.45);
+                    }
+                    text(cellData.val, cx + cellSize / 2, cy + cellSize / 2);
+                }
+
+                // Dependency Arrows / Lines
+                if (cellData.isCurrent && cellData.deps.length > 0) {
+                    stroke("var(--anthropic-orange)");
+                    strokeWeight(3);
+                    
+                    for (let dep of cellData.deps) {
+                        let fromX = offsetX + (dep[1] + 1) * cellSize + cellSize / 2;
+                        let fromY = offsetY + (dep[0] + 1) * cellSize + cellSize / 2;
+                        let toX = cx + cellSize / 2;
+                        let toY = cy + cellSize / 2;
+                        
+                        // Draw line
+                        line(fromX, fromY, toX, toY);
+                        // Draw point at end
+                        fill("var(--anthropic-orange)");
+                        ellipse(fromX, fromY, 6, 6);
+                    }
+                }
+            }
+        }
+
+        // 3. Draw Moving Highlight Box
+        if (!isDone) {
+            let targetX = offsetX + (currJ + 1) * cellSize;
+            let targetY = offsetY + (currI + 1) * cellSize;
+            
+            if (dispCellX < 0) { dispCellX = targetX; dispCellY = targetY; } // snap initially
+            dispCellX = lerp(dispCellX, targetX, 0.15 * params.speed);
+            dispCellY = lerp(dispCellY, targetY, 0.15 * params.speed);
+
+            noFill();
+            stroke("var(--anthropic-orange)");
+            strokeWeight(3);
+            rect(dispCellX, dispCellY, cellSize, cellSize, 6);
+
+            // Floating label
+            fill("var(--anthropic-orange)");
+            noStroke();
+            textSize(12);
+            let ptrLabel = currentLang === 'python' ? `dp[${currI}][${currJ}]` : `dp[${currI}][${currJ}]`;
+            text(ptrLabel, dispCellX + cellSize/2, dispCellY - 12);
         }
       }
 
       function performStep() {
-        const m = a.length, n = b.length;
-        if (i > m) {
-          isDone = true;
-          updateResult(`最终结果：${dp[m][n]}`, "var(--green)");
-          logMsg(`填表结束，编辑距离 = ${dp[m][n]}。`, true, "success");
-          return;
+        if (isDone) return;
+
+        // Clear previous current flags
+        for(let i=0; i<=m; i++) {
+            for(let j=0; j<=n; j++) {
+                dpTable[i][j].isCurrent = false;
+            }
         }
-        const ca = a[i - 1], cb = b[j - 1];
-        let src = [];
-        if (ca === cb) {
-          dp[i][j] = dp[i - 1][j - 1];
-          src = [[i - 1, j - 1]];
-          stepInfo = { src, d1: `字符相同：'${ca}'`, d2: `dp[${i}][${j}] = dp[${i - 1}][${j - 1}]`, d3: `当前值 = ${dp[i][j]}` };
-        } else {
-          const rep = dp[i - 1][j - 1], del = dp[i - 1][j], ins = dp[i][j - 1];
-          const best = Math.min(rep, del, ins);
-          dp[i][j] = best + 1;
-          if (best === rep) src.push([i - 1, j - 1]);
-          if (best === del) src.push([i - 1, j]);
-          if (best === ins) src.push([i, j - 1]);
-          stepInfo = {
-            src,
-            d1: `字符不同：'${ca}' vs '${cb}'`,
-            d2: `min(替换=${rep}, 删除=${del}, 插入=${ins}) + 1`,
-            d3: `dp[${i}][${j}] = ${dp[i][j]}`
-          };
+
+        if (phase === 0) {
+            // Fill Col 0 (word1 to empty string)
+            dpTable[currI][0].val = currI;
+            dpTable[currI][0].isEvaluated = true;
+            dpTable[currI][0].isCurrent = true;
+            
+            logMsg(`📍 初始化第一列 (删除操作)：dp[${currI}][0] = ${currI}`);
+            
+            currI++;
+            if (currI > m) {
+                phase = 1;
+                currI = 0;
+                currJ = 1;
+            }
+        } 
+        else if (phase === 1) {
+            // Fill Row 0 (empty string to word2)
+            dpTable[0][currJ].val = currJ;
+            dpTable[0][currJ].isEvaluated = true;
+            dpTable[0][currJ].isCurrent = true;
+            
+            logMsg(`📍 初始化第一行 (插入操作)：dp[0][${currJ}] = ${currJ}`);
+            
+            currJ++;
+            if (currJ > n) {
+                phase = 2;
+                currI = 1;
+                currJ = 1;
+            }
+        } 
+        else if (phase === 2) {
+            // Main DP Calculation
+            dpTable[currI][currJ].isCurrent = true;
+            let c1 = params.word1[currI - 1];
+            let c2 = params.word2[currJ - 1];
+            
+            if (c1 === c2) {
+                let v = dpTable[currI - 1][currJ - 1].val;
+                dpTable[currI][currJ].val = v;
+                dpTable[currI][currJ].deps = [[currI - 1, currJ - 1]];
+                logMsg(`🔄 比较 '${c1}' vs '${c2}'：字符匹配！继承左上角值，dp[${currI}][${currJ}] = ${v}`, false);
+            } else {
+                let delCost = dpTable[currI - 1][currJ].val;
+                let insCost = dpTable[currI][currJ - 1].val;
+                let repCost = dpTable[currI - 1][currJ - 1].val;
+                
+                let minCost = Math.min(delCost, insCost, repCost);
+                dpTable[currI][currJ].val = minCost + 1;
+                
+                // Track visual dependencies
+                if (delCost === minCost) dpTable[currI][currJ].deps.push([currI - 1, currJ]);
+                if (insCost === minCost) dpTable[currI][currJ].deps.push([currI, currJ - 1]);
+                if (repCost === minCost) dpTable[currI][currJ].deps.push([currI - 1, currJ - 1]);
+                
+                logMsg(`⚠️ 比较 '${c1}' vs '${c2}'：不匹配。取(删,插,换)最小步数 ${minCost} + 1 = ${minCost + 1}`, true);
+            }
+
+            dpTable[currI][currJ].isEvaluated = true;
+
+            // Move pointers
+            currJ++;
+            if (currJ > n) {
+                currJ = 1;
+                currI++;
+            }
+            if (currI > m) {
+                phase = 3;
+            }
+        } 
+        else if (phase === 3) {
+            isDone = true;
+            logMsg(`🏁 算法执行完成！最少转换步数为：${dpTable[m][n].val}`, true);
         }
-        logMsg(`i=${i}, j=${j}, dp=${dp[i][j]}`, true);
-        j++;
-        if (j > n) { j = 1; i++; }
       }
 
-      function updateDataNodes() {
-        const c = document.getElementById("data-nodes");
-        c.innerHTML = "";
-        [`W1:${a}`, `W2:${b}`].forEach((v) => {
-          const node = document.createElement("div");
-          node.className = "data-node";
-          node.textContent = v;
-          c.appendChild(node);
+      // ==========================================================
+      // UTILITY FUNCTIONS
+      // ==========================================================
+
+      function logMsg(msg, highlight = false) {
+        let container = document.getElementById("log-container");
+        if (!container) return;
+        let item = document.createElement("div");
+        item.className = "log-item" + (highlight ? " highlight" : "");
+        let time = new Date().toLocaleTimeString("zh-CN", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
         });
+        item.innerHTML = `<div class="time">${time}</div>${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
       }
 
-      function logMsg(msg, highlight = false, extraClass = "") {
-        const c = document.getElementById("log-container");
-        const item = document.createElement("div");
-        item.className = "log-item" + (highlight ? " highlight" : "") + (extraClass ? ` ${extraClass}` : "");
-        const t = new Date().toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-        item.innerHTML = `<div class="log-time">${t}</div>${msg}`;
-        c.appendChild(item);
-        c.scrollTop = c.scrollHeight;
-      }
-      function updateResult(text, color) { const el = document.getElementById("result-label"); el.textContent = text; el.style.color = color; }
       function switchLang(lang) {
         currentLang = lang;
-        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-        const map = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
-        document.querySelectorAll(".tab")[map[lang]].classList.add("active");
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        const tabs = document.querySelectorAll(".tab");
+        const langMap = { python: 0, ts: 1, java: 2, cpp: 3, c: 4 };
+        tabs[langMap[lang]].classList.add("active");
+
         const codeEl = document.getElementById("code-viewer");
-        const hl = { python: "language-python", ts: "language-typescript", java: "language-java", cpp: "language-cpp", c: "language-c" };
-        codeEl.className = "hljs " + hl[lang];
+        const hljsMap = {
+          python: "language-python",
+          ts: "language-typescript",
+          java: "language-java",
+          cpp: "language-cpp",
+          c: "language-c",
+        };
+        codeEl.className = "hljs " + hljsMap[lang];
         codeEl.textContent = SNIPPETS[lang];
+
         codeEl.removeAttribute("data-highlighted");
         if (window.hljs) hljs.highlightElement(codeEl);
+
         initializeSystem();
       }
-      function updateParam(id, val) { if (id in params) params[id] = parseFloat(val); document.getElementById(id + "-value").textContent = val; }
-      function updateSeed() { params.seed = parseInt(document.getElementById("seed-input").value, 10) || 72001; presetRaw = ""; initializeSystem(); }
-      function randomSeedAndUpdate() { params.seed = floor(random(1, 99999)); document.getElementById("seed-input").value = params.seed; presetRaw = ""; initializeSystem(); }
-      function setPreset(raw) { presetRaw = raw; initializeSystem(); }
+
+      function updateParam(id, val) {
+        if (id in params) params[id] = parseFloat(val);
+        let display = document.getElementById(id + "-value");
+        if (display) display.textContent = val;
+        // Do not re-init on speed change
+      }
+
+      function updateWords() {
+        let w1 = document.getElementById("word1-input").value.trim().toLowerCase();
+        let w2 = document.getElementById("word2-input").value.trim().toLowerCase();
+        
+        // Prevent totally empty strings for visualization sanity (fallback to single char)
+        if(w1.length === 0) w1 = "a";
+        if(w2.length === 0) w2 = "b";
+
+        params.word1 = w1;
+        params.word2 = w2;
+        initializeSystem();
+      }
+
+      function randomWordsAndUpdate() {
+        const wordPairs = [
+            ["horse", "ros"],
+            ["intention", "execution"],
+            ["zoologico", "zoo"],
+            ["apple", "papel"],
+            ["dynamic", "static"],
+            ["bit", "byte"]
+        ];
+        let pair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
+        params.word1 = pair[0];
+        params.word2 = pair[1];
+        
+        document.getElementById("word1-input").value = params.word1;
+        document.getElementById("word2-input").value = params.word2;
+        
+        initializeSystem();
+      }
+
       function togglePause() {
         isPaused = !isPaused;
-        const btn = document.getElementById("pause-btn");
-        if (isPaused) { btn.innerHTML = "▶ 继续"; btn.style.background = "var(--green)"; }
-        else { btn.innerHTML = "⏸ 暂停"; btn.style.background = "var(--dark)"; }
+        let btn = document.getElementById("pause-btn");
+        if (!btn) return;
+        if (isPaused) {
+          btn.innerHTML = "▶ 继续";
+          btn.style.background = "var(--anthropic-green)";
+        } else {
+          btn.innerHTML = "⏸ 暂停";
+          btn.style.background = "var(--anthropic-dark)";
+        }
       }
-      function resetAnimation() { initializeSystem(); }
+
+      function resetAnimation() {
+        initializeSystem();
+      }
     </script>
   </body>
 </html>
