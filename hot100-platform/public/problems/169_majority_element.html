@@ -226,8 +226,10 @@ int majorityElement(int* nums, int numsSize) {
       let isPaused = false;
       let timer = 0;
       let presetRaw = "";
-      let pointerX = 80;
-      let pointerTargetX = 80;
+      
+      // 修改：将初始位置设为 -100 以便第一次正确计算对齐
+      let pointerX = -100;
+      let pointerTargetX = -100;
 
       function setup() {
         const container = document.getElementById("canvas-container");
@@ -246,8 +248,10 @@ int majorityElement(int* nums, int numsSize) {
         isDone = false;
         isPaused = false;
         timer = 0;
-        pointerX = 80;
-        pointerTargetX = 80;
+        
+        pointerX = -100;
+        pointerTargetX = -100;
+        
         document.getElementById("log-container").innerHTML = "";
         updateDataUI(arr);
         updateResult("运行中", "#888");
@@ -285,12 +289,28 @@ int majorityElement(int* nums, int numsSize) {
       }
 
       function drawArray() {
-        const gap = Math.max(28, Math.min(52, (width - 150) / Math.max(arr.length - 1, 1)));
-        const startX = 80;
+        // 修改：动态计算居中布局和限制最小间距
+        const minGap = 44; 
+        const maxGap = 64;
+        const gap = Math.max(minGap, Math.min(maxGap, (width - 80) / Math.max(arr.length - 1, 1)));
+        const totalWidth = (arr.length - 1) * gap;
+        const startX = width / 2 - totalWidth / 2;
         const y = 145;
+        
+        // 修改：统一在这里计算 targetX，避免动画坐标错位
+        if (i < arr.length) {
+            pointerTargetX = startX + i * gap;
+        }
+        
+        if (pointerX === -100) pointerX = pointerTargetX;
+        
         pointerX = lerp(pointerX, pointerTargetX, 0.12 * params.speed);
-        fill(90); noStroke(); textSize(13); textAlign(LEFT, CENTER);
-        text("输入数组 nums", 30, 70);
+        
+        fill(90); noStroke(); textSize(13); textAlign(CENTER, CENTER);
+        
+        // 修改：标题居中对齐
+        text("输入数组 nums", width / 2, 70);
+        
         for (let k = 0; k < arr.length; k++) {
           const cx = startX + k * gap;
           const active = k === i && !isDone;
@@ -302,6 +322,7 @@ int majorityElement(int* nums, int numsSize) {
           noStroke(); fill("#222"); textAlign(CENTER, CENTER); textSize(16); text(arr[k], cx, y);
           fill("#aaa"); textSize(10); text(k, cx, y + 30);
         }
+        
         if (!isDone) {
           stroke("#d97757"); strokeWeight(2); line(pointerX, y + 50, pointerX, y + 26);
           fill("#d97757"); noStroke(); triangle(pointerX, y + 20, pointerX - 5, y + 30, pointerX + 5, y + 30);
@@ -311,7 +332,8 @@ int majorityElement(int* nums, int numsSize) {
 
       function drawStatus() {
         const bx = width / 2 - 120;
-        const by = height / 2 + 50;
+        // 修改：将下方状态框的 Y 坐标相对于数组位置固定
+        const by = 145 + 130; 
         fill("#fffcf9"); stroke("#e8e6dc"); strokeWeight(1.4); rect(bx, by, 240, 120, 10);
         noStroke(); fill("#666"); textAlign(CENTER, CENTER); textSize(12);
         text(`${LANG_VARS[currentLang].cand} / ${LANG_VARS[currentLang].cnt}`, bx + 120, by + 24);
@@ -326,7 +348,7 @@ int majorityElement(int* nums, int numsSize) {
           logMsg(`遍历结束，最终候选值 ${candidate} 即多数元素。`, true);
           return;
         }
-        pointerTargetX = 80 + i * Math.max(28, Math.min(52, (width - 150) / Math.max(arr.length - 1, 1)));
+        // 修改：移除了冗余的 targetX 硬编码计算逻辑
         const x = arr[i];
         if (count === 0) {
           candidate = x;
