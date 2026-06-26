@@ -223,8 +223,8 @@ int singleNumber(int* nums, int numsSize) {
       let isPaused = false;
       let timer = 0;
       let presetRaw = "";
-      let pointerX = 80;
-      let pointerTargetX = 80;
+      let pointerX = -100; // 初始隐藏或重置状态
+      let pointerTargetX = -100;
 
       function setup() {
         const container = document.getElementById("canvas-container");
@@ -242,8 +242,11 @@ int singleNumber(int* nums, int numsSize) {
         isDone = false;
         isPaused = false;
         timer = 0;
-        pointerX = 80;
-        pointerTargetX = 80;
+        
+        // 允许 pointerX 在第一次渲染时跳到正确位置
+        pointerX = -100; 
+        pointerTargetX = -100;
+        
         document.getElementById("log-container").innerHTML = "";
         updateDataUI(arr);
         updateResult("运行中", "#888");
@@ -281,15 +284,29 @@ int singleNumber(int* nums, int numsSize) {
       }
 
       function drawArray() {
-        const gap = Math.max(28, Math.min(52, (width - 150) / Math.max(arr.length - 1, 1)));
-        const startX = 80;
+        // 修改：动态计算居中布局和限制最小间距以防重叠
+        const minGap = 44; // 方块宽 36，留出 8px 空隙
+        const maxGap = 64;
+        const gap = Math.max(minGap, Math.min(maxGap, (width - 80) / Math.max(arr.length - 1, 1)));
+        const totalWidth = (arr.length - 1) * gap;
+        const startX = width / 2 - totalWidth / 2;
         const y = 145;
+        
+        // 修改：在这里统一管理 targetX，避免布局和逻辑解耦导致的错位
+        if (idx < arr.length) {
+            pointerTargetX = startX + idx * gap;
+        }
+        
+        if (pointerX === -100) pointerX = pointerTargetX; // 初始对齐
         pointerX = lerp(pointerX, pointerTargetX, 0.12 * params.speed);
+
         noStroke();
         fill(90);
         textSize(13);
-        textAlign(LEFT, CENTER);
-        text("输入数组 nums", 30, 70);
+        textAlign(CENTER, CENTER);
+        // 修改：标题居中对齐
+        text("输入数组 nums", width / 2, 70);
+
         for (let i = 0; i < arr.length; i++) {
           const cx = startX + i * gap;
           const active = i === idx && !isDone;
@@ -306,6 +323,7 @@ int singleNumber(int* nums, int numsSize) {
           textSize(10);
           text(i, cx, y + 30);
         }
+        
         if (!isDone) {
           stroke("#d97757");
           strokeWeight(2);
@@ -321,7 +339,8 @@ int singleNumber(int* nums, int numsSize) {
 
       function drawAccumulator() {
         const bx = width / 2 - 90;
-        const by = height / 2 + 50;
+        // 修改：将累加器的 Y 坐标固定为相对于数组的固定偏移，避免不同屏幕高度下的变形
+        const by = 145 + 130; 
         fill("#fffcf9");
         stroke("#e8e6dc");
         strokeWeight(1.5);
@@ -343,7 +362,7 @@ int singleNumber(int* nums, int numsSize) {
           logMsg(`遍历结束，${LANG_VARS[currentLang].acc} = ${ans}，即只出现一次的数字。`, true);
           return;
         }
-        pointerTargetX = 80 + idx * Math.max(28, Math.min(52, (width - 150) / Math.max(arr.length - 1, 1)));
+        // 修改：移除了原来在此处计算 pointerTargetX 的硬编码逻辑
         const before = ans;
         const x = arr[idx];
         ans ^= x;
